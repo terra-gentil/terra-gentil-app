@@ -15,12 +15,13 @@ class NivelLuz(str, Enum):
     meia_sombra = "meia_sombra"
     indireta_brilhante = "indireta_brilhante"
     sombra = "sombra"
+    nao_aplicavel = "nao_aplicavel"
 
 
 class ProblemaDetectado(BaseModel):
     """Problema visual identificado na planta."""
 
-    descricao: str = Field(description="Descrição curta do problema, ex: 'folhas amareladas nas pontas'")
+    descricao: str = Field(description="Descrição curta do problema")
     gravidade: str = Field(description="Gravidade: 'baixa', 'media' ou 'alta'")
     causa_provavel: str = Field(description="Causa mais provável do problema")
 
@@ -28,11 +29,14 @@ class ProblemaDetectado(BaseModel):
 class DiagnosticoResponse(BaseModel):
     """Resposta completa de um diagnóstico de planta."""
 
+    eh_planta: bool = Field(
+        description="True se a imagem contém uma planta, False caso contrário",
+    )
     especie_identificada: str = Field(
-        description="Nome científico da planta, ex: 'Monstera deliciosa'"
+        description="Nome científico da planta, ou 'Nao identificada' se nao for planta",
     )
     nome_popular: str = Field(
-        description="Nome popular em português, ex: 'Costela-de-adão'"
+        description="Nome popular em português, ou 'Nao identificada'",
     )
     confianca: float = Field(
         ge=0.0,
@@ -43,25 +47,25 @@ class DiagnosticoResponse(BaseModel):
         description="True se tóxica para cães, gatos ou crianças pequenas",
     )
     nivel_luz: NivelLuz = Field(
-        description="Necessidade de luz da planta",
+        description="Necessidade de luz, ou 'nao_aplicavel' se nao for planta",
     )
     rega_dias: int = Field(
-        ge=1,
+        ge=0,
         le=60,
-        description="Frequência recomendada de rega, em dias",
+        description="Frequência de rega em dias, 0 se nao for planta",
     )
     problemas_detectados: list[ProblemaDetectado] = Field(
         default_factory=list,
-        description="Lista de problemas visuais identificados na imagem",
+        description="Lista de problemas visuais identificados",
     )
     plano_tratamento: str = Field(
-        description="Plano de cuidado recomendado, em linguagem acessível",
+        description="Plano de cuidado, ou mensagem orientando quando nao for planta",
     )
 
 
 class DiagnosticoErrorResponse(BaseModel):
     """Resposta padronizada de erro do diagnóstico."""
 
-    error_code: str = Field(description="Código do erro, ex: 'INVALID_IMAGE'")
+    error_code: str = Field(description="Código do erro")
     message: str = Field(description="Mensagem legível do erro")
     details: str | None = Field(default=None, description="Detalhes técnicos opcionais")

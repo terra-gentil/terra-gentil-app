@@ -31,13 +31,14 @@ class GeminiInvalidResponseError(GeminiServiceError):
 DIAGNOSTICO_JSON_SCHEMA = {
     "type": "object",
     "properties": {
+        "eh_planta": {"type": "boolean"},
         "especie_identificada": {"type": "string"},
         "nome_popular": {"type": "string"},
         "confianca": {"type": "number"},
         "toxica_para_pets": {"type": "boolean"},
         "nivel_luz": {
             "type": "string",
-            "enum": ["sol_pleno", "meia_sombra", "indireta_brilhante", "sombra"],
+            "enum": ["sol_pleno", "meia_sombra", "indireta_brilhante", "sombra", "nao_aplicavel"],
         },
         "rega_dias": {"type": "integer"},
         "problemas_detectados": {
@@ -55,6 +56,7 @@ DIAGNOSTICO_JSON_SCHEMA = {
         "plano_tratamento": {"type": "string"},
     },
     "required": [
+        "eh_planta",
         "especie_identificada",
         "nome_popular",
         "confianca",
