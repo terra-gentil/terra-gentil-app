@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.core.config import settings
-from app.routes import health
+from app.routes import gemini_test, health
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -9,7 +10,6 @@ app = FastAPI(
     description="API do Doutor das Plantas, diagnóstico de plantas com IA",
 )
 
-# CORS liberado pra dev. Em produção, restringir aos domínios do app.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router, tags=["Health"])
+app.include_router(gemini_test.router)
 
 
 @app.get("/", tags=["Root"])
