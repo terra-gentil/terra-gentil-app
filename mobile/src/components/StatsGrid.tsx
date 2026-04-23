@@ -44,6 +44,6 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 16 },
   box: { flex: 1, minWidth: "45%", backgroundColor: "#f8f9fa", padding: 12, borderRadius: 12, alignItems: "center", borderWidth: 1, borderColor: "#eee" },
   icon: { fontSize: 24, marginBottom: 4 },
-  label: { fontSize: 11, color: "#999", textTransform: "uppercase", fontWeight: "700", marginBottom: 4 },
-  value: { fontSize: 13, color: "#333", fontWeight: "700", textAlign: "center", lineHeight: 16 },
+  label: { fontSize: 13, color: "#999", textTransform: "uppercase", fontWeight: "700", marginBottom: 4 },
+  value: { fontSize: 15, color: "#333", fontWeight: "700", textAlign: "center", lineHeight: 18 },
 });

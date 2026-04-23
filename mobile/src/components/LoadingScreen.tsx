@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 15,
     color: "#666",
     textAlign: "center",
     marginBottom: 20,
@@ -119,14 +119,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   promoText: {
-    fontSize: 13,
+    fontSize: 15,
     color: "#555",
     textAlign: "center",
     lineHeight: 18,
     marginBottom: 6,
   },
   promoLink: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
     color: "#c62828",
   },

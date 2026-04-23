@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#7a5c16",
     textAlign: "center",
     lineHeight: 20,
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   label: {
     alignSelf: "flex-start",
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
     color: "#6b4e0b",
     marginTop: 10,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   erroInline: {
     alignSelf: "flex-start",
     color: "#c62828",
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "600",
     marginTop: 8,
   },

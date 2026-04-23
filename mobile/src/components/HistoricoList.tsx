@@ -157,12 +157,12 @@ const styles = StyleSheet.create({
     color: "#1b5e20",
   },
   clearBtn: {
-    fontSize: 13,
+    fontSize: 15,
     color: "#c62828",
     fontWeight: "600",
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 15,
     color: "#666",
     marginBottom: 12,
   },
@@ -190,13 +190,13 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
   },
   especie: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#888",
     fontStyle: "italic",
     marginTop: 2,
   },
   data: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#999",
     marginTop: 4,
   },
@@ -212,12 +212,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   estadoLabel: {
-    fontSize: 11,
+    fontSize: 13,
     color: "#666",
     fontWeight: "600",
   },
   aviso: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#888",
     fontStyle: "italic",
     textAlign: "center",
