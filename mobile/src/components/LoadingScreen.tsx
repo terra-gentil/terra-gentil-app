@@ -1,6 +1,16 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, Image, StyleSheet, Text, View } from "react-native";
+import {
+  Animated,
+  Image,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { MASCOT_ANALYZING } from "../assets/mascot";
+
+const YOUTUBE_URL = "https://www.youtube.com/@TerraGentil";
 
 export function LoadingScreen() {
   const laserAnim = useRef(new Animated.Value(0)).current;
@@ -20,6 +30,12 @@ export function LoadingScreen() {
     outputRange: [-20, 240],
   });
 
+  function abrirCanal() {
+    Linking.openURL(YOUTUBE_URL).catch((err) => {
+      console.log("[loading] erro ao abrir YouTube:", err);
+    });
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.imageWrapper}>
@@ -30,6 +46,14 @@ export function LoadingScreen() {
       <Text style={styles.subtitle}>
         Verificando luz, toxicidade e criando tratamento
       </Text>
+
+      <TouchableOpacity style={styles.promoBox} onPress={abrirCanal} activeOpacity={0.7}>
+        <Text style={styles.promoTitle}>📺 Enquanto espera</Text>
+        <Text style={styles.promoText}>
+          Da uma olhada no canal Terra Gentil no YouTube. Tenho dicas novas toda semana.
+        </Text>
+        <Text style={styles.promoLink}>Abrir canal</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -76,5 +100,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#666",
     textAlign: "center",
+    marginBottom: 20,
+  },
+  promoBox: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ffcdd2",
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 8,
+    width: "90%",
+    alignItems: "center",
+  },
+  promoTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#c62828",
+    marginBottom: 4,
+  },
+  promoText: {
+    fontSize: 13,
+    color: "#555",
+    textAlign: "center",
+    lineHeight: 18,
+    marginBottom: 6,
+  },
+  promoLink: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#c62828",
   },
 });

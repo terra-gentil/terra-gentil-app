@@ -1,6 +1,7 @@
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DiagnosticoResponse } from "../api/diagnostico";
+import { EbookCard } from "./EbookCard";
 import { LuxMeter } from "./LuxMeter";
 import { StatsGrid } from "./StatsGrid";
 import { Timeline } from "./Timeline";
@@ -83,6 +84,8 @@ export function ResultCard({ imageUri, resultado, onNovaConsulta }: Props) {
           <Text style={styles.reminderText}>{resultado.mensagem_retorno}</Text>
         </View>
       )}
+
+      <EbookCard nomePopular={resultado.nome_popular} />
 
       <TouchableOpacity style={styles.primaryButton} onPress={onNovaConsulta}>
         <Text style={styles.primaryButtonText}>📷 Nova Consulta</Text>
