@@ -16,6 +16,9 @@ import {
   DiagnosticoResponse,
   diagnosticarPlanta,
 } from "./src/api/diagnostico";
+import { ErrorScreen } from "./src/components/ErrorScreen";
+import { AppError } from "./src/errors/AppError";
+import { toAppError, logError } from "./src/errors/errorHandler";
 
 const NIVEL_LUZ_LABEL: Record<string, string> = {
   sol_pleno: "Sol pleno",
@@ -28,6 +31,7 @@ export default function App() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
+  const [appError, setAppError] = useState<AppError | null>(null);
 
   async function handleTirarFoto() {
     const permissao = await ImagePicker.requestCameraPermissionsAsync();
@@ -83,8 +87,10 @@ export default function App() {
       const data = await diagnosticarPlanta(uri);
       setResultado(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      Alert.alert("Erro ao diagnosticar", msg);
+      const appErr = toAppError(err);
+      logError(appErr, "diagnostico");
+      setAppError(appErr);
+      setImageUri(null);
     } finally {
       setLoading(false);
     }
@@ -93,6 +99,7 @@ export default function App() {
   function handleNovaFoto() {
     setImageUri(null);
     setResultado(null);
+    setAppError(null);
   }
 
   return (
@@ -109,7 +116,7 @@ export default function App() {
           <Text style={styles.subtitle}>Doutor das Plantas</Text>
         </View>
 
-        {!imageUri && !resultado && (
+        {!imageUri && !resultado && !appError && (
           <View style={styles.initial}>
             <Text style={styles.intro}>
               Tire uma foto da sua planta para receber um diagnostico completo.
@@ -148,6 +155,14 @@ export default function App() {
               Analisando sua planta...
             </Text>
           </View>
+        )}
+
+        {appError && !loading && (
+          <ErrorScreen
+            error={appError}
+            onRetry={handleNovaFoto}
+            onHome={handleNovaFoto}
+          />
         )}
 
         {resultado && !loading && !resultado.eh_planta && (

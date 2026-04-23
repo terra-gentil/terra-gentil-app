@@ -1,4 +1,6 @@
-import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL, API_TIMEOUT_MS } from "../config/api";
+import { AppError, ErrorCode } from "../errors/AppError";
+import { toAppError } from "../errors/errorHandler";
 
 export type NivelLuz =
   | "sol_pleno"
@@ -29,28 +31,45 @@ export async function diagnosticarPlanta(
   imageUri: string,
 ): Promise<DiagnosticoResponse> {
   const formData = new FormData();
-
   formData.append("file", {
     uri: imageUri,
     name: "planta.jpg",
     type: "image/jpeg",
   } as any);
 
-  const response = await fetch(`${API_BASE_URL}/v1/diagnostico`, {
-    method: "POST",
-    body: formData,
-    headers: {
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Erro ${response.status}: ${errorText || response.statusText}`,
-    );
+  try {
+    const response = await fetch(`${API_BASE_URL}/v1/diagnostico`, {
+      method: "POST",
+      body: formData,
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      if (response.status === 413) {
+        throw new AppError(ErrorCode.IMAGE_TOO_LARGE);
+      }
+      if (response.status === 415 || response.status === 400) {
+        throw new AppError(ErrorCode.IMAGE_INVALID);
+      }
+      if (response.status === 502 || response.status === 503) {
+        throw new AppError(ErrorCode.BACKEND_UNAVAILABLE);
+      }
+      throw new AppError(
+        ErrorCode.BACKEND_ERROR,
+        `HTTP ${response.status}`,
+      );
+    }
+
+    const data = (await response.json()) as DiagnosticoResponse;
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw toAppError(error);
   }
-
-  const data = (await response.json()) as DiagnosticoResponse;
-  return data;
 }
