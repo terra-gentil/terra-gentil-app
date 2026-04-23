@@ -81,11 +81,11 @@ export function WelcomeScreen({ onComecar }: Props) {
         onPress={handleComecar}
         disabled={salvando}
       >
-        <Text style={styles.ctaButtonText}>📷 Quero comecar</Text>
+        <Text style={styles.ctaButtonText}>Ver dicas rapidas →</Text>
       </TouchableOpacity>
 
       <Text style={styles.footer}>
-        Voce tira uma foto. Eu faco o resto. 🌱
+        Em 4 telinhas eu te ensino a tirar uma foto boa 🌱
       </Text>
     </ScrollView>
   );

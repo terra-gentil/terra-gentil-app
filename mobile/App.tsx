@@ -23,14 +23,19 @@ import { LoadingScreen } from "./src/components/LoadingScreen";
 import { HistoricoList } from "./src/components/HistoricoList";
 import { ResultCard } from "./src/components/ResultCard";
 import { SettingsScreen } from "./src/components/SettingsScreen";
+import { TutorialScreen } from "./src/components/TutorialScreen";
 import { WelcomeScreen } from "./src/components/WelcomeScreen";
 import { BRANDING } from "./src/constants/branding";
 import { salvarConsulta } from "./src/storage/historico";
-import { resetarWelcome, welcomeJaVisto } from "./src/storage/preferencias";
+import {
+  resetarWelcome,
+  tutorialJaVisto,
+  welcomeJaVisto,
+} from "./src/storage/preferencias";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 
-type Tela = "boot" | "welcome" | "home" | "settings";
+type Tela = "boot" | "welcome" | "tutorial" | "home" | "settings";
 
 export default function App() {
   const [tela, setTela] = useState<Tela>("boot");
@@ -41,8 +46,13 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const visto = await welcomeJaVisto();
-      setTela(visto ? "home" : "welcome");
+      const welcomeOk = await welcomeJaVisto();
+      if (!welcomeOk) {
+        setTela("welcome");
+        return;
+      }
+      const tutorialOk = await tutorialJaVisto();
+      setTela(tutorialOk ? "home" : "tutorial");
     })();
   }, []);
 
@@ -58,7 +68,12 @@ export default function App() {
     return () => sub.remove();
   }, [tela]);
 
-  function handleWelcomeDone() {
+  async function handleWelcomeDone() {
+    const tutorialOk = await tutorialJaVisto();
+    setTela(tutorialOk ? "home" : "tutorial");
+  }
+
+  function handleTutorialDone() {
     setTela("home");
   }
 
@@ -176,6 +191,15 @@ export default function App() {
       <View style={styles.container}>
         <StatusBar style="dark" />
         <WelcomeScreen onComecar={handleWelcomeDone} />
+      </View>
+    );
+  }
+
+  if (tela === "tutorial") {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <TutorialScreen onConcluir={handleTutorialDone} />
       </View>
     );
   }

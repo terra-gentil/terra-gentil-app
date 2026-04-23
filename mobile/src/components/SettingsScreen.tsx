@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { limparHistorico } from "../storage/historico";
-import { resetarWelcome } from "../storage/preferencias";
+import { resetarTutorial, resetarWelcome } from "../storage/preferencias";
 
 const APP_VERSION = "1.0.0";
 const YOUTUBE_URL = "https://www.youtube.com/@TerraGentil";
@@ -33,6 +33,27 @@ export function SettingsScreen({ onVoltar }: Props) {
             Alert.alert(
               "Pronto!",
               "Feche o app completamente e abra de novo. A tela de boas-vindas vai aparecer.",
+              [{ text: "Entendi", onPress: onVoltar }],
+            );
+          },
+        },
+      ],
+    );
+  }
+
+  function handleVerTutorial() {
+    Alert.alert(
+      "Ver tutorial",
+      "Vou preparar pro tutorial de foto aparecer na proxima vez que voce abrir o app. Tudo bem?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sim, quero ver",
+          onPress: async () => {
+            await resetarTutorial();
+            Alert.alert(
+              "Pronto!",
+              "Feche o app completamente e abra de novo. O tutorial vai aparecer.",
               [{ text: "Entendi", onPress: onVoltar }],
             );
           },
@@ -99,6 +120,17 @@ export function SettingsScreen({ onVoltar }: Props) {
             <Text style={styles.cardTitle}>Ver boas-vindas de novo</Text>
             <Text style={styles.cardDesc}>
               Mostra a tela de apresentacao na proxima abertura
+            </Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={handleVerTutorial}>
+          <Text style={styles.cardIcon}>📖</Text>
+          <View style={styles.cardInfo}>
+            <Text style={styles.cardTitle}>Ver tutorial de foto</Text>
+            <Text style={styles.cardDesc}>
+              Revisa as dicas de como tirar uma boa foto da planta
             </Text>
           </View>
           <Text style={styles.chevron}>›</Text>
