@@ -18,8 +18,10 @@ import {
 import { ErrorScreen } from "./src/components/ErrorScreen";
 import { ScannerArea } from "./src/components/ScannerArea";
 import { LoadingScreen } from "./src/components/LoadingScreen";
+import { HistoricoList } from "./src/components/HistoricoList";
 import { ResultCard } from "./src/components/ResultCard";
 import { BRANDING } from "./src/constants/branding";
+import { salvarConsulta } from "./src/storage/historico";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 
@@ -84,6 +86,9 @@ export default function App() {
     try {
       const data = await diagnosticarPlanta(uri);
       setResultado(data);
+      if (data.eh_planta) {
+        await salvarConsulta(data, uri);
+      }
     } catch (err) {
       const appErr = toAppError(err);
       logError(appErr, "diagnostico");
@@ -126,6 +131,8 @@ export default function App() {
                 🖼️ Usar uma foto que ja tirei
               </Text>
             </TouchableOpacity>
+
+            <HistoricoList />
           </View>
         )}
 
