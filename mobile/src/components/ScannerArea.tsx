@@ -15,10 +15,16 @@ interface Props {
 }
 
 const TIPS = [
-  "🎯 Dica: Fotografe o CAULE e as folhas.",
-  "☀️ Dica: Use um local bem iluminado.",
-  "🚫 Dica: Evite fotos tremidas ou borradas.",
-  "📱 Dica: Chegue perto do problema.",
+  "☀️ Dica: Luz natural e amiga da foto boa. Prefira a sombra clarinha, evite o sol a pino.",
+  "🔍 Dica: Aproxime a camera da folha com problema. Quanto mais perto, melhor eu enxergo.",
+  "📱 Dica: Toque na tela pra focar antes de clicar. Foto nitida vale ouro pro diagnostico.",
+  "🎯 Dica: Mire numa folha so. O Doutor precisa de foco, nao de bagunca no quadro.",
+  "🍂 Dica: Folha amarelada? Fotografe ela inteira. O padrao me conta muita coisa.",
+  "🔬 Dica: Tem mancha na folha? Capriche no enquadramento. Quero ver o detalhe bem de perto.",
+  "🧽 Dica: Limpe a lente da camera com um paninho. Foto embacada atrapalha meu trabalho.",
+  "🌿 Dica: Se o problema esta no caule, fotografe o caule tambem, nao so as folhas.",
+  "✨ Dica: Evite sombra projetada sobre a folha. Posicione a planta num lugar iluminado.",
+  "🖼️ Dica: Fundo neutro ajuda. Uma parede clara atras da planta ja faz milagre.",
 ];
 
 export function ScannerArea({ onPress, disabled }: Props) {
