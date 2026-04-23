@@ -142,36 +142,62 @@ class GeminiService:
             len(image_bytes),
         )
 
-        try:
-            response = self.model.generate_content(
-                [PROMPT_DIAGNOSTICO_V1, pil_image],
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.2,
-                    max_output_tokens=2048,
-                    response_mime_type="application/json",
-                    response_schema=DIAGNOSTICO_JSON_SCHEMA,
-                ),
+        generation_config = genai.types.GenerationConfig(
+            response_mime_type="application/json",
+            response_schema=DIAGNOSTICO_JSON_SCHEMA,
+            max_output_tokens=16384,
+            temperature=0.7,
+        )
+
+        last_error = None
+        for attempt in range(2):
+            try:
+                response = self.model.generate_content(
+                    [PROMPT_DIAGNOSTICO_V1, pil_image],
+                    generation_config=generation_config,
+                )
+            except Exception as exc:
+                raise GeminiServiceError(f"Falha ao chamar Gemini: {exc}") from exc
+
+            elapsed_ms = int((time.time() - start) * 1000)
+            raw_text = response.text.strip()
+
+            logger.info(
+                "Gemini respondeu em %sms com %s chars (tentativa %s)",
+                elapsed_ms,
+                len(raw_text),
+                attempt + 1,
             )
-        except Exception as exc:
-            raise GeminiServiceError(f"Falha ao chamar Gemini: {exc}") from exc
 
-        elapsed_ms = int((time.time() - start) * 1000)
-        raw_text = response.text.strip()
+            try:
+                data = json.loads(raw_text)
+            except json.JSONDecodeError as exc:
+                logger.error(
+                    "JSON truncado do Gemini (primeiros 2000 chars): %s",
+                    raw_text[:2000],
+                )
+                logger.warning("Tentativa %s falhou: %s", attempt + 1, exc)
+                last_error = exc
+                if attempt == 0:
+                    logger.info("Retry automatico...")
+                    continue
+                raise GeminiInvalidResponseError(
+                    f"Gemini retornou resposta fora do formato esperado: {exc}"
+                ) from exc
 
-        logger.info("Gemini respondeu em %sms com %s chars", elapsed_ms, len(raw_text))
+            try:
+                return DiagnosticoResponse(**data)
+            except Exception as exc:
+                logger.error("Resposta nao bate com schema: %s", data)
+                logger.warning("Tentativa %s falhou: %s", attempt + 1, exc)
+                last_error = exc
+                if attempt == 0:
+                    logger.info("Retry automatico...")
+                    continue
+                raise GeminiInvalidResponseError(
+                    f"Resposta do Gemini nao bate com o schema: {exc}"
+                ) from exc
 
-        try:
-            data = json.loads(raw_text)
-        except json.JSONDecodeError as exc:
-            logger.error("Resposta do Gemini nao e JSON: %s", raw_text[:500])
-            raise GeminiInvalidResponseError(
-                f"Gemini retornou resposta fora do formato esperado: {exc}"
-            ) from exc
-
-        try:
-            return DiagnosticoResponse(**data)
-        except Exception as exc:
-            logger.error("Resposta nao bate com schema: %s", data)
-            raise GeminiInvalidResponseError(
-                f"Resposta do Gemini nao bate com o schema: {exc}"
-            ) from exc
+        raise GeminiInvalidResponseError(
+            f"Falha apos 2 tentativas: {last_error}"
+        )
