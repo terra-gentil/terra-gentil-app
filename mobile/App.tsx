@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  BackHandler,
   Image,
   ScrollView,
   StyleSheet,
@@ -20,16 +22,71 @@ import { ScannerArea } from "./src/components/ScannerArea";
 import { LoadingScreen } from "./src/components/LoadingScreen";
 import { HistoricoList } from "./src/components/HistoricoList";
 import { ResultCard } from "./src/components/ResultCard";
+import { SettingsScreen } from "./src/components/SettingsScreen";
+import { WelcomeScreen } from "./src/components/WelcomeScreen";
 import { BRANDING } from "./src/constants/branding";
 import { salvarConsulta } from "./src/storage/historico";
+import { resetarWelcome, welcomeJaVisto } from "./src/storage/preferencias";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 
+type Tela = "boot" | "welcome" | "home" | "settings";
+
 export default function App() {
+  const [tela, setTela] = useState<Tela>("boot");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
   const [appError, setAppError] = useState<AppError | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const visto = await welcomeJaVisto();
+      setTela(visto ? "home" : "welcome");
+    })();
+  }, []);
+
+  useEffect(() => {
+    const onBack = () => {
+      if (tela === "settings") {
+        setTela("home");
+        return true;
+      }
+      return false;
+    };
+    const sub = BackHandler.addEventListener("hardwareBackPress", onBack);
+    return () => sub.remove();
+  }, [tela]);
+
+  function handleWelcomeDone() {
+    setTela("home");
+  }
+
+  function handleAbrirSettings() {
+    setTela("settings");
+  }
+
+  function handleVoltarDeSettings() {
+    setTela("home");
+  }
+
+  function handleLongPressReset() {
+    Alert.alert(
+      "Modo desenvolvedor",
+      "Resetar a tela de boas-vindas? Ela vai aparecer na proxima abertura do app.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Resetar",
+          style: "destructive",
+          onPress: async () => {
+            await resetarWelcome();
+            Alert.alert("Pronto", "Feche e abra o app pra ver a tela de boas-vindas.");
+          },
+        },
+      ],
+    );
+  }
 
   async function handleTirarFoto() {
     const permissao = await ImagePicker.requestCameraPermissionsAsync();
@@ -105,6 +162,33 @@ export default function App() {
     setAppError(null);
   }
 
+  if (tela === "boot") {
+    return (
+      <View style={[styles.container, styles.bootScreen]}>
+        <StatusBar style="dark" />
+        <ActivityIndicator size="large" color="#2e7d32" />
+      </View>
+    );
+  }
+
+  if (tela === "welcome") {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <WelcomeScreen onComecar={handleWelcomeDone} />
+      </View>
+    );
+  }
+
+  if (tela === "settings") {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <SettingsScreen onVoltar={handleVoltarDeSettings} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
@@ -113,9 +197,25 @@ export default function App() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>{BRANDING.appName}</Text>
-          <Text style={styles.subtitle}>{BRANDING.subtitle}</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerSide} />
+          <View style={styles.headerCenter}>
+            <TouchableOpacity
+              onLongPress={handleLongPressReset}
+              delayLongPress={3000}
+              activeOpacity={1}
+            >
+              <Text style={styles.title}>{BRANDING.appName}</Text>
+            </TouchableOpacity>
+            <Text style={styles.subtitle}>{BRANDING.subtitle}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.headerSide}
+            onPress={handleAbrirSettings}
+            hitSlop={12}
+          >
+            <Text style={styles.gearIcon}>⚙️</Text>
+          </TouchableOpacity>
         </View>
 
         {!imageUri && !resultado && !appError && (
@@ -184,6 +284,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f9f5",
   },
+  bootScreen: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   scroll: {
     flex: 1,
   },
@@ -195,6 +299,24 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     marginBottom: 20,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  headerSide: {
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: "center",
+  },
+  gearIcon: {
+    fontSize: 26,
   },
   title: {
     fontSize: 28,
