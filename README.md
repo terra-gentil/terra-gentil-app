@@ -23,4 +23,12 @@ docs/      - Documentação do projeto
 
 ## Status
 
-Sprint 1 em andamento.
+Sprint 1: concluída.
+
+- Ambiente Windows configurado
+- Repositório GitHub com estrutura de monorepo
+- Backend FastAPI deployado no Railway
+- API de produção: https://terra-gentil-app-production.up.railway.app
+- Swagger UI: https://terra-gentil-app-production.up.railway.app/docs
+
+Próximo sprint: Sprint 2, integração com Gemini 2.5 (endpoint de diagnóstico de plantas).
