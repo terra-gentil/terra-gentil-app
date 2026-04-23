@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routes import diagnostico, gemini_test, health
+from app.routes import diagnostico, health
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,7 +31,6 @@ app.add_middleware(
 )
 
 app.include_router(health.router, tags=["Health"])
-app.include_router(gemini_test.router)
 app.include_router(diagnostico.router)
 
 
