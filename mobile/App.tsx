@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -17,15 +16,12 @@ import {
   diagnosticarPlanta,
 } from "./src/api/diagnostico";
 import { ErrorScreen } from "./src/components/ErrorScreen";
+import { ScannerArea } from "./src/components/ScannerArea";
+import { LoadingScreen } from "./src/components/LoadingScreen";
+import { ResultCard } from "./src/components/ResultCard";
+import { BRANDING } from "./src/constants/branding";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
-
-const NIVEL_LUZ_LABEL: Record<string, string> = {
-  sol_pleno: "Sol pleno",
-  meia_sombra: "Meia sombra",
-  indireta_brilhante: "Luz indireta brilhante",
-  sombra: "Sombra",
-};
 
 export default function App() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -44,9 +40,10 @@ export default function App() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsEditing: false,
-      quality: 0.8,
+      quality: 0.5,
+      base64: false,
     });
 
     if (result.canceled) return;
@@ -68,9 +65,10 @@ export default function App() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsEditing: false,
-      quality: 0.8,
+      quality: 0.5,
+      base64: false,
     });
 
     if (result.canceled) return;
@@ -111,24 +109,13 @@ export default function App() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <Text style={styles.logo}>🌱</Text>
-          <Text style={styles.title}>Terra Gentil</Text>
-          <Text style={styles.subtitle}>Doutor das Plantas</Text>
+          <Text style={styles.title}>{BRANDING.appName}</Text>
+          <Text style={styles.subtitle}>{BRANDING.subtitle}</Text>
         </View>
 
         {!imageUri && !resultado && !appError && (
           <View style={styles.initial}>
-            <Text style={styles.intro}>
-              Tire uma foto da sua planta para receber um diagnostico completo.
-            </Text>
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleTirarFoto}
-              disabled={loading}
-            >
-              <Text style={styles.primaryButtonText}>Tirar foto</Text>
-            </TouchableOpacity>
+            <ScannerArea onPress={handleTirarFoto} disabled={loading} />
 
             <TouchableOpacity
               style={styles.secondaryButton}
@@ -136,26 +123,19 @@ export default function App() {
               disabled={loading}
             >
               <Text style={styles.secondaryButtonText}>
-                Escolher da galeria
+                🖼️ Usar uma foto que ja tirei
               </Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {imageUri && (
+        {imageUri && !resultado?.eh_planta && (
           <View style={styles.imageWrapper}>
             <Image source={{ uri: imageUri }} style={styles.image} />
           </View>
         )}
 
-        {loading && (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator size="large" color="#2e7d32" />
-            <Text style={styles.loadingText}>
-              Analisando sua planta...
-            </Text>
-          </View>
-        )}
+        {loading && <LoadingScreen />}
 
         {appError && !loading && (
           <ErrorScreen
@@ -181,66 +161,11 @@ export default function App() {
         )}
 
         {resultado && !loading && resultado.eh_planta && (
-          <View style={styles.resultBox}>
-            <Text style={styles.resultSpecies}>
-              {resultado.especie_identificada}
-            </Text>
-            <Text style={styles.resultPopular}>{resultado.nome_popular}</Text>
-            <Text style={styles.resultConfidence}>
-              Confianca: {Math.round(resultado.confianca * 100)}%
-            </Text>
-
-            {resultado.toxica_para_pets && (
-              <View style={styles.warningBox}>
-                <Text style={styles.warningText}>
-                  ATENCAO: toxica para pets e criancas pequenas.
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.infoGrid}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Luz</Text>
-                <Text style={styles.infoValue}>
-                  {NIVEL_LUZ_LABEL[resultado.nivel_luz] || resultado.nivel_luz}
-                </Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Regar a cada</Text>
-                <Text style={styles.infoValue}>
-                  {resultado.rega_dias} dias
-                </Text>
-              </View>
-            </View>
-
-            {resultado.problemas_detectados.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Problemas detectados</Text>
-                {resultado.problemas_detectados.map((problema, idx) => (
-                  <View key={idx} style={styles.problemaItem}>
-                    <Text style={styles.problemaDesc}>
-                      {problema.descricao}
-                    </Text>
-                    <Text style={styles.problemaCausa}>
-                      Gravidade {problema.gravidade}. {problema.causa_provavel}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Plano de tratamento</Text>
-              <Text style={styles.planoText}>{resultado.plano_tratamento}</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleNovaFoto}
-            >
-              <Text style={styles.primaryButtonText}>Nova foto</Text>
-            </TouchableOpacity>
-          </View>
+          <ResultCard
+            imageUri={imageUri!}
+            resultado={resultado}
+            onNovaConsulta={handleNovaFoto}
+          />
         )}
       </ScrollView>
     </View>
@@ -262,16 +187,12 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 32,
-  },
-  logo: {
-    fontSize: 56,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
     color: "#1b5e20",
-    marginTop: 8,
   },
   subtitle: {
     fontSize: 16,
@@ -281,13 +202,6 @@ const styles = StyleSheet.create({
   initial: {
     marginTop: 24,
     alignItems: "center",
-  },
-  intro: {
-    fontSize: 16,
-    color: "#424242",
-    textAlign: "center",
-    marginBottom: 32,
-    paddingHorizontal: 16,
   },
   primaryButton: {
     backgroundColor: "#2e7d32",
@@ -328,15 +242,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     resizeMode: "cover",
   },
-  loadingBox: {
-    alignItems: "center",
-    padding: 40,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: "#555",
-  },
   resultBox: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -347,87 +252,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
-  },
-  resultSpecies: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#1b5e20",
-    fontStyle: "italic",
-  },
-  resultPopular: {
-    fontSize: 18,
-    color: "#2e7d32",
-    marginTop: 4,
-  },
-  resultConfidence: {
-    fontSize: 14,
-    color: "#777",
-    marginTop: 8,
-  },
-  warningBox: {
-    backgroundColor: "#ffebee",
-    borderLeftWidth: 4,
-    borderLeftColor: "#c62828",
-    padding: 12,
-    marginTop: 16,
-    borderRadius: 6,
-  },
-  warningText: {
-    color: "#c62828",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  infoGrid: {
-    flexDirection: "row",
-    marginTop: 20,
-    gap: 12,
-  },
-  infoItem: {
-    flex: 1,
-    backgroundColor: "#e8f5e9",
-    padding: 12,
-    borderRadius: 8,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: "#558b2f",
-    fontWeight: "600",
-  },
-  infoValue: {
-    fontSize: 15,
-    color: "#1b5e20",
-    marginTop: 4,
-    fontWeight: "600",
-  },
-  section: {
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1b5e20",
-    marginBottom: 8,
-  },
-  problemaItem: {
-    backgroundColor: "#fff8e1",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  problemaDesc: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#424242",
-  },
-  problemaCausa: {
-    fontSize: 13,
-    color: "#666",
-    marginTop: 4,
-  },
-  planoText: {
-    fontSize: 14,
-    color: "#424242",
-    lineHeight: 22,
   },
   naoPlantaTitle: {
     fontSize: 24,
