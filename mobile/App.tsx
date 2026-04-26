@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
-  BackHandler,
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,20 +10,23 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useFonts, Nunito_700Bold, Nunito_800ExtraBold, Nunito_900Black } from "@expo-google-fonts/nunito";
+import { PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold } from "@expo-google-fonts/plus-jakarta-sans";
 
 import {
   DiagnosticoResponse,
   diagnosticarPlanta,
 } from "./src/api/diagnostico";
 import { ErrorScreen } from "./src/components/ErrorScreen";
-import { ScannerArea } from "./src/components/ScannerArea";
 import { LoadingScreen } from "./src/components/LoadingScreen";
-import { HistoricoList } from "./src/components/HistoricoList";
-import { ResultCard } from "./src/components/ResultCard";
 import { SettingsScreen } from "./src/components/SettingsScreen";
 import { TutorialScreen } from "./src/components/TutorialScreen";
 import { WelcomeScreen } from "./src/components/WelcomeScreen";
-import { BRANDING } from "./src/constants/branding";
+import HomeScreen from "./src/components/redesign/HomeScreen";
+import DiagnosisScreen from "./src/components/redesign/DiagnosisScreen";
 import { salvarConsulta } from "./src/storage/historico";
 import {
   resetarWelcome,
@@ -34,11 +35,110 @@ import {
 } from "./src/storage/preferencias";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
+import { COLORS, FONTS } from "./src/constants/theme";
+import { MASCOT_POSES } from "./src/assets/mascot";
 
-type Tela = "boot" | "welcome" | "tutorial" | "home" | "settings";
+const RootStack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Placeholder pra telas futuras
+function PlaceholderScreen({ title }: { title: string }) {
+  return (
+    <View style={styles.placeholder}>
+      <Text style={styles.placeholderEmoji}>🌱</Text>
+      <Text style={styles.placeholderTitle}>{title}</Text>
+      <Text style={styles.placeholderDesc}>Em breve!</Text>
+    </View>
+  );
+}
+
+function CommunityPlaceholder() { return <PlaceholderScreen title="Comunidade" />; }
+function VideosPlaceholder() { return <PlaceholderScreen title="Videos" />; }
+function ProfilePlaceholder() { return <PlaceholderScreen title="Perfil" />; }
+
+// TabBar customizado com FAB central
+function CustomTabBar({ state, descriptors, navigation, onFabPress }: any) {
+  const tabs = [
+    { route: "HomeTab", label: "Inicio", icon: "🏠" },
+    { route: "CommunityTab", label: "Comunidade", icon: "👥" },
+    { route: "fab", label: "", icon: "" },
+    { route: "VideosTab", label: "Videos", icon: "🎬" },
+    { route: "ProfileTab", label: "Eu", icon: "👤" },
+  ];
+
+  return (
+    <View style={tabStyles.container}>
+      {/* FAB central */}
+      <TouchableOpacity onPress={onFabPress} style={tabStyles.fab} activeOpacity={0.8}>
+        <Text style={tabStyles.fabIcon}>📷</Text>
+      </TouchableOpacity>
+
+      <View style={tabStyles.tabRow}>
+        {tabs.map((tab, index) => {
+          if (tab.route === "fab") {
+            return <View key="fab" style={{ flex: 1 }} />;
+          }
+          const routeIndex = state.routes.findIndex((r: any) => r.name === tab.route);
+          const isActive = state.index === routeIndex;
+          return (
+            <TouchableOpacity
+              key={tab.route}
+              onPress={() => navigation.navigate(tab.route)}
+              style={tabStyles.tab}
+            >
+              <Text style={[tabStyles.tabIcon, isActive && { opacity: 1 }]}>{tab.icon}</Text>
+              <Text style={[tabStyles.tabLabel, isActive && tabStyles.tabLabelActive]}>{tab.label}</Text>
+              {isActive && <View style={tabStyles.tabDot} />}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// Main tabs com FAB
+function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings }: {
+  onTirarFoto: () => void;
+  onEscolherGaleria: () => void;
+  onSettings: () => void;
+}) {
+  return (
+    <Tab.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <CustomTabBar {...props} onFabPress={onTirarFoto} />}
+    >
+      <Tab.Screen name="HomeTab">
+        {() => (
+          <HomeScreen
+            onTirarFoto={onTirarFoto}
+            onEscolherGaleria={onEscolherGaleria}
+            onSettings={onSettings}
+          />
+        )}
+      </Tab.Screen>
+      <Tab.Screen name="CommunityTab" component={CommunityPlaceholder} />
+      <Tab.Screen name="VideosTab" component={VideosPlaceholder} />
+      <Tab.Screen name="ProfileTab" component={ProfilePlaceholder} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
-  const [tela, setTela] = useState<Tela>("boot");
+  const [fontsLoaded] = useFonts({
+    Nunito_700Bold,
+    Nunito_800ExtraBold,
+    Nunito_900Black,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
+  });
+
+  const [bootDone, setBootDone] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
@@ -48,108 +148,67 @@ export default function App() {
     (async () => {
       const welcomeOk = await welcomeJaVisto();
       if (!welcomeOk) {
-        setTela("welcome");
+        setShowWelcome(true);
+        setBootDone(true);
         return;
       }
       const tutorialOk = await tutorialJaVisto();
-      setTela(tutorialOk ? "home" : "tutorial");
+      if (!tutorialOk) {
+        setShowTutorial(true);
+      }
+      setBootDone(true);
     })();
   }, []);
 
-  useEffect(() => {
-    const onBack = () => {
-      if (tela === "settings") {
-        setTela("home");
-        return true;
-      }
-      return false;
-    };
-    const sub = BackHandler.addEventListener("hardwareBackPress", onBack);
-    return () => sub.remove();
-  }, [tela]);
-
   async function handleWelcomeDone() {
+    setShowWelcome(false);
     const tutorialOk = await tutorialJaVisto();
-    setTela(tutorialOk ? "home" : "tutorial");
+    if (!tutorialOk) {
+      setShowTutorial(true);
+    }
   }
 
   function handleTutorialDone() {
-    setTela("home");
-  }
-
-  function handleAbrirSettings() {
-    setTela("settings");
-  }
-
-  function handleVoltarDeSettings() {
-    setTela("home");
-  }
-
-  function handleLongPressReset() {
-    Alert.alert(
-      "Modo desenvolvedor",
-      "Resetar a tela de boas-vindas? Ela vai aparecer na proxima abertura do app.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Resetar",
-          style: "destructive",
-          onPress: async () => {
-            await resetarWelcome();
-            Alert.alert("Pronto", "Feche e abra o app pra ver a tela de boas-vindas.");
-          },
-        },
-      ],
-    );
+    setShowTutorial(false);
   }
 
   async function handleTirarFoto() {
     const permissao = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert(
-        "Permissao negada",
-        "Precisamos da camera pra fotografar a planta.",
-      );
+      Alert.alert("Permissao negada", "Precisamos da camera pra fotografar a planta.");
       return;
     }
-
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ["images"],
       allowsEditing: false,
       quality: 0.5,
       base64: false,
     });
-
     if (result.canceled) return;
-
     const uri = result.assets[0].uri;
     setImageUri(uri);
     setResultado(null);
+    setAppError(null);
     await enviarParaDiagnostico(uri);
   }
 
   async function handleEscolherGaleria() {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert(
-        "Permissao negada",
-        "Precisamos acessar a galeria pra escolher a imagem.",
-      );
+      Alert.alert("Permissao negada", "Precisamos acessar a galeria pra escolher a imagem.");
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: false,
       quality: 0.5,
       base64: false,
     });
-
     if (result.canceled) return;
-
     const uri = result.assets[0].uri;
     setImageUri(uri);
     setResultado(null);
+    setAppError(null);
     await enviarParaDiagnostico(uri);
   }
 
@@ -177,16 +236,22 @@ export default function App() {
     setAppError(null);
   }
 
-  if (tela === "boot") {
+  function handleSettings() {
+    // Navegado via navigation no futuro. Por ora placeholder
+  }
+
+  // Boot / fonts
+  if (!fontsLoaded || !bootDone) {
     return (
       <View style={[styles.container, styles.bootScreen]}>
         <StatusBar style="dark" />
-        <ActivityIndicator size="large" color="#2e7d32" />
+        <ActivityIndicator size="large" color={COLORS.green} />
       </View>
     );
   }
 
-  if (tela === "welcome") {
+  // Welcome
+  if (showWelcome) {
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
@@ -195,7 +260,8 @@ export default function App() {
     );
   }
 
-  if (tela === "tutorial") {
+  // Tutorial
+  if (showTutorial) {
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
@@ -204,220 +270,197 @@ export default function App() {
     );
   }
 
-  if (tela === "settings") {
+  // Loading
+  if (loading) {
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
-        <SettingsScreen onVoltar={handleVoltarDeSettings} />
+        <LoadingScreen />
       </View>
     );
   }
 
+  // Erro
+  if (appError) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <ErrorScreen error={appError} onRetry={handleNovaFoto} onHome={handleNovaFoto} />
+      </View>
+    );
+  }
+
+  // Resultado nao-planta
+  if (resultado && !resultado.eh_planta) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <View style={styles.naoPlantaWrap}>
+          <Text style={styles.naoPlantaTitle}>Hmm...</Text>
+          <Text style={styles.naoPlantaMessage}>{resultado.plano_tratamento}</Text>
+          <TouchableOpacity style={styles.naoPlantaBtn} onPress={handleNovaFoto}>
+            <Text style={styles.naoPlantaBtnText}>Tentar outra foto</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Resultado planta
+  if (resultado && resultado.eh_planta && imageUri) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <DiagnosisScreen
+          imageUri={imageUri}
+          resultado={resultado}
+          onVoltar={handleNovaFoto}
+          onNovaConsulta={handleNovaFoto}
+        />
+      </View>
+    );
+  }
+
+  // Main app com tabs
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.headerRow}>
-          <View style={styles.headerSide} />
-          <View style={styles.headerCenter}>
-            <TouchableOpacity
-              onLongPress={handleLongPressReset}
-              delayLongPress={3000}
-              activeOpacity={1}
-            >
-              <Text style={styles.title}>{BRANDING.appName}</Text>
-            </TouchableOpacity>
-            <Text style={styles.subtitle}>{BRANDING.subtitle}</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.headerSide}
-            onPress={handleAbrirSettings}
-            hitSlop={12}
-          >
-            <Text style={styles.gearIcon}>⚙️</Text>
-          </TouchableOpacity>
-        </View>
-
-        {!imageUri && !resultado && !appError && (
-          <View style={styles.initial}>
-            <ScannerArea onPress={handleTirarFoto} disabled={loading} />
-
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={handleEscolherGaleria}
-              disabled={loading}
-            >
-              <Text style={styles.secondaryButtonText}>
-                🖼️ Usar uma foto que ja tirei
-              </Text>
-            </TouchableOpacity>
-
-            <HistoricoList />
-          </View>
-        )}
-
-        {imageUri && !resultado?.eh_planta && (
-          <View style={styles.imageWrapper}>
-            <Image source={{ uri: imageUri }} style={styles.image} />
-          </View>
-        )}
-
-        {loading && <LoadingScreen />}
-
-        {appError && !loading && (
-          <ErrorScreen
-            error={appError}
-            onRetry={handleNovaFoto}
-            onHome={handleNovaFoto}
-          />
-        )}
-
-        {resultado && !loading && !resultado.eh_planta && (
-          <View style={styles.resultBox}>
-            <Text style={styles.naoPlantaTitle}>Hmm...</Text>
-            <Text style={styles.naoPlantaMessage}>
-              {resultado.plano_tratamento}
-            </Text>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleNovaFoto}
-            >
-              <Text style={styles.primaryButtonText}>Tentar outra foto</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {resultado && !loading && resultado.eh_planta && (
-          <ResultCard
-            imageUri={imageUri!}
-            resultado={resultado}
-            onNovaConsulta={handleNovaFoto}
-          />
-        )}
-      </ScrollView>
+      <NavigationContainer>
+        <MainTabs
+          onTirarFoto={handleTirarFoto}
+          onEscolherGaleria={handleEscolherGaleria}
+          onSettings={handleSettings}
+        />
+      </NavigationContainer>
     </View>
   );
 }
 
+const tabStyles = StyleSheet.create({
+  container: {
+    position: "relative",
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: COLORS.divider,
+    paddingBottom: 6,
+  },
+  fab: {
+    position: "absolute",
+    left: "50%",
+    top: -28,
+    marginLeft: -32,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.green,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: COLORS.greenDeep,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 8,
+    zIndex: 10,
+  },
+  fabIcon: {
+    fontSize: 28,
+  },
+  tabRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    height: 68,
+    paddingHorizontal: 4,
+  },
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    gap: 4,
+  },
+  tabIcon: {
+    fontSize: 24,
+    opacity: 0.5,
+  },
+  tabLabel: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 11,
+    color: COLORS.inkMute,
+  },
+  tabLabelActive: {
+    fontFamily: FONTS.bodyExtraBold,
+    color: COLORS.green,
+  },
+  tabDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.green,
+  },
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f9f5",
+    backgroundColor: COLORS.bg,
   },
   bootScreen: {
     justifyContent: "center",
     alignItems: "center",
   },
-  scroll: {
+  placeholder: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
-  headerSide: {
-    width: 44,
-    alignItems: "center",
+    backgroundColor: COLORS.bg,
     justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
   },
-  headerCenter: {
+  placeholderEmoji: {
+    fontSize: 48,
+  },
+  placeholderTitle: {
+    fontFamily: FONTS.displayBlack,
+    fontSize: 22,
+    color: COLORS.greenDark,
+  },
+  placeholderDesc: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    color: COLORS.inkMute,
+  },
+  naoPlantaWrap: {
     flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-  },
-  gearIcon: {
-    fontSize: 26,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#1b5e20",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#558b2f",
-    marginTop: 4,
-  },
-  initial: {
-    marginTop: 24,
-    alignItems: "center",
-  },
-  primaryButton: {
-    backgroundColor: "#2e7d32",
-    paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 12,
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 12,
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "600",
-  },
-  secondaryButton: {
-    backgroundColor: "transparent",
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    alignItems: "center",
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#2e7d32",
-  },
-  secondaryButtonText: {
-    color: "#2e7d32",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  imageWrapper: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  image: {
-    width: "100%",
-    height: 300,
-    borderRadius: 12,
-    resizeMode: "cover",
-  },
-  resultBox: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
   },
   naoPlantaTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1b5e20",
-    textAlign: "center",
+    fontFamily: FONTS.displayBlack,
+    fontSize: 28,
+    color: COLORS.greenDark,
     marginBottom: 12,
   },
   naoPlantaMessage: {
+    fontFamily: FONTS.body,
     fontSize: 15,
-    color: "#424242",
+    color: COLORS.inkSoft,
     textAlign: "center",
-    marginBottom: 24,
     lineHeight: 22,
+    marginBottom: 24,
+  },
+  naoPlantaBtn: {
+    backgroundColor: COLORS.green,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    shadowColor: COLORS.greenDeep,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 5,
+  },
+  naoPlantaBtnText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: 16,
+    color: "#fff",
   },
 });
