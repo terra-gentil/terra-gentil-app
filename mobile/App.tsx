@@ -13,6 +13,8 @@ import * as ImagePicker from "expo-image-picker";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts, Nunito_700Bold, Nunito_800ExtraBold, Nunito_900Black } from "@expo-google-fonts/nunito";
 import { PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold } from "@expo-google-fonts/plus-jakarta-sans";
 
@@ -27,6 +29,7 @@ import { TutorialScreen } from "./src/components/TutorialScreen";
 import { WelcomeScreen } from "./src/components/WelcomeScreen";
 import HomeScreen from "./src/components/redesign/HomeScreen";
 import DiagnosisScreen from "./src/components/redesign/DiagnosisScreen";
+import VideosScreen from "./src/components/redesign/VideosScreen";
 import { salvarConsulta } from "./src/storage/historico";
 import {
   resetarWelcome,
@@ -54,7 +57,7 @@ function PlaceholderScreen({ title }: { title: string }) {
 }
 
 function CommunityPlaceholder() { return <PlaceholderScreen title="Comunidade" />; }
-function VideosPlaceholder() { return <PlaceholderScreen title="Videos" />; }
+function VideosTab() { return <VideosScreen />; }
 function ProfilePlaceholder() { return <PlaceholderScreen title="Perfil" />; }
 
 // TabBar customizado com FAB central
@@ -75,8 +78,9 @@ const TAB_LABELS = {
 const TAB_ORDER = ["HomeTab", "CommunityTab", "fab", "VideosTab", "ProfileTab"] as const;
 
 function CustomTabBar({ state, navigation, onFabPress }: any) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={tabStyles.container}>
+    <View style={[tabStyles.container, { paddingBottom: Math.max(insets.bottom, 6) }]}>
       {/* FAB central */}
       <TouchableOpacity onPress={onFabPress} style={tabStyles.fab} activeOpacity={0.8}>
         <Camera size={28} color="#fff" strokeWidth={2.2} />
@@ -130,7 +134,7 @@ function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings }: {
         )}
       </Tab.Screen>
       <Tab.Screen name="CommunityTab" component={CommunityPlaceholder} />
-      <Tab.Screen name="VideosTab" component={VideosPlaceholder} />
+      <Tab.Screen name="VideosTab" component={VideosTab} />
       <Tab.Screen name="ProfileTab" component={ProfilePlaceholder} />
     </Tab.Navigator>
   );
@@ -252,100 +256,105 @@ export default function App() {
     // Navegado via navigation no futuro. Por ora placeholder
   }
 
-  // Boot / fonts
-  if (!fontsLoaded || !bootDone) {
-    return (
-      <View style={[styles.container, styles.bootScreen]}>
-        <StatusBar style="dark" />
-        <ActivityIndicator size="large" color={COLORS.green} />
-      </View>
-    );
-  }
-
-  // Welcome
-  if (showWelcome) {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="dark" />
-        <WelcomeScreen onComecar={handleWelcomeDone} />
-      </View>
-    );
-  }
-
-  // Tutorial
-  if (showTutorial) {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="dark" />
-        <TutorialScreen onConcluir={handleTutorialDone} />
-      </View>
-    );
-  }
-
-  // Loading
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="dark" />
-        <LoadingScreen />
-      </View>
-    );
-  }
-
-  // Erro
-  if (appError) {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="dark" />
-        <ErrorScreen error={appError} onRetry={handleNovaFoto} onHome={handleNovaFoto} />
-      </View>
-    );
-  }
-
-  // Resultado nao-planta
-  if (resultado && !resultado.eh_planta) {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="dark" />
-        <View style={styles.naoPlantaWrap}>
-          <Text style={styles.naoPlantaTitle}>Hmm...</Text>
-          <Text style={styles.naoPlantaMessage}>{resultado.plano_tratamento}</Text>
-          <TouchableOpacity style={styles.naoPlantaBtn} onPress={handleNovaFoto}>
-            <Text style={styles.naoPlantaBtnText}>Tentar outra foto</Text>
-          </TouchableOpacity>
+  // Determina o conteudo da tela
+  function renderContent() {
+    // Boot / fonts
+    if (!fontsLoaded || !bootDone) {
+      return (
+        <View style={[styles.container, styles.bootScreen]}>
+          <StatusBar style="dark" />
+          <ActivityIndicator size="large" color={COLORS.green} />
         </View>
-      </View>
-    );
-  }
+      );
+    }
 
-  // Resultado planta
-  if (resultado && resultado.eh_planta && imageUri) {
+    // Welcome
+    if (showWelcome) {
+      return (
+        <View style={styles.container}>
+          <StatusBar style="dark" />
+          <WelcomeScreen onComecar={handleWelcomeDone} />
+        </View>
+      );
+    }
+
+    // Tutorial
+    if (showTutorial) {
+      return (
+        <View style={styles.container}>
+          <StatusBar style="dark" />
+          <TutorialScreen onConcluir={handleTutorialDone} />
+        </View>
+      );
+    }
+
+    // Loading
+    if (loading) {
+      return (
+        <View style={styles.container}>
+          <StatusBar style="dark" />
+          <LoadingScreen />
+        </View>
+      );
+    }
+
+    // Erro
+    if (appError) {
+      return (
+        <View style={styles.container}>
+          <StatusBar style="dark" />
+          <ErrorScreen error={appError} onRetry={handleNovaFoto} onHome={handleNovaFoto} />
+        </View>
+      );
+    }
+
+    // Resultado nao-planta
+    if (resultado && !resultado.eh_planta) {
+      return (
+        <View style={styles.container}>
+          <StatusBar style="dark" />
+          <View style={styles.naoPlantaWrap}>
+            <Text style={styles.naoPlantaTitle}>Hmm...</Text>
+            <Text style={styles.naoPlantaMessage}>{resultado.plano_tratamento}</Text>
+            <TouchableOpacity style={styles.naoPlantaBtn} onPress={handleNovaFoto}>
+              <Text style={styles.naoPlantaBtnText}>Tentar outra foto</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    // Resultado planta
+    if (resultado && resultado.eh_planta && imageUri) {
+      return (
+        <View style={styles.container}>
+          <StatusBar style="dark" />
+          <DiagnosisScreen
+            imageUri={imageUri}
+            resultado={resultado}
+            onVoltar={handleNovaFoto}
+            onNovaConsulta={handleNovaFoto}
+          />
+        </View>
+      );
+    }
+
+    // Main app com tabs
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
-        <DiagnosisScreen
-          imageUri={imageUri}
-          resultado={resultado}
-          onVoltar={handleNovaFoto}
-          onNovaConsulta={handleNovaFoto}
-        />
+        <NavigationContainer>
+          <MainTabs
+            onTirarFoto={handleTirarFoto}
+            onEscolherGaleria={handleEscolherGaleria}
+            onSettings={handleSettings}
+          />
+        </NavigationContainer>
       </View>
     );
   }
 
-  // Main app com tabs
-  return (
-    <View style={styles.container}>
-      <StatusBar style="dark" />
-      <NavigationContainer>
-        <MainTabs
-          onTirarFoto={handleTirarFoto}
-          onEscolherGaleria={handleEscolherGaleria}
-          onSettings={handleSettings}
-        />
-      </NavigationContainer>
-    </View>
-  );
+  return <SafeAreaProvider>{renderContent()}</SafeAreaProvider>;
 }
 
 const tabStyles = StyleSheet.create({
@@ -354,7 +363,6 @@ const tabStyles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: COLORS.divider,
-    paddingBottom: 6,
   },
   fab: {
     position: "absolute",
