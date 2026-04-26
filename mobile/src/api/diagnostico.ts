@@ -78,6 +78,8 @@ export async function diagnosticarPlanta(imageUri: string): Promise<DiagnosticoR
       if (response.status === 413) throw new AppError(ErrorCode.IMAGE_TOO_LARGE);
       if (response.status === 415 || response.status === 400)
         throw new AppError(ErrorCode.IMAGE_INVALID);
+      if (response.status === 500)
+        throw new AppError(ErrorCode.BACKEND_ERROR, `HTTP 500: ${errorText.substring(0, 200)}`);
       if (response.status === 502 || response.status === 503)
         throw new AppError(ErrorCode.BACKEND_UNAVAILABLE, `HTTP ${response.status}: ${errorText.substring(0, 200)}`);
       throw new AppError(ErrorCode.BACKEND_ERROR, `HTTP ${response.status}: ${errorText.substring(0, 200)}`);
