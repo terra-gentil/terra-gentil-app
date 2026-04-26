@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ImageSourcePropType } from 'react-native';
 import { COLORS, FONTS, SIZES, shadowSoft } from '../../constants/theme';
+import { Bell, Search } from 'lucide-react-native';
 
 interface TopBarProps {
   avatarSource?: ImageSourcePropType;
@@ -29,6 +30,7 @@ export default function TopBar({
 
       {showSearch ? (
         <TouchableOpacity onPress={onSearchPress} style={styles.searchBar} activeOpacity={0.7}>
+          <Search size={18} color={COLORS.inkMute} strokeWidth={2.2} />
           <Text style={styles.searchText}>Buscar plantas, dicas...</Text>
         </TouchableOpacity>
       ) : (
@@ -36,7 +38,7 @@ export default function TopBar({
       )}
 
       <TouchableOpacity onPress={onBellPress} style={styles.bellWrap}>
-        <Text style={styles.bellIcon}>🔔</Text>
+        <Bell size={20} color={COLORS.inkSoft} strokeWidth={2.2} />
         {badge > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badge}</Text>
@@ -76,7 +78,9 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 100,
     backgroundColor: '#fff',
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     paddingHorizontal: 14,
     borderWidth: 1.5,
     borderColor: COLORS.divider,
@@ -101,9 +105,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: COLORS.divider,
-  },
-  bellIcon: {
-    fontSize: 20,
   },
   badge: {
     position: 'absolute',

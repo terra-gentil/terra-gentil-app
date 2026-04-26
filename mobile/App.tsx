@@ -37,6 +37,7 @@ import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 import { COLORS, FONTS } from "./src/constants/theme";
 import { MASCOT_POSES } from "./src/assets/mascot";
+import { Home, Users, Tv, User, Camera } from "lucide-react-native";
 
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -57,37 +58,48 @@ function VideosPlaceholder() { return <PlaceholderScreen title="Videos" />; }
 function ProfilePlaceholder() { return <PlaceholderScreen title="Perfil" />; }
 
 // TabBar customizado com FAB central
-function CustomTabBar({ state, descriptors, navigation, onFabPress }: any) {
-  const tabs = [
-    { route: "HomeTab", label: "Inicio", icon: "🏠" },
-    { route: "CommunityTab", label: "Comunidade", icon: "👥" },
-    { route: "fab", label: "", icon: "" },
-    { route: "VideosTab", label: "Videos", icon: "🎬" },
-    { route: "ProfileTab", label: "Eu", icon: "👤" },
-  ];
+const TAB_ICONS = {
+  HomeTab: Home,
+  CommunityTab: Users,
+  VideosTab: Tv,
+  ProfileTab: User,
+} as const;
 
+const TAB_LABELS = {
+  HomeTab: "Inicio",
+  CommunityTab: "Comunidade",
+  VideosTab: "Videos",
+  ProfileTab: "Eu",
+} as const;
+
+const TAB_ORDER = ["HomeTab", "CommunityTab", "fab", "VideosTab", "ProfileTab"] as const;
+
+function CustomTabBar({ state, navigation, onFabPress }: any) {
   return (
     <View style={tabStyles.container}>
       {/* FAB central */}
       <TouchableOpacity onPress={onFabPress} style={tabStyles.fab} activeOpacity={0.8}>
-        <Text style={tabStyles.fabIcon}>📷</Text>
+        <Camera size={28} color="#fff" strokeWidth={2.2} />
       </TouchableOpacity>
 
       <View style={tabStyles.tabRow}>
-        {tabs.map((tab, index) => {
-          if (tab.route === "fab") {
+        {TAB_ORDER.map((route) => {
+          if (route === "fab") {
             return <View key="fab" style={{ flex: 1 }} />;
           }
-          const routeIndex = state.routes.findIndex((r: any) => r.name === tab.route);
+          const routeIndex = state.routes.findIndex((r: any) => r.name === route);
           const isActive = state.index === routeIndex;
+          const IconComponent = TAB_ICONS[route as keyof typeof TAB_ICONS];
+          const label = TAB_LABELS[route as keyof typeof TAB_LABELS];
+          const color = isActive ? COLORS.green : COLORS.inkMute;
           return (
             <TouchableOpacity
-              key={tab.route}
-              onPress={() => navigation.navigate(tab.route)}
+              key={route}
+              onPress={() => navigation.navigate(route)}
               style={tabStyles.tab}
             >
-              <Text style={[tabStyles.tabIcon, isActive && { opacity: 1 }]}>{tab.icon}</Text>
-              <Text style={[tabStyles.tabLabel, isActive && tabStyles.tabLabelActive]}>{tab.label}</Text>
+              <IconComponent size={24} color={color} strokeWidth={2.2} />
+              <Text style={[tabStyles.tabLabel, isActive && tabStyles.tabLabelActive]}>{label}</Text>
               {isActive && <View style={tabStyles.tabDot} />}
             </TouchableOpacity>
           );
@@ -362,8 +374,8 @@ const tabStyles = StyleSheet.create({
     elevation: 8,
     zIndex: 10,
   },
-  fabIcon: {
-    fontSize: 28,
+  fabIconWrap: {
+    // placeholder se precisar de wrapper
   },
   tabRow: {
     flexDirection: "row",
@@ -376,10 +388,6 @@ const tabStyles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     gap: 4,
-  },
-  tabIcon: {
-    fontSize: 24,
-    opacity: 0.5,
   },
   tabLabel: {
     fontFamily: FONTS.bodySemiBold,

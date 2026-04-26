@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_POSES } from "../../assets/mascot";
+import { Camera, ImageIcon, Users, Tv, BookOpen, ShoppingBag } from "lucide-react-native";
 import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
 import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
@@ -24,10 +25,10 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const ATALHOS = [
-  { icon: "👥", label: "Comunidade", desc: "Em breve", bg: COLORS.coral, deep: COLORS.coralDeep },
-  { icon: "🎬", label: "Videos", desc: "Em breve", bg: COLORS.lavender, deep: "#7c3aed" },
-  { icon: "📚", label: "Ebooks", desc: "Em breve", bg: COLORS.amber, deep: "#d97706" },
-  { icon: "🛍️", label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
+  { Icon: Users, label: "Comunidade", desc: "Em breve", bg: COLORS.coral, deep: COLORS.coralDeep },
+  { Icon: Tv, label: "Videos", desc: "Em breve", bg: COLORS.lavender, deep: "#7c3aed" },
+  { Icon: BookOpen, label: "Ebooks", desc: "Em breve", bg: COLORS.amber, deep: "#d97706" },
+  { Icon: ShoppingBag, label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
 ];
 
 interface HomeScreenProps {
@@ -101,7 +102,10 @@ export default function HomeScreen({
             disabled={loading}
             activeOpacity={0.8}
           >
-            <Text style={styles.btnPrimaryText}>📷  Tirar foto</Text>
+            <View style={styles.btnRow}>
+              <Camera size={20} color="#fff" strokeWidth={2.2} />
+              <Text style={styles.btnPrimaryText}>Tirar foto</Text>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.btnOutline}
@@ -109,7 +113,10 @@ export default function HomeScreen({
             disabled={loading}
             activeOpacity={0.8}
           >
-            <Text style={styles.btnOutlineText}>🖼️ Galeria</Text>
+            <View style={styles.btnRow}>
+              <ImageIcon size={18} color={COLORS.greenDark} strokeWidth={2.2} />
+              <Text style={styles.btnOutlineText}>Galeria</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -120,7 +127,7 @@ export default function HomeScreen({
         {ATALHOS.map((a) => (
           <View key={a.label} style={styles.atalhoCard}>
             <View style={[styles.atalhoIconWrap, { backgroundColor: a.bg, shadowColor: a.deep, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 }]}>
-              <Text style={styles.atalhoIcon}>{a.icon}</Text>
+              <a.Icon size={22} color="#fff" strokeWidth={2.2} />
             </View>
             <Text style={styles.atalhoLabel}>{a.label}</Text>
             <Text style={styles.atalhoDesc}>{a.desc}</Text>
@@ -269,6 +276,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     ...shadowChunky(COLORS.greenDeep),
   },
+  btnRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   btnPrimaryText: {
     fontFamily: FONTS.bodyExtraBold,
     fontSize: SIZES.body + 1,
@@ -318,9 +330,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-  },
-  atalhoIcon: {
-    fontSize: 22,
   },
   atalhoLabel: {
     fontFamily: FONTS.bodyExtraBold,

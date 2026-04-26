@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, FONTS, SIZES } from '../../constants/theme';
 
 interface StatCardProps {
-  icon: string;
+  icon: ReactNode;
   label: string;
   value: string;
   bgColor: string;
@@ -13,7 +13,7 @@ export default function StatCard({ icon, label, value, bgColor }: StatCardProps)
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
       <View style={styles.header}>
-        <Text style={styles.icon}>{icon}</Text>
+        {icon}
         <Text style={styles.label}>{label}</Text>
       </View>
       <Text style={styles.value}>{value}</Text>
@@ -30,9 +30,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  icon: {
-    fontSize: 20,
   },
   label: {
     fontFamily: FONTS.bodyBold,

@@ -12,6 +12,7 @@ import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/
 import StatCard from "./StatCard";
 import SectionTitle from "./SectionTitle";
 import { EbookCard } from "../EbookCard";
+import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Bell, Camera, Gift, MessageSquare } from "lucide-react-native";
 
 const NIVEL_LUZ_LABEL: Record<string, string> = {
   sol_pleno: "Sol pleno",
@@ -51,11 +52,11 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onVoltar} style={styles.headerBtn}>
-          <Text style={styles.headerBtnText}>←</Text>
+          <ArrowLeft size={22} color={COLORS.ink} strokeWidth={2.2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Diagnostico</Text>
         <View style={styles.headerBtn}>
-          <Text style={styles.headerBtnText}>🔖</Text>
+          <Bookmark size={20} color={COLORS.ink} strokeWidth={2.2} />
         </View>
       </View>
 
@@ -79,16 +80,16 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
       {/* Stats grid 2x2 */}
       <View style={styles.statsGrid}>
         <View style={styles.statCell}>
-          <StatCard icon="☀️" label="Luz" value={NIVEL_LUZ_LABEL[resultado.nivel_luz] || resultado.nivel_luz} bgColor={COLORS.amberSoft} />
+          <StatCard icon={<Sun size={20} color={COLORS.amber} strokeWidth={2.2} />} label="Luz" value={NIVEL_LUZ_LABEL[resultado.nivel_luz] || resultado.nivel_luz} bgColor={COLORS.amberSoft} />
         </View>
         <View style={styles.statCell}>
-          <StatCard icon="💧" label="Rega" value={`${resultado.rega_dias} em ${resultado.rega_dias} dias`} bgColor={COLORS.skySoft} />
+          <StatCard icon={<Droplets size={20} color={COLORS.sky} strokeWidth={2.2} />} label="Rega" value={`${resultado.rega_dias} em ${resultado.rega_dias} dias`} bgColor={COLORS.skySoft} />
         </View>
         <View style={styles.statCell}>
-          <StatCard icon="🌿" label="Saude" value={ESTADO_SAUDE_LABEL[resultado.estado_saude] || resultado.estado_saude} bgColor={COLORS.greenSoft} />
+          <StatCard icon={<Leaf size={20} color={COLORS.green} strokeWidth={2.2} />} label="Saude" value={ESTADO_SAUDE_LABEL[resultado.estado_saude] || resultado.estado_saude} bgColor={COLORS.greenSoft} />
         </View>
         <View style={styles.statCell}>
-          <StatCard icon="⭐" label="Cuidado" value={NIVEL_DIFICULDADE_LABEL[resultado.nivel_dificuldade] || resultado.nivel_dificuldade} bgColor={COLORS.lavenderSoft} />
+          <StatCard icon={<Star size={20} color={COLORS.lavender} strokeWidth={2.2} />} label="Cuidado" value={NIVEL_DIFICULDADE_LABEL[resultado.nivel_dificuldade] || resultado.nivel_dificuldade} bgColor={COLORS.lavenderSoft} />
         </View>
       </View>
 
@@ -96,7 +97,7 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
       {resultado.diagnostico_titulo && (
         <View style={styles.alertCard}>
           <View style={styles.alertHeader}>
-            <Text style={styles.alertIcon}>⚠️</Text>
+            <AlertTriangle size={22} color={COLORS.coralDeep} strokeWidth={2.2} />
             <Text style={styles.alertTitle}>{resultado.diagnostico_titulo}</Text>
           </View>
           <Text style={styles.alertText}>{resultado.diagnostico_explicacao}</Text>
@@ -173,10 +174,16 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
       {/* Botoes de acao */}
       <View style={styles.actionButtons}>
         <TouchableOpacity style={styles.actionOutline} onPress={onNovaConsulta} activeOpacity={0.8}>
-          <Text style={styles.actionOutlineText}>💬 Pedir 2a opiniao</Text>
+          <View style={styles.actionRow}>
+            <MessageSquare size={18} color={COLORS.greenDark} strokeWidth={2.2} />
+            <Text style={styles.actionOutlineText}>2a opiniao</Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionPrimary} onPress={onNovaConsulta} activeOpacity={0.8}>
-          <Text style={styles.actionPrimaryText}>📷 Nova consulta</Text>
+          <View style={styles.actionRow}>
+            <Camera size={18} color="#fff" strokeWidth={2.2} />
+            <Text style={styles.actionPrimaryText}>Nova consulta</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -211,9 +218,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: COLORS.divider,
-  },
-  headerBtnText: {
-    fontSize: 20,
   },
   headerTitle: {
     flex: 1,
@@ -309,9 +313,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginBottom: 8,
-  },
-  alertIcon: {
-    fontSize: 22,
   },
   alertTitle: {
     fontFamily: FONTS.displayBlack,
@@ -519,5 +520,10 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodyExtraBold,
     fontSize: SIZES.body,
     color: "#fff",
+  },
+  actionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 });
