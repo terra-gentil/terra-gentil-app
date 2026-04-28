@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getRandomMascotPose } from "../assets/mascot";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../constants/theme";
 import { marcarWelcomeVisto } from "../storage/preferencias";
@@ -22,6 +23,7 @@ const BENEFICIOS = [
 ];
 
 export function WelcomeScreen({ onComecar }: Props) {
+  const insets = useSafeAreaInsets();
   const [pose] = useState(() => getRandomMascotPose());
   const [salvando, setSalvando] = useState(false);
 
@@ -32,6 +34,7 @@ export function WelcomeScreen({ onComecar }: Props) {
   }
 
   return (
+    <View style={[styles.safeWrap, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -93,18 +96,22 @@ export function WelcomeScreen({ onComecar }: Props) {
         <Text style={styles.dotInactive}>▪</Text>
       </View>
     </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeWrap: {
     flex: 1,
     backgroundColor: COLORS.greenSoft,
   },
+  container: {
+    flex: 1,
+  },
   content: {
-    paddingTop: 40,
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingTop: 20,
+    paddingBottom: 24,
     alignItems: "center",
   },
   header: {

@@ -211,7 +211,7 @@ export default function VideosScreen() {
         {/* Secao: Transformacoes */}
         {mostrarTransformacoes && (
           <>
-            <SectionTitle title="Transformacoes" action={`${TRANSFORMACOES.length} videos \u2192`} actionColor={COLORS.green} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
+            <SectionTitle title="Transformacoes" action={`${TRANSFORMACOES.length} videos →`} actionColor={COLORS.green} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
             <Text style={styles.playlistDesc}>Transformacoes reais e gratuitas de jardins abandonados. Todo o trabalho feito de graca para quem nao pode pagar.</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
               {TRANSFORMACOES.map((v) => (
@@ -235,7 +235,7 @@ export default function VideosScreen() {
         {/* Secao: Shorts */}
         {mostrarShorts && (
           <>
-            <SectionTitle title="Shorts" action={`${SHORTS.length} videos \u2192`} actionColor={COLORS.coral} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
+            <SectionTitle title="Shorts" action={`${SHORTS.length} videos →`} actionColor={COLORS.coral} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
             <Text style={styles.playlistDesc}>O melhor das transformacoes em poucos segundos.</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
               {SHORTS.map((v) => (

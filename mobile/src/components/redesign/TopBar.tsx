@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ImageSourcePropType } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS, SIZES, shadowSoft } from '../../constants/theme';
 import { Bell, Search } from 'lucide-react-native';
 
@@ -22,8 +23,9 @@ export default function TopBar({
   onAvatarPress,
   onSearchPress,
 }: TopBarProps) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
       <TouchableOpacity onPress={onAvatarPress} style={styles.avatarWrap}>
         {avatarSource && <Image source={avatarSource} style={styles.avatar} />}
       </TouchableOpacity>

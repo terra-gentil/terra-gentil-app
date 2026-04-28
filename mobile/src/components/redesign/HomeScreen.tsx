@@ -14,7 +14,7 @@ import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
 import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
 import SectionTitle from "./SectionTitle";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   saudavel: { label: "Saudavel", color: COLORS.green },
@@ -25,10 +25,10 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const ATALHOS = [
-  { Icon: Users, label: "Comunidade", desc: "Em breve", bg: COLORS.coral, deep: COLORS.coralDeep },
-  { Icon: Tv, label: "Videos", desc: "Em breve", bg: COLORS.lavender, deep: "#7c3aed" },
-  { Icon: BookOpen, label: "Ebooks", desc: "Em breve", bg: COLORS.amber, deep: "#d97706" },
-  { Icon: ShoppingBag, label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
+  { Icon: Users, label: "Comunidade", desc: "Em breve", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
+  { Icon: Tv, label: "Videos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
+  { Icon: BookOpen, label: "Ebooks", desc: "Em breve", bg: COLORS.amber, deep: "#d97706", tab: null },
+  { Icon: ShoppingBag, label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7", tab: null },
 ];
 
 interface HomeScreenProps {
@@ -44,6 +44,7 @@ export default function HomeScreen({
   onSettings,
   loading = false,
 }: HomeScreenProps) {
+  const navigation = useNavigation<any>();
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
 
   useFocusEffect(
@@ -125,13 +126,18 @@ export default function HomeScreen({
       <SectionTitle title="Atalhos rapidos" />
       <View style={styles.atalhosGrid}>
         {ATALHOS.map((a) => (
-          <View key={a.label} style={styles.atalhoCard}>
+          <TouchableOpacity
+            key={a.label}
+            style={styles.atalhoCard}
+            activeOpacity={0.8}
+            onPress={() => a.tab && navigation.navigate(a.tab)}
+          >
             <View style={[styles.atalhoIconWrap, { backgroundColor: a.bg, shadowColor: a.deep, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 }]}>
               <a.Icon size={22} color="#fff" strokeWidth={2.2} />
             </View>
             <Text style={styles.atalhoLabel}>{a.label}</Text>
             <Text style={styles.atalhoDesc}>{a.desc}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
 

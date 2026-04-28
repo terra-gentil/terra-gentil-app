@@ -30,6 +30,7 @@ import { WelcomeScreen } from "./src/components/WelcomeScreen";
 import HomeScreen from "./src/components/redesign/HomeScreen";
 import DiagnosisScreen from "./src/components/redesign/DiagnosisScreen";
 import VideosScreen from "./src/components/redesign/VideosScreen";
+import ProfileScreen from "./src/components/redesign/ProfileScreen";
 import { salvarConsulta } from "./src/storage/historico";
 import {
   resetarWelcome,
@@ -58,7 +59,7 @@ function PlaceholderScreen({ title }: { title: string }) {
 
 function CommunityPlaceholder() { return <PlaceholderScreen title="Comunidade" />; }
 function VideosTab() { return <VideosScreen />; }
-function ProfilePlaceholder() { return <PlaceholderScreen title="Perfil" />; }
+function ProfileTab() { return <ProfileScreen />; }
 
 // TabBar customizado com FAB central
 const TAB_ICONS = {
@@ -135,7 +136,7 @@ function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings }: {
       </Tab.Screen>
       <Tab.Screen name="CommunityTab" component={CommunityPlaceholder} />
       <Tab.Screen name="VideosTab" component={VideosTab} />
-      <Tab.Screen name="ProfileTab" component={ProfilePlaceholder} />
+      <Tab.Screen name="ProfileTab" component={ProfileTab} />
     </Tab.Navigator>
   );
 }

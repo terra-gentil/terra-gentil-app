@@ -10,7 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MASCOT_POSES } from "../assets/mascot";
+import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../constants/theme";
 import { marcarTutorialVisto } from "../storage/preferencias";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -23,6 +25,7 @@ interface Slide {
   titulo: string;
   descricao: string;
   imagem: number;
+  emoji: string;
 }
 
 const SLIDES: Slide[] = [
@@ -31,28 +34,33 @@ const SLIDES: Slide[] = [
     descricao:
       "Vou te mostrar em 3 passos simples como conseguir a melhor foto pra eu analisar sua planta com precisao.",
     imagem: MASCOT_POSES[0],
+    emoji: "📸",
   },
   {
     titulo: "Chegue perto da folha",
     descricao:
       "Aproxime o celular da parte que esta com problema. Quanto mais perto, melhor eu enxergo os detalhes. Foco numa folha so, sem bagunca no quadro.",
     imagem: MASCOT_POSES[1],
+    emoji: "🌿",
   },
   {
     titulo: "Luz natural e o segredo",
     descricao:
       "Prefira sombra clarinha ou luz natural suave. Evite sol a pino e sombras pesadas projetadas. Se puder, foto de dia, perto de uma janela.",
     imagem: MASCOT_POSES[2],
+    emoji: "☀️",
   },
   {
     titulo: "Foque no problema",
     descricao:
       "Toque na tela pra focar antes de clicar. Se o problema esta numa folha, fotografe ela. Se esta no caule, inclua o caule. Me mostre o que preocupa voce.",
     imagem: MASCOT_POSES[3],
+    emoji: "🎯",
   },
 ];
 
 export function TutorialScreen({ onConcluir }: Props) {
+  const insets = useSafeAreaInsets();
   const [slideAtual, setSlideAtual] = useState(0);
   const listRef = useRef<FlatList<Slide>>(null);
 
@@ -86,9 +94,14 @@ export function TutorialScreen({ onConcluir }: Props) {
   const isUltimo = slideAtual === SLIDES.length - 1;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Top bar */}
       <View style={styles.topBar}>
-        <View style={styles.topBarSide} />
+        <View style={styles.topBarSide}>
+          <Text style={styles.stepLabel}>
+            {slideAtual + 1} de {SLIDES.length}
+          </Text>
+        </View>
         <Text style={styles.topBarTitle}>Tutorial</Text>
         {!isUltimo ? (
           <TouchableOpacity
@@ -116,6 +129,7 @@ export function TutorialScreen({ onConcluir }: Props) {
           <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
             <View style={styles.imageWrapper}>
               <Image source={item.imagem} style={styles.image} resizeMode="cover" />
+              <Text style={styles.slideEmoji}>{item.emoji}</Text>
             </View>
             <Text style={styles.titulo}>{item.titulo}</Text>
             <Text style={styles.descricao}>{item.descricao}</Text>
@@ -123,6 +137,7 @@ export function TutorialScreen({ onConcluir }: Props) {
         )}
       />
 
+      {/* Dots */}
       <View style={styles.dotsWrapper}>
         {SLIDES.map((_, idx) => (
           <View
@@ -135,11 +150,18 @@ export function TutorialScreen({ onConcluir }: Props) {
         ))}
       </View>
 
-      <TouchableOpacity style={styles.ctaButton} onPress={handleProximo}>
-        <Text style={styles.ctaText}>
-          {isUltimo ? "📷 Entendi, vamos comecar" : "Proximo →"}
-        </Text>
-      </TouchableOpacity>
+      {/* CTA */}
+      <View style={[styles.ctaWrapper, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+        <TouchableOpacity
+          style={[styles.ctaButton, isUltimo && styles.ctaButtonFinal]}
+          onPress={handleProximo}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.ctaText}>
+            {isUltimo ? "Entendi, vamos comecar!" : "Proximo →"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -147,100 +169,120 @@ export function TutorialScreen({ onConcluir }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f9f5",
+    backgroundColor: COLORS.bg,
   },
   topBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 54,
-    paddingBottom: 12,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
   },
   topBarSide: {
     minWidth: 60,
   },
   topBarTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: "#1b5e20",
+    fontFamily: FONTS.displayBlack,
+    fontSize: SIZES.lg,
+    color: COLORS.greenDark,
+  },
+  stepLabel: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: SIZES.sm,
+    color: COLORS.inkMute,
   },
   pularText: {
-    fontSize: 15,
-    color: "#558b2f",
-    fontWeight: "700",
+    fontFamily: FONTS.bodyBold,
+    fontSize: SIZES.body,
+    color: COLORS.coralDeep,
     textAlign: "right",
   },
   slide: {
-    paddingTop: 32,
+    paddingTop: 24,
     paddingHorizontal: 28,
     alignItems: "center",
   },
   imageWrapper: {
-    width: 240,
-    height: 240,
-    borderRadius: 22,
+    width: 260,
+    height: 260,
+    borderRadius: 28,
     overflow: "hidden",
-    borderWidth: 3,
-    borderColor: "#c8e6c9",
+    borderWidth: 5,
+    borderColor: "#fff",
+    backgroundColor: COLORS.greenLeaf,
     marginBottom: 28,
+    ...shadowChunky(COLORS.greenDeep + "40"),
   },
   image: {
     width: "100%",
     height: "100%",
   },
-  titulo: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#1a4d2e",
+  slideEmoji: {
+    position: "absolute",
+    bottom: 12,
+    right: 12,
+    fontSize: 28,
+    backgroundColor: "#fff",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     textAlign: "center",
-    marginBottom: 14,
+    lineHeight: 44,
+    overflow: "hidden",
+    ...shadowSoft(),
+  },
+  titulo: {
+    fontFamily: FONTS.displayBlack,
+    fontSize: SIZES.xl,
+    color: COLORS.greenDark,
+    textAlign: "center",
+    marginBottom: 12,
+    lineHeight: 28,
   },
   descricao: {
-    fontSize: 16,
-    color: "#555",
+    fontFamily: FONTS.body,
+    fontSize: SIZES.body,
+    color: COLORS.inkSoft,
     textAlign: "center",
-    lineHeight: 23,
+    lineHeight: 22,
     paddingHorizontal: 8,
   },
   dotsWrapper: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   dot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#c8e6c9",
+    backgroundColor: COLORS.divider,
     marginHorizontal: 5,
   },
   dotAtivo: {
-    backgroundColor: "#2e7d32",
+    backgroundColor: COLORS.green,
     width: 28,
+    ...shadowChunky(COLORS.greenDeep + "60"),
+  },
+  ctaWrapper: {
+    paddingHorizontal: 24,
   },
   ctaButton: {
-    backgroundColor: "#2e7d32",
-    marginHorizontal: 20,
-    marginBottom: 32,
+    width: "100%",
     paddingVertical: 18,
-    borderRadius: 14,
+    borderRadius: 18,
+    backgroundColor: COLORS.green,
     alignItems: "center",
-    minHeight: 60,
-    justifyContent: "center",
-    shadowColor: "#1b5e20",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    ...shadowChunky(COLORS.greenDeep),
+  },
+  ctaButtonFinal: {
+    backgroundColor: COLORS.coral,
+    ...shadowChunky(COLORS.coralDeep),
   },
   ctaText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.md,
     color: "#fff",
-    fontSize: 17,
-    fontWeight: "800",
   },
 });
