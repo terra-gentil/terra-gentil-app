@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_POSES } from "../../assets/mascot";
-import { Camera, ImageIcon, Users, Tv, BookOpen, ShoppingBag } from "lucide-react-native";
+import { Camera, ImageIcon, Users, Tv, BookOpen, ShoppingBag, Gamepad2 } from "lucide-react-native";
 import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
 import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
@@ -35,6 +35,7 @@ interface HomeScreenProps {
   onTirarFoto: () => void;
   onEscolherGaleria: () => void;
   onSettings?: () => void;
+  onJogar?: () => void;
   loading?: boolean;
 }
 
@@ -42,6 +43,7 @@ export default function HomeScreen({
   onTirarFoto,
   onEscolherGaleria,
   onSettings,
+  onJogar,
   loading = false,
 }: HomeScreenProps) {
   const navigation = useNavigation<any>();
@@ -121,6 +123,27 @@ export default function HomeScreen({
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Jogo do Gentileza */}
+      {onJogar && (
+        <TouchableOpacity
+          style={styles.gameCard}
+          onPress={onJogar}
+          activeOpacity={0.85}
+          accessibilityLabel="Abrir o jogo Resgate dos Jardins"
+        >
+          <View style={styles.gameIconWrap}>
+            <Gamepad2 size={26} color="#fff" strokeWidth={2.4} />
+          </View>
+          <View style={styles.gameTextWrap}>
+            <Text style={styles.gameTitle}>Resgate dos Jardins</Text>
+            <Text style={styles.gameDesc}>Jogue com o Gentileza e relaxe um pouco</Text>
+          </View>
+          <View style={styles.gamePill}>
+            <Text style={styles.gamePillText}>Jogar</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Atalhos rapidos */}
       <SectionTitle title="Atalhos rapidos" />
@@ -312,6 +335,64 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodyExtraBold,
     fontSize: SIZES.smPlus,
     color: COLORS.greenDark,
+  },
+
+  // Jogo card
+  gameCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 16,
+    marginBottom: 18,
+    padding: 14,
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: COLORS.green,
+    ...shadowChunky(COLORS.greenDeep + "55"),
+  },
+  gameIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: COLORS.green,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: COLORS.greenDeep,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  gameTextWrap: {
+    flex: 1,
+  },
+  gameTitle: {
+    fontFamily: FONTS.displayBlack,
+    fontSize: SIZES.body + 2,
+    color: COLORS.greenDark,
+  },
+  gameDesc: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.sm,
+    color: COLORS.inkSoft,
+    marginTop: 2,
+  },
+  gamePill: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 100,
+    backgroundColor: COLORS.coral,
+    shadowColor: COLORS.coralDeep,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  gamePillText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.sm,
+    color: "#fff",
   },
 
   // Atalhos

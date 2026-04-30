@@ -31,6 +31,7 @@ import HomeScreen from "./src/components/redesign/HomeScreen";
 import DiagnosisScreen from "./src/components/redesign/DiagnosisScreen";
 import VideosScreen from "./src/components/redesign/VideosScreen";
 import ProfileScreen from "./src/components/redesign/ProfileScreen";
+import GameScreen from "./src/components/redesign/GameScreen";
 import { salvarConsulta } from "./src/storage/historico";
 import {
   resetarWelcome,
@@ -115,10 +116,11 @@ function CustomTabBar({ state, navigation, onFabPress }: any) {
 }
 
 // Main tabs com FAB
-function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings }: {
+function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
   onTirarFoto: () => void;
   onEscolherGaleria: () => void;
   onSettings: () => void;
+  onJogar: () => void;
 }) {
   return (
     <Tab.Navigator
@@ -131,6 +133,7 @@ function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings }: {
             onTirarFoto={onTirarFoto}
             onEscolherGaleria={onEscolherGaleria}
             onSettings={onSettings}
+            onJogar={onJogar}
           />
         )}
       </Tab.Screen>
@@ -156,6 +159,7 @@ export default function App() {
   const [bootDone, setBootDone] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showGame, setShowGame] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
@@ -257,6 +261,14 @@ export default function App() {
     // Navegado via navigation no futuro. Por ora placeholder
   }
 
+  function handleJogar() {
+    setShowGame(true);
+  }
+
+  function handleSairDoJogo() {
+    setShowGame(false);
+  }
+
   // Determina o conteudo da tela
   function renderContent() {
     // Boot / fonts
@@ -277,6 +289,12 @@ export default function App() {
           <WelcomeScreen onComecar={handleWelcomeDone} />
         </View>
       );
+    }
+
+    // Jogo (WebView fullscreen). Renderiza acima das outras telas pra
+    // pausar o fluxo principal sem desmontar o NavigationContainer.
+    if (showGame) {
+      return <GameScreen onClose={handleSairDoJogo} />;
     }
 
     // Tutorial
@@ -349,6 +367,7 @@ export default function App() {
             onTirarFoto={handleTirarFoto}
             onEscolherGaleria={handleEscolherGaleria}
             onSettings={handleSettings}
+            onJogar={handleJogar}
           />
         </NavigationContainer>
       </View>
