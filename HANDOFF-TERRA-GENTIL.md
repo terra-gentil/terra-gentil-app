@@ -2,7 +2,7 @@
 
 ## SOBRE ESTE DOCUMENTO
 Este documento contem TUDO que uma IA precisa saber pra trabalhar no projeto Terra Gentil.
-Atualizado em 9 maio 2026, pos DoctorScanner, Comunidade funcional e EbooksScreen.
+Atualizado em 9 maio 2026, pos sessao de revisao tela-por-tela (PromotionsScreen + bugs serios em Profile + acentos UI + interatividade + limpeza de orfaos).
 Leia inteiro antes de tocar em qualquer arquivo.
 
 ---
@@ -166,41 +166,34 @@ mobile/
     assets/
       mascot.ts                    (MASCOT_POSES[], MASCOT_ANALYZING, MASCOT_GIFT, getRandomMascotPose)
     components/
-      EbookCard.tsx                (card dourado pos diagnostico, form nome/email/mensagem via formsubmit.co)
-      ErrorScreen.tsx              (redesenhada Pixel Garden, tratamento por ErrorCode com icones Lucide)
-      HistoricoList.tsx            (LEGADO, nao usado, pode deletar)
+      EbookCard.tsx                (card dourado pos diagnostico, form nome/email/mensagem via formsubmit.co, acentos UI completos)
+      ErrorScreen.tsx              (redesenhada Pixel Garden, 9 codigos de erro com strings UI acentuadas, tratamento por ErrorCode com icones Lucide)
       LoadingScreen.tsx            (mascote analyzing + laser verde + cross-promo YouTube)
-      LuxMeter.tsx                 (barra escura com ponteiro triangular)
-      PermissionScreen.tsx         (criado mas NAO integrado no App.tsx)
-      ResultCard.tsx               (LEGADO, nao usado, pode deletar)
-      ScannerArea.tsx              (LEGADO, nao usado, pode deletar)
-      SettingsScreen.tsx           (LEGADO, funcionalidade migrada pra ProfileScreen)
-      StatsGrid.tsx                (LEGADO, nao usado, pode deletar)
-      Timeline.tsx                 (linha do tempo vertical com dots verdes)
-      TutorialScreen.tsx           (redesenhada Pixel Garden, 4 slides swipe, safe area corrigida)
-      WelcomeScreen.tsx            (redesenhada Pixel Garden, safe area com View wrapper)
+      PermissionScreen.tsx         (criado mas NAO integrado no App.tsx, fica pra sprint futura)
+      TutorialScreen.tsx           (redesenhada Pixel Garden, 4 slides swipe, safe area corrigida, acentos UI completos)
+      WelcomeScreen.tsx            (redesenhada Pixel Garden, safe area com View wrapper, acentos UI completos)
       redesign/
         TopBar.tsx                 (avatar + search bar + bell com badge, useSafeAreaInsets topo)
-        HomeScreen.tsx             (greeting, streak, DoctorScanner card, atalhos 2x2 NAVEGANDO pras tabs incluindo Ebooks, diagnosticos recentes, modal EbooksScreen embutido)
-        DiagnosisScreen.tsx        (hero image + stats grid + alerta + toxicidade + timeline + ebook + botoes)
-        VideosScreen.tsx           (15 videos reais YouTube com thumbnails, 3 categorias, filtros, botao Inscreva-se, links individuais)
-        ProfileScreen.tsx          (cover gradient, avatar+anel verde, stats, gamificacao/nivel, streak card amber 3D, conquistas, meu jardim grid 3col, configs, links YouTube/site)
-        CommunityScreen.tsx        (feed FUNCIONAL: 5 filtros aplicaveis, busca inline, posts mock + meus, like/save/seguir persistentes, share nativo, more menu, modais Nova/Comentarios/Notificacoes, useFocusEffect recarrega)
+        HomeScreen.tsx             (greeting, streak CLICAVEL pra ProfileTab, DoctorScanner card, atalhos 2x2 navegando pras tabs incluindo Ebooks e Promoções, sino do TopBar abre NotificacoesModal, bottom spacing dinamico TabBar+insets, diagnosticos recentes, modais embutidos)
+        DiagnosisScreen.tsx        (hero image + stats grid + alerta + toxicidade + timeline + ebook + botoes. Bookmark do header agora e TouchableOpacity verde com feedback "Salvo no Meu Jardim"; "2ª opinião" compartilha o resultado via Share API; rega vira "Diariamente" ou "A cada N dias"; acentos UI completos: "Diagnóstico", "Saudável/Atenção/Crítico", "Tóxica", "crianças", "grátis")
+        VideosScreen.tsx           (15 videos reais YouTube com thumbnails, 3 categorias, filtros, botao Inscreva-se, links individuais; TopBar avatar abre Profile e sino abre NotificacoesModal; acentos UI completos: "Transformações", "Transmissões ao vivo", "vídeos", "graça")
+        ProfileScreen.tsx          (cover gradient, avatar+anel verde, stats, gamificacao/nivel, streak card amber 3D, conquistas, meu jardim grid 3col, configs, links YouTube/site. BUGS CORRIGIDOS: botao "Compartilhar" antes chamava handleLimparHistorico (apagava dados!) -> agora Share nativo; botao "Editar perfil" antes chamava handleResetTutorial -> agora Alert amigavel mostrando nickname; "Ver tudo" das Conquistas mostra Alert com lista completa e progresso; "+ Nova" do jardim e "Adicionar +" agora navegam pra HomeTab pro user tirar foto)
+        CommunityScreen.tsx        (feed FUNCIONAL: 5 filtros aplicaveis, busca inline, posts mock + meus, like/save/seguir persistentes, share nativo, more menu, modais Nova/Comentarios/Notificacoes, useFocusEffect recarrega; avatar do TopBar agora navega pra ProfileTab)
         GameScreen.tsx             (WebView fullscreen do jogo Resgate dos Jardins, integrado via flag showGame no App.tsx)
-        DoctorScanner.tsx          (animacao cinematografica 11s em loop com 6 atos: intro/scan/think/result/plan/ebook usando 6 das 8 poses do mascote, HUD com chip de status, scanner line, card de diagnostico rotacionando 3 exemplos, throttle ~30fps via raf)
-        EbooksScreen.tsx           (modal fullscreen, hero gift amber gradient, ebook destaque com pill +POPULAR, grid 2col com 19 capas reais hospedadas em terragentil.com.br/ebooks/covers/, rodape verde tracejado)
-        EbookViewerModal.tsx       (modal preto fullscreen, WebView do PDF: iOS direto, Android via Google Docs gview; botao baixar amber 3 estados (idle/baixando/concluido), download via FileSystem legacy + Sharing nativo com fallback Linking.openURL)
+        DoctorScanner.tsx          (animacao cinematografica 11s em loop com 6 atos: intro/scan/think/result/plan/ebook usando 6 das 8 poses do mascote, HUD com chip de status, scanner line, card de diagnostico rotacionando 3 exemplos, throttle ~30fps via raf, strings UI com acentos completos)
+        EbooksScreen.tsx           (modal fullscreen, hero gift amber gradient, ebook destaque com pill +POPULAR, grid 2col com 19 capas reais hospedadas em terragentil.com.br/ebooks/covers/, rodape verde tracejado AGORA CLICAVEL navegando pra HomeTab pro diagnostico)
+        EbookViewerModal.tsx       (modal preto fullscreen, WebView do PDF: iOS direto, Android via Google Docs gview; botao baixar amber 3 estados (idle/baixando/concluido), download via FileSystem legacy + Sharing nativo com fallback Linking.openURL; Alerts com acentos completos)
         NovaPostagemModal.tsx      (formulario completo: categoria, titulo, 5 paletas de cor, tags, preview ao vivo do hero, validacao 10 chars min, confirma descarte)
         ComentariosModal.tsx       (lista mock destacada + locais, input com KeyboardAvoidingView, emoji por hash do nickname, timeAgo)
-        NotificacoesModal.tsx      (estado vazio amigavel + 3 cards explicando o que vai notificar)
-        Pills.tsx                  (filtros horizontais com sombra chunky)
-        SectionTitle.tsx           (titulo secao + acao direita)
-        ChunkyButton.tsx           (botao com sombra 3D, variante outline)
+        NotificacoesModal.tsx      (estado vazio amigavel + 3 cards explicando o que vai notificar; reusado pelo sino da Home, Comunidade e Videos)
+        Pills.tsx                  (filtros horizontais com sombra chunky, color customizavel)
+        SectionTitle.tsx           (titulo secao + acao direita com onAction)
         FloatCTA.tsx               (botao flutuante centralizado, icon aceita ReactNode pra Lucide)
-        PlantCard.tsx              (card de planta 150px para scroll horizontal)
-        PostCard.tsx               (card de post: like/save/seguir persistentes, contador likesBase+1, share/comment/more callbacks, badge MEU pra meus posts, badge OFICIAL pra Doutor)
+        PostCard.tsx               (card de post: like/save/seguir persistentes, contador likesBase+1, share/comment/more callbacks, badge MEU pra meus posts, badge OFICIAL pra Doutor; HERO clicavel inteiro abre comentarios)
         StatCard.tsx               (card de stat com icone/label/valor)
-        StreakStrip.tsx             (faixa de streak com badge)
+        StreakStrip.tsx            (faixa de streak com badge, onPress prop)
+        DealCard.tsx               (NOVO: 2 variants - FlashDealCard vertical 160px com barra de vendido, RecommendedDealCard horizontal full-width com botao +)
+        PromotionsScreen.tsx       (NOVO: modal fullscreen estilo EbooksScreen, hero gradient azul com countdown DD/HH/MM ao vivo, 5 pills filtrando por categoria, ofertas relampago em scroll horizontal, recomendados personalizados puxando nome da ultima planta diagnosticada via listarConsultas, rodape disclaimer "Loja oficial chegando", Alert "Em breve" em qualquer CTA)
     config/
       api.ts                       (API_BASE_URL Railway, API_TIMEOUT_MS 60000)
     constants/
@@ -260,7 +253,7 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 2. Aberturas seguintes: direto pra Home
 3. Na Home: scanner card mostra a animacao DoctorScanner (11s, 6 atos) embaixo do cabecalho. Toca no FAB camera ou botao "Tirar foto" > abre camera > tira foto
 4. Ou toca "Galeria" > abre galeria
-5. Atalhos rapidos: Comunidade (tab), Videos (tab), Ebooks (modal EbooksScreen), Promocoes (em breve), Resgate dos Jardins (jogo wide card)
+5. Atalhos rapidos: Ebooks (modal EbooksScreen), Promoções (modal PromotionsScreen), Comunidade (tab), Videos (tab), Resgate dos Jardins (jogo wide card)
 6. LoadingScreen aparece com laser verde + promo YouTube
 7. Resultado chega: DiagnosisScreen com hero image, stats, timeline, toxicidade, ebook
 8. Se nao for planta: tela "Hmm..." com mensagem
@@ -272,6 +265,15 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 14. Profile > Editar perfil: reseta tutorial. Profile > settings: reseta welcome+tutorial pra fluxo completo
 15. HomeScreen tem atalho "Jogar" que dispara onJogar > setShowGame(true) > GameScreen WebView fullscreen do jogo Resgate dos Jardins
 16. Atalho Ebooks abre modal EbooksScreen: hero gift, destaque, grid 2col com 19 capas. Toca em ebook > EbookViewerModal: WebView do PDF + botao baixar amber. Baixar usa expo-file-system pra cache + expo-sharing pra menu nativo (Salvar em Arquivos, Drive, etc); fallback Linking.openURL se algo falhar
+17. Atalho Promoções abre modal PromotionsScreen: hero azul gradient com countdown ao vivo (5 dias), 5 pills filtrando por categoria, FlashDealCards e RecommendedDealCards (personalizado pelo ultimo diagnostico). Sem checkout real - tocar em qualquer CTA mostra Alert "Em breve. A loja oficial Terra Gentil esta sendo preparada"
+18. Streak da Home (X dias cuidando) e clicavel: navega pra ProfileTab onde mora todo o detalhe de gamificacao
+19. Sino do TopBar (Home, Comunidade, Videos) abre NotificacoesModal compartilhado
+20. Avatar do TopBar (Comunidade, Videos) navega pra ProfileTab
+21. PostCard hero clicavel inteiro abre comentarios (padrao Instagram)
+22. Diagnosis: Bookmark do header da feedback "Salvo no Meu Jardim"; "2ª opinião" abre Share nativo pra usuario pedir parecer pra alguem
+23. Rodape do EbooksScreen ("Não achou um guia da sua planta?") e clicavel: fecha modal + navega pra Home pra usuario tirar foto e receber guia exclusivo via formulario pos-diagnostico
+24. Profile: "+ Nova" do meu jardim e "Adicionar +" da SectionTitle navegam pra HomeTab pro usuario tirar foto. "Ver tudo" das Conquistas mostra Alert listando os 5 selos com criterio e progresso. "Compartilhar" usa Share nativo. "Editar perfil" mostra Alert amigavel com nickname atual ("edicao completa em breve")
+25. Tela nao-planta ("Hmm...") agora tem mascote pose curiosa em avatar circular grande, suaviza a frustracao
 
 ---
 
@@ -285,7 +287,7 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 6. **Console.log de debug no diagnostico.ts**: tem varios console.log("[api]...") que foram uteis pra debug mas devem ser removidos ou condicionados antes de producao
 7. **PermissionScreen.tsx existe mas nao esta integrado**: o componente foi criado mas o App.tsx ainda usa Alert.alert simples pra permissoes negadas
 8. **EbookCard usa formsubmit.co**: servico gratuito com limites. Se escalar, precisa de backend proprio
-9. **Componentes legados nao removidos**: HistoricoList, ScannerArea, ResultCard, StatsGrid, SettingsScreen ainda existem nos arquivos mas nao sao mais usados. Podem ser removidos com seguranca
+9. ~~**Componentes legados nao removidos**~~: RESOLVIDO em 9 maio 2026. Foram deletados: HistoricoList, ScannerArea, ResultCard, StatsGrid, SettingsScreen, Timeline, LuxMeter, PlantCard, ChunkyButton (~1190 linhas mortas embora). Os ativos restantes em src/components/ sao: EbookCard, ErrorScreen, LoadingScreen, PermissionScreen (criado mas nao integrado), TutorialScreen, WelcomeScreen
 10. **Conquistas sao 100% client-side**: calculadas do AsyncStorage local. Se limpar historico ou trocar celular, perde tudo. Persistencia real precisa do Sprint 7 (Supabase)
 11. **Shadow chunky colorido nao funciona no Android**: elevation so gera sombra cinza. Workaround atual: borderBottomWidth + borderBottomColor nos elementos com shadow chunky
 12. **CommunityScreen FUNCIONAL mas local-only**: os 3 posts mock continuam hardcoded em data/comunidade.ts mas todas as interacoes (like, save, comment, share, seguir, nova postagem, busca, notificacoes) FUNCIONAM via AsyncStorage. Outros usuarios nao veem teus posts; Sprint 7 (Supabase) sera necessaria pra comunidade real
@@ -366,6 +368,33 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 . PostCard reutilizavel com like/save locais e icones Lucide
 . FloatCTA estendido pra aceitar ReactNode no icon
 
+### Pixel Garden Fase 2 final + revisao tela-por-tela (9 maio 2026, 14 commits)
+
+**PromotionsScreen (ultima tela do figma)**:
+. DealCard com 2 variants (FlashDealCard vertical 160px com barra de vendido, RecommendedDealCard horizontal full-width com botao +)
+. Modal fullscreen estilo EbooksScreen com hero gradient sky, countdown DD/HH/MM ao vivo (5 dias), 5 pills filtrando por categoria, recomendados personalizados pelo ultimo diagnostico, rodape disclaimer "Loja oficial chegando", Alert "Em breve" em qualquer CTA
+. Atalho "Promoções" da Home agora abre o modal (era "Em breve")
+
+**Bugs serios corrigidos no Profile**:
+. Botao "Compartilhar" estava chamando handleLimparHistorico (apagava o historico). Trocado por Share nativo do RN com mensagem incluindo total de diagnosticos e selos
+. Botao "Editar perfil" estava chamando handleResetTutorial (resetava tutorial). Substituido por Alert amigavel mostrando o nickname atual
+
+**Interatividade adicionada (telas que tinham elementos inertes)**:
+. Home: sino do TopBar abre NotificacoesModal, StreakStrip clicavel navega pra ProfileTab, scanner card clicavel inteiro
+. Comunidade: avatar do TopBar navega pra ProfileTab, hero do PostCard clicavel inteiro abre comentarios (padrao Instagram)
+. Profile: "+ Nova" do meu jardim e "Adicionar +" da SectionTitle navegam pra HomeTab. "Ver tudo" das Conquistas mostra Alert com lista completa e progresso
+. Videos: TopBar avatar abre Profile, sino abre NotificacoesModal
+. Diagnosis: Bookmark do header e TouchableOpacity verde com feedback "Salvo no Meu Jardim". "2ª opinião" abre Share nativo pra usuario pedir parecer pra alguem (antes era duplicata do Nova consulta). Rega vira "Diariamente" se rega_dias <= 1 ou "A cada N dias"
+. Ebooks: rodape "Não achou um guia da sua planta?" agora e TouchableOpacity com pill verde "Tirar foto agora" que fecha modal + navega pra Home
+
+**Bottom spacing dinamico** em Home, Profile, Videos: trocado por `tabBarHeight (68 + insets.bottom) + 12` em vez de spacer fixo height 100 + paddingBottom 20 (compensa S21 sem inset bottom + iPhone com home indicator)
+
+**Tela nao-planta ("Hmm...") com mascote**: avatar circular grande com pose-1 do mascote curioso, suaviza a frustracao quando IA nao reconhece como planta
+
+**Acentos UI completos** em ~50 strings espalhadas: ErrorScreen (9 codigos de erro), Welcome/Tutorial, Loading, EbookCard, EbookViewerModal Alerts, App.tsx Alerts permissao, Diagnosis (Saudavel/Atencao/Critico, Toxica, criancas, gratis, 2ª opinião), Videos (Transformações, Transmissões, vídeos), Profile (handlers acentuados), seguindo a regra "strings exibidas ao usuario com acentos completos"
+
+**Limpeza grande**: 9 componentes orfaos removidos (HistoricoList, ScannerArea, ResultCard, StatsGrid, SettingsScreen, Timeline, LuxMeter, PlantCard, ChunkyButton). ~1190 linhas mortas embora. tsc passou limpo apos cada delecao
+
 ### DoctorScanner + Comunidade funcional + EbooksScreen (9 maio 2026)
 . **DoctorScanner cinematografico** no scanner card da Home: animacao 11s em loop com 6 atos narrativos (intro/scan/think/result/plan/ebook) usando 6 das 8 poses do mascote como keyframes. Crossfade suave entre fotos + leve scale zoom. HUD persistente (badge marca + chip de status que muda cor por fase). Linha verde do scanner durante scan. Pilula "Analisando padrões na folha" durante think. Card branco de diagnostico desliza com 3 exemplos rotacionando a cada loop completo (Tomateiro/Pothos/Manjericão). Throttle ~30fps via raf. Strings UI com acentos completos
 . **Comunidade FUNCIONAL** local-only via AsyncStorage:
@@ -396,9 +425,10 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 
 ## 7. PROXIMOS SPRINTS
 
-### Pixel Garden Fase 2 (pendente: 1 tela)
-. EbooksScreen: ✅ FEITO em 9 maio 2026 (sem BookCard separado, ficou inline no EbooksScreen)
-. PromotionsScreen: deals, countdown, ofertas relampago. Componente novo: DealCard.tsx — UNICA TELA PENDENTE
+### Pixel Garden Fase 2 — COMPLETO em 9 maio 2026
+. EbooksScreen: ✅ FEITO (sem BookCard separado, ficou inline no EbooksScreen)
+. PromotionsScreen: ✅ FEITO (DealCard com 2 variants, modal fullscreen com countdown ao vivo)
+. Todas as 8 telas do figma estao implementadas em React Native: Onboarding, Home, Diagnosis, Videos, Profile, Community, Ebooks, Promotions
 Design reference: C:\Users\engan\Downloads\app-terragentil (1).zip
 Quando precisar abrir o zip, extrair pra C:\Users\engan\Downloads\figma-extract com Expand-Archive (PowerShell) e ler os JSX em src/screens/.
 
@@ -518,6 +548,20 @@ Tudo pushado, up to date com origin/main.
 
 ### Ultimos commits
 ```
+a5d017d feat(mobile): tela nao-planta com mascote pra suavizar a frustracao
+e9755fe chore(mobile): mais limpeza de orfaos e acentos no EbookCard
+dd54e8c chore(mobile): deleta componentes legados nao usados
+e63df5f fix(mobile): Loading e Error com acentos completos
+963ded2 fix(mobile): Welcome e Tutorial com acentos completos na UI
+3eb776e feat(mobile): Ebooks com rodape clicavel e Alerts acentuados
+5d0033b fix(mobile): Diagnostico com bookmark funcional, 2 opiniao distinto e acentos
+fd38eba feat(mobile): Videos com TopBar interagivel, acentos UI e bottom certo
+eb545a4 fix(mobile): Profile com handlers corretos e cards inertes funcionais
+47445b2 feat(mobile): Comunidade interagivel com hero clicavel e avatar pro Profile
+e559d5a feat(mobile): Home interagivel com sino, streak clicavel e bottom espacado certo
+7fa98bd feat(mobile): PromotionsScreen com countdown ao vivo e atalho funcional
+a3ff230 feat(mobile): scanner card clicavel inteiro e atalhos reordenados
+09f5b77 docs: atualiza HANDOFF pos DoctorScanner, Comunidade funcional e EbooksScreen
 6a6ac2b fix(mobile): capa nova do Codigo Secreto (ebook destaque)
 d25eb24 fix(mobile): botao baixar ebook com fallback pro navegador e logs
 df506fe fix(mobile): URLs dos ebooks migraram pra /ebooks no terragentil
@@ -526,22 +570,6 @@ df506fe fix(mobile): URLs dos ebooks migraram pra /ebooks no terragentil
 3ec0b0b feat(mobile): comunidade funcional com persistencia local
 dcf2611 feat(mobile): DoctorScanner cinematografico no scanner card da Home
 38143ba feat(mobile): jogo na grid de atalhos como 5o card wide e nickname
-29a1a58 docs: atualiza HANDOFF pos CommunityScreen e jogo Resgate dos Jardins
-49dbe58 feat(mobile): CommunityScreen Pixel Garden com feed e PostCard
-d811319 feat(mobile): WebView do jogo Resgate dos Jardins (Gentileza)
-5280774 feat(mobile): ProfileScreen gamificada, atalhos Home navegando, safe area Welcome/Tutorial
-85aa742 feat(mobile): VideosScreen com videos reais do YouTube e thumbnails
-2862b57 feat(mobile): ErrorScreen redesenhada Pixel Garden com tratamento explicito 500
-330c0de feat(mobile): substitui emojis por icones Lucide no redesign Pixel Garden
-988c181 feat(mobile): redesign Pixel Garden Fase 1 com React Navigation e novo visual
-86c9e83 chore: backup pre-redesign Pixel Garden com assets pendentes
-193a9c0 feat(mobile): icones do app com mascote Doutor Gentileza
-5112324 test(backend): suite de testes com 49 casos
-114813f docs: politica de privacidade para Google Play Console Sprint 9B
-986de7a feat(mobile): config EAS para build preview Android Sprint 9A
-70fbaf7 feat(mobile): tutorial de foto pos boas-vindas
-ecc369c feat(mobile): boas-vindas primeira abertura e tela de configuracoes
-aa9dfbc feat(mobile): fonte maior para acessibilidade 40+
 ```
 
 ---
@@ -611,13 +639,12 @@ Sao referencias visuais hi-fi (cores, tipografia, espacamentos definitivos).
 NAO sao codigo de producao pra copiar. A tarefa e recriar em React Native.
 SEMPRE extrair e ler o JSX da tela correspondente antes de implementar.
 
-Telas JA implementadas seguindo o figma: Onboarding, Home, Diagnosis, Videos, Profile, Community, Ebooks.
-Telas PENDENTES: Promotions.
+Telas JA implementadas seguindo o figma: Onboarding, Home, Diagnosis, Videos, Profile, Community, Ebooks, Promotions. **TODAS DO FIGMA.**
 
-Componentes reutilizaveis a criar pra Fase 2:
+Componentes reutilizaveis criados pra Fase 2:
 . ~~BookCard.tsx~~ — nao foi criado, ficou inline no EbooksScreen.tsx (decisao de simplificar)
-. DealCard.tsx (card de promocao, pra PromotionsScreen)
-PostCard.tsx ja foi criado pra CommunityScreen.
+. DealCard.tsx — criado em 9 maio 2026 com 2 variants (FlashDealCard vertical, RecommendedDealCard horizontal)
+. PostCard.tsx — criado pra CommunityScreen, hero clicavel inteiro
 
 ---
 
@@ -638,6 +665,10 @@ PostCard.tsx ja foi criado pra CommunityScreen.
 . Botao baixar usa expo-file-system/legacy (NAO a nova API com File/Paths). Fluxo: cacheDirectory + downloadAsync > Sharing.shareAsync. Fallback: Linking.openURL pro browser
 . Strings UI seguem regra: textos exibidos ao usuario com acentos completos (DIAGNÓSTICO, padrões, Manjericão, Atenção); codigo, variaveis, comentarios, commits e nomes de arquivo continuam sem acentos
 . PostCard mostra contador real de likes calculado como likesBase + (liked ? 1 : 0). Mock: likesBase 4200 vira "4,2K" via formatarK helper
+. **Bottom spacing dinamico**: telas com TabBar (Home, Profile, Videos) calculam paddingBottom inline como `tabBarHeight (68 + Math.max(insets.bottom, 6)) + 12` em vez de spacer fixo. Compensa S21 sem inset bottom + iPhone com home indicator. CommunityScreen mantem paddingBottom 140 fixo porque tem o FAB FloatCTA flutuante (bottom: 88) que precisa do espaço extra
+. **Acentos UI**: regra do projeto e que strings exibidas ao usuario tem acentos completos. Em commits, comentarios, variaveis e nomes de arquivo continuam sem. Em 9 maio 2026 fizemos um pass completo em ~50 strings espalhadas
+. **Bookmark do Diagnosis**: o backend ja salva consulta automaticamente em App.tsx > enviarParaDiagnostico > salvarConsulta. O Bookmark da DiagnosisScreen e meramente feedback visual ("Salvo no Meu Jardim"), nao executa salvamento adicional
+. **Tela nao-planta** (App.tsx): renderizada antes do NavigationContainer (sem TabBar). Tem mascote pose-1 em avatar 160x160 + titulo "Hmm..." + mensagem dinamica do backend (resultado.plano_tratamento) + botao "Tentar outra foto"
 
 ---
 
