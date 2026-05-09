@@ -39,6 +39,7 @@ import {
   tutorialJaVisto,
   welcomeJaVisto,
 } from "./src/storage/preferencias";
+import { obterOuCriarNickname } from "./src/storage/nickname";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 import { COLORS, FONTS } from "./src/constants/theme";
@@ -150,6 +151,7 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showGame, setShowGame] = useState(false);
+  const [gameNickname, setGameNickname] = useState<string | undefined>(undefined);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
@@ -251,7 +253,14 @@ export default function App() {
     // Navegado via navigation no futuro. Por ora placeholder
   }
 
-  function handleJogar() {
+  async function handleJogar() {
+    try {
+      const nick = await obterOuCriarNickname();
+      setGameNickname(nick);
+    } catch (err) {
+      console.log("[App] erro ao obter nickname do jogo:", err);
+      setGameNickname(undefined);
+    }
     setShowGame(true);
   }
 
@@ -284,7 +293,7 @@ export default function App() {
     // Jogo (WebView fullscreen). Renderiza acima das outras telas pra
     // pausar o fluxo principal sem desmontar o NavigationContainer.
     if (showGame) {
-      return <GameScreen onClose={handleSairDoJogo} />;
+      return <GameScreen onClose={handleSairDoJogo} nickname={gameNickname} />;
     }
 
     // Tutorial

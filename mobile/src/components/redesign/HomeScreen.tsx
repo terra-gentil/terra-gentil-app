@@ -24,11 +24,23 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   nao_aplicavel: { label: "N/A", color: COLORS.inkMute },
 };
 
-const ATALHOS = [
-  { Icon: Users, label: "Comunidade", desc: "Em breve", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
+type Atalho = {
+  Icon: any;
+  label: string;
+  desc: string;
+  bg: string;
+  deep: string;
+  tab?: string;
+  action?: "game";
+  wide?: boolean;
+};
+
+const ATALHOS: Atalho[] = [
+  { Icon: Users, label: "Comunidade", desc: "Posts e dicas", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
   { Icon: Tv, label: "Videos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
-  { Icon: BookOpen, label: "Ebooks", desc: "Em breve", bg: COLORS.amber, deep: "#d97706", tab: null },
-  { Icon: ShoppingBag, label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7", tab: null },
+  { Icon: BookOpen, label: "Ebooks", desc: "Em breve", bg: COLORS.amber, deep: "#d97706" },
+  { Icon: ShoppingBag, label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
+  { Icon: Gamepad2, label: "Resgate dos Jardins", desc: "Jogue com o Gentileza e relaxe", bg: COLORS.green, deep: COLORS.greenDeep, action: "game", wide: true },
 ];
 
 interface HomeScreenProps {
@@ -124,44 +136,55 @@ export default function HomeScreen({
         </View>
       </View>
 
-      {/* Jogo do Gentileza */}
-      {onJogar && (
-        <TouchableOpacity
-          style={styles.gameCard}
-          onPress={onJogar}
-          activeOpacity={0.85}
-          accessibilityLabel="Abrir o jogo Resgate dos Jardins"
-        >
-          <View style={styles.gameIconWrap}>
-            <Gamepad2 size={26} color="#fff" strokeWidth={2.4} />
-          </View>
-          <View style={styles.gameTextWrap}>
-            <Text style={styles.gameTitle}>Resgate dos Jardins</Text>
-            <Text style={styles.gameDesc}>Jogue com o Gentileza e relaxe um pouco</Text>
-          </View>
-          <View style={styles.gamePill}>
-            <Text style={styles.gamePillText}>Jogar</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-
       {/* Atalhos rapidos */}
       <SectionTitle title="Atalhos rapidos" />
       <View style={styles.atalhosGrid}>
-        {ATALHOS.map((a) => (
-          <TouchableOpacity
-            key={a.label}
-            style={styles.atalhoCard}
-            activeOpacity={0.8}
-            onPress={() => a.tab && navigation.navigate(a.tab)}
-          >
-            <View style={[styles.atalhoIconWrap, { backgroundColor: a.bg, shadowColor: a.deep, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 }]}>
-              <a.Icon size={22} color="#fff" strokeWidth={2.2} />
-            </View>
-            <Text style={styles.atalhoLabel}>{a.label}</Text>
-            <Text style={styles.atalhoDesc}>{a.desc}</Text>
-          </TouchableOpacity>
-        ))}
+        {ATALHOS.map((a) => {
+          const handler =
+            a.action === "game"
+              ? onJogar ?? (() => {})
+              : a.tab
+              ? () => navigation.navigate(a.tab as string)
+              : () => {};
+
+          if (a.wide) {
+            return (
+              <TouchableOpacity
+                key={a.label}
+                style={styles.atalhoWide}
+                activeOpacity={0.85}
+                onPress={handler}
+                accessibilityLabel={`Abrir ${a.label}`}
+              >
+                <View style={[styles.atalhoWideIconWrap, { backgroundColor: a.bg, shadowColor: a.deep }]}>
+                  <a.Icon size={26} color="#fff" strokeWidth={2.4} />
+                </View>
+                <View style={styles.atalhoWideTextWrap}>
+                  <Text style={styles.atalhoWideLabel}>{a.label}</Text>
+                  <Text style={styles.atalhoWideDesc}>{a.desc}</Text>
+                </View>
+                <View style={[styles.atalhoWidePill, { backgroundColor: COLORS.coral, shadowColor: COLORS.coralDeep }]}>
+                  <Text style={styles.atalhoWidePillText}>Jogar</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          }
+
+          return (
+            <TouchableOpacity
+              key={a.label}
+              style={styles.atalhoCard}
+              activeOpacity={0.8}
+              onPress={handler}
+            >
+              <View style={[styles.atalhoIconWrap, { backgroundColor: a.bg, shadowColor: a.deep, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 }]}>
+                <a.Icon size={22} color="#fff" strokeWidth={2.2} />
+              </View>
+              <Text style={styles.atalhoLabel}>{a.label}</Text>
+              <Text style={styles.atalhoDesc}>{a.desc}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Diagnosticos recentes */}
@@ -337,64 +360,6 @@ const styles = StyleSheet.create({
     color: COLORS.greenDark,
   },
 
-  // Jogo card
-  gameCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginHorizontal: 16,
-    marginBottom: 18,
-    padding: 14,
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: COLORS.green,
-    ...shadowChunky(COLORS.greenDeep + "55"),
-  },
-  gameIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: COLORS.green,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: COLORS.greenDeep,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  gameTextWrap: {
-    flex: 1,
-  },
-  gameTitle: {
-    fontFamily: FONTS.displayBlack,
-    fontSize: SIZES.body + 2,
-    color: COLORS.greenDark,
-  },
-  gameDesc: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.sm,
-    color: COLORS.inkSoft,
-    marginTop: 2,
-  },
-  gamePill: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 100,
-    backgroundColor: COLORS.coral,
-    shadowColor: COLORS.coralDeep,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  gamePillText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.sm,
-    color: "#fff",
-  },
-
   // Atalhos
   atalhosGrid: {
     flexDirection: "row",
@@ -429,6 +394,59 @@ const styles = StyleSheet.create({
     fontSize: SIZES.xs,
     color: COLORS.inkSoft,
     marginTop: 2,
+  },
+
+  // Atalho wide (jogo)
+  atalhoWide: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 2,
+    borderColor: COLORS.green,
+    ...shadowChunky(COLORS.greenDeep + "55"),
+  },
+  atalhoWideIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  atalhoWideTextWrap: {
+    flex: 1,
+  },
+  atalhoWideLabel: {
+    fontFamily: FONTS.displayBlack,
+    fontSize: SIZES.body + 2,
+    color: COLORS.greenDark,
+  },
+  atalhoWideDesc: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.sm,
+    color: COLORS.inkSoft,
+    marginTop: 2,
+  },
+  atalhoWidePill: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 100,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  atalhoWidePillText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.sm,
+    color: "#fff",
   },
 
   // Diagnosticos recentes
