@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   Modal,
   View,
   Text,
@@ -14,7 +15,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Maximize2, X, Send } from "lucide-react-native";
-import { COLORS, FONTS, SIZES, shadowSoft } from "../../constants/theme";
+import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PostBase } from "../../data/comunidade";
 import {
@@ -59,6 +60,21 @@ export default function ComentariosModal({
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!visible || !post?.imageUri || fotoAmpliada) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [visible, post?.imageUri, fotoAmpliada, pulseAnim]);
+
+  const pulseScale = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
 
   useEffect(() => {
     if (!visible || !post) return;
@@ -141,10 +157,12 @@ export default function ComentariosModal({
                   {post.title}
                 </Text>
                 {post.imageUri && (
-                  <View style={styles.expandirPill}>
-                    <Maximize2 size={12} color="#fff" strokeWidth={2.6} />
+                  <Animated.View
+                    style={[styles.expandirPill, { transform: [{ scale: pulseScale }] }]}
+                  >
+                    <Maximize2 size={14} color="#fff" strokeWidth={2.8} />
                     <Text style={styles.expandirPillText}>Ver inteira</Text>
-                  </View>
+                  </Animated.View>
                 )}
               </TouchableOpacity>
               <View style={styles.postResumoFooter}>
@@ -487,21 +505,24 @@ const styles = StyleSheet.create({
   },
   expandirPill: {
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 10,
+    right: 10,
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 100,
-    backgroundColor: "rgba(0,0,0,0.55)",
+    backgroundColor: COLORS.green,
+    borderWidth: 2,
+    borderColor: "#fff",
+    ...shadowChunky(COLORS.greenDeep),
   },
   expandirPillText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: 10,
+    fontFamily: FONTS.displayBlack,
+    fontSize: 11,
     color: "#fff",
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
   },
   fotoFullWrap: {
     flex: 1,

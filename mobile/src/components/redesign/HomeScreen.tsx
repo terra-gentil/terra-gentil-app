@@ -138,8 +138,11 @@ export default function HomeScreen({
               Toque aqui pra tirar uma foto. Em 15s descubro tudo.
             </Text>
           </View>
-          <View style={styles.scannerCameraBadge}>
-            <Camera size={20} color="#fff" strokeWidth={2.4} />
+          <View style={styles.scannerCameraWrap}>
+            <View style={styles.scannerCameraBadge}>
+              <Camera size={20} color="#fff" strokeWidth={2.4} />
+            </View>
+            <Text style={styles.scannerCameraLabel}>Tire uma foto</Text>
           </View>
         </View>
 
@@ -325,6 +328,10 @@ const styles = StyleSheet.create({
   scannerTextWrap: {
     flex: 1,
   },
+  scannerCameraWrap: {
+    alignItems: "center",
+    gap: 6,
+  },
   scannerCameraBadge: {
     width: 44,
     height: 44,
@@ -333,6 +340,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     ...shadowChunky(COLORS.greenDeep),
+  },
+  scannerCameraLabel: {
+    fontFamily: FONTS.displayBlack,
+    fontSize: 10,
+    color: COLORS.greenDark,
+    letterSpacing: 0.4,
+    textAlign: "center",
   },
   scannerTitle: {
     fontFamily: FONTS.displayBlack,
