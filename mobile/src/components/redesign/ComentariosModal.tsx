@@ -10,9 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { X, Send } from "lucide-react-native";
+import { Maximize2, X, Send } from "lucide-react-native";
 import { COLORS, FONTS, SIZES, shadowSoft } from "../../constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PostBase } from "../../data/comunidade";
@@ -57,6 +58,7 @@ export default function ComentariosModal({
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState(false);
 
   useEffect(() => {
     if (!visible || !post) return;
@@ -108,7 +110,12 @@ export default function ComentariosModal({
           >
             {/* Post resumo */}
             <View style={styles.postResumo}>
-              <View style={styles.postResumoHero}>
+              <TouchableOpacity
+                activeOpacity={post.imageUri ? 0.85 : 1}
+                onPress={() => post.imageUri && setFotoAmpliada(true)}
+                style={styles.postResumoHero}
+                accessibilityLabel={post.imageUri ? "Ver foto inteira" : undefined}
+              >
                 {post.imageUri ? (
                   <Image
                     source={{ uri: post.imageUri }}
@@ -133,7 +140,13 @@ export default function ComentariosModal({
                 <Text style={styles.postResumoTitulo} numberOfLines={3}>
                   {post.title}
                 </Text>
-              </View>
+                {post.imageUri && (
+                  <View style={styles.expandirPill}>
+                    <Maximize2 size={12} color="#fff" strokeWidth={2.6} />
+                    <Text style={styles.expandirPillText}>Ver inteira</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
               <View style={styles.postResumoFooter}>
                 <View style={[styles.autorAvatar, { backgroundColor: post.avatarColor }]}>
                   {post.avatarSource ? (
@@ -231,6 +244,35 @@ export default function ComentariosModal({
           </View>
         </KeyboardAvoidingView>
       </View>
+
+      {/* Foto fullscreen */}
+      {post.imageUri && (
+        <Modal
+          visible={fotoAmpliada}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setFotoAmpliada(false)}
+        >
+          <Pressable
+            onPress={() => setFotoAmpliada(false)}
+            style={styles.fotoFullWrap}
+          >
+            <Image
+              source={{ uri: post.imageUri }}
+              style={styles.fotoFull}
+              resizeMode="contain"
+            />
+            <TouchableOpacity
+              onPress={() => setFotoAmpliada(false)}
+              hitSlop={12}
+              style={[styles.fotoFullClose, { top: insets.top + 12 }]}
+              activeOpacity={0.85}
+            >
+              <X size={22} color="#fff" strokeWidth={2.6} />
+            </TouchableOpacity>
+          </Pressable>
+        </Modal>
+      )}
     </Modal>
   );
 }
@@ -442,5 +484,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 2,
+  },
+  expandirPill: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 100,
+    backgroundColor: "rgba(0,0,0,0.55)",
+  },
+  expandirPillText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: 10,
+    color: "#fff",
+    letterSpacing: 0.4,
+  },
+  fotoFullWrap: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.96)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fotoFull: {
+    width: "100%",
+    height: "100%",
+  },
+  fotoFullClose: {
+    position: "absolute",
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.3)",
   },
 });
