@@ -27,7 +27,7 @@ export function EbookCard({ nomePopular }: Props) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [mensagem, setMensagem] = useState(
-    `Ola Doutor! Gostaria de receber um guia sobre a ${nomePopular}.`,
+    `Olá Doutor! Gostaria de receber um guia sobre a ${nomePopular}.`,
   );
   const [erroMsg, setErroMsg] = useState("");
 
@@ -84,9 +84,9 @@ export function EbookCard({ nomePopular }: Props) {
         <View style={styles.accent} />
         <View style={styles.content}>
           <Image source={MASCOT_GIFT} style={styles.giftImg} />
-          <Text style={styles.title}>🎉 Voce ganhou um presente!</Text>
+          <Text style={styles.title}>🎉 Você ganhou um presente!</Text>
           <Text style={styles.subtitle}>
-            Posso te mandar um guia especial sobre a {nomePopular} por email. Totalmente gratis.
+            Posso te mandar um guia especial sobre a {nomePopular} por email. Totalmente grátis.
           </Text>
           <TouchableOpacity style={styles.ctaButton} onPress={abrirForm}>
             <Text style={styles.ctaButtonText}>Resgatar meu guia</Text>
@@ -103,7 +103,7 @@ export function EbookCard({ nomePopular }: Props) {
         <View style={styles.content}>
           <Text style={styles.title}>📩 Pedido anotado!</Text>
           <Text style={styles.subtitle}>
-            Fique de olho no seu email. Em ate 24 horas seu guia chega por la.
+            Fique de olho no seu email. Em até 24 horas seu guia chega por lá.
           </Text>
         </View>
       </View>
@@ -159,7 +159,7 @@ export function EbookCard({ nomePopular }: Props) {
 
         {estado === "erro" && (
           <Text style={styles.erroInline}>
-            Nao consegui enviar agora. Confira sua conexao e tente de novo.
+            Não consegui enviar agora. Confira sua conexão e tente de novo.
           </Text>
         )}
 
