@@ -31,6 +31,7 @@ import HomeScreen from "./src/components/redesign/HomeScreen";
 import DiagnosisScreen from "./src/components/redesign/DiagnosisScreen";
 import VideosScreen from "./src/components/redesign/VideosScreen";
 import ProfileScreen from "./src/components/redesign/ProfileScreen";
+import CommunityScreen from "./src/components/redesign/CommunityScreen";
 import GameScreen from "./src/components/redesign/GameScreen";
 import { salvarConsulta } from "./src/storage/historico";
 import {
@@ -47,18 +48,7 @@ import { Home, Users, Tv, User, Camera } from "lucide-react-native";
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Placeholder pra telas futuras
-function PlaceholderScreen({ title }: { title: string }) {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderEmoji}>🌱</Text>
-      <Text style={styles.placeholderTitle}>{title}</Text>
-      <Text style={styles.placeholderDesc}>Em breve!</Text>
-    </View>
-  );
-}
-
-function CommunityPlaceholder() { return <PlaceholderScreen title="Comunidade" />; }
+function CommunityTabScreen() { return <CommunityScreen />; }
 function VideosTab() { return <VideosScreen />; }
 function ProfileTab() { return <ProfileScreen />; }
 
@@ -137,7 +127,7 @@ function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
           />
         )}
       </Tab.Screen>
-      <Tab.Screen name="CommunityTab" component={CommunityPlaceholder} />
+      <Tab.Screen name="CommunityTab" component={CommunityTabScreen} />
       <Tab.Screen name="VideosTab" component={VideosTab} />
       <Tab.Screen name="ProfileTab" component={ProfileTab} />
     </Tab.Navigator>
@@ -442,26 +432,6 @@ const styles = StyleSheet.create({
   bootScreen: {
     justifyContent: "center",
     alignItems: "center",
-  },
-  placeholder: {
-    flex: 1,
-    backgroundColor: COLORS.bg,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
-  },
-  placeholderEmoji: {
-    fontSize: 48,
-  },
-  placeholderTitle: {
-    fontFamily: FONTS.displayBlack,
-    fontSize: 22,
-    color: COLORS.greenDark,
-  },
-  placeholderDesc: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
-    color: COLORS.inkMute,
   },
   naoPlantaWrap: {
     flex: 1,

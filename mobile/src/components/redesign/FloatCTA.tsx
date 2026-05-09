@@ -7,7 +7,7 @@ interface FloatCTAProps {
   onPress: () => void;
   color?: string;
   shadowColor?: string;
-  icon?: string;
+  icon?: React.ReactNode;
 }
 
 export default function FloatCTA({
@@ -17,6 +17,8 @@ export default function FloatCTA({
   shadowColor = COLORS.coralDeep,
   icon,
 }: FloatCTAProps) {
+  const iconNode =
+    typeof icon === 'string' ? <Text style={styles.icon}>{icon}</Text> : icon;
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -26,7 +28,7 @@ export default function FloatCTA({
         shadowColor: shadowColor,
       }]}
     >
-      {icon && <Text style={styles.icon}>{icon}</Text>}
+      {iconNode}
       <Text style={styles.label}>{label}</Text>
     </TouchableOpacity>
   );
