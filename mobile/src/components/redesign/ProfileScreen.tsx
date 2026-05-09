@@ -4,6 +4,7 @@ import {
   Image,
   Linking,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,7 +12,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Settings } from "lucide-react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
@@ -20,6 +21,7 @@ import { MASCOT_POSES } from "../../assets/mascot";
 import SectionTitle from "./SectionTitle";
 import { listarConsultas, limparHistorico, ConsultaHistorico } from "../../storage/historico";
 import { resetarWelcome, resetarTutorial } from "../../storage/preferencias";
+import { obterNickname } from "../../storage/nickname";
 
 const YOUTUBE_URL = "https://www.youtube.com/@TerraGentil";
 const SITE_URL = "https://terragentil.com.br";
@@ -57,6 +59,8 @@ function getNivelInfo(total: number) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
 
   useFocusEffect(
@@ -68,6 +72,7 @@ export default function ProfileScreen() {
   const total = historico.length;
   const { nivel, nome, progresso, falta } = getNivelInfo(total);
   const especiesUnicas = new Set(historico.map((h) => h.especie_identificada)).size;
+  const selosDesbloqueados = CONQUISTAS.filter((c) => total >= c.min).length;
 
   function handleLimparHistorico() {
     Alert.alert(
@@ -116,10 +121,57 @@ export default function ProfileScreen() {
     );
   }
 
+  async function handleEditarPerfil() {
+    const nick = await obterNickname();
+    Alert.alert(
+      "Editar perfil",
+      nick
+        ? `Seu nome de jardim atual é ${nick}.\n\nEm breve você vai poder mudar nome, avatar e bio direto por aqui.`
+        : "Em breve você vai poder personalizar seu perfil direto pelo app.",
+      [{ text: "Combinado", style: "default" }],
+    );
+  }
+
+  async function handleCompartilharPerfil() {
+    try {
+      const partes = [
+        `Tô cuidando das minhas plantinhas com o app Terra Gentil 🌱`,
+        total > 0 ? `Já fiz ${total} diagnósticos e desbloqueei ${selosDesbloqueados} selos.` : "",
+        "Baixa aí: https://terragentil.com.br",
+      ].filter(Boolean);
+      await Share.share({
+        message: partes.join("\n\n"),
+        title: "Terra Gentil. Doutor das Plantas",
+      });
+    } catch (err) {
+      console.log("[profile] erro ao compartilhar:", err);
+    }
+  }
+
+  function handleVerTudoConquistas() {
+    const linhas = CONQUISTAS.map((c) => {
+      const got = total >= c.min;
+      const status = got ? "✓" : `${c.min} cuidados`;
+      return `${c.emoji}  ${c.name} . ${status}`;
+    }).join("\n");
+    Alert.alert(
+      "Todas as conquistas",
+      `${linhas}\n\nVocê tem ${selosDesbloqueados} de ${CONQUISTAS.length} selos.`,
+      [{ text: "Fechar", style: "default" }],
+    );
+  }
+
+  function handleNovoDiagnostico() {
+    navigation.navigate("HomeTab");
+  }
+
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 12 }]}
+      >
         {/* Hero cover */}
         <LinearGradient colors={["#86efac", "#22c55e", "#15803d"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.cover, { paddingTop: insets.top }]}>
           <View style={styles.coverCircle1} />
@@ -154,7 +206,7 @@ export default function ProfileScreen() {
               {[
                 { n: String(total), l: "Diagnosticos" },
                 { n: String(especiesUnicas), l: "Especies" },
-                { n: String(CONQUISTAS.filter((c) => total >= c.min).length), l: "Selos" },
+                { n: String(selosDesbloqueados), l: "Selos" },
               ].map((s, i) => (
                 <View key={i} style={styles.statCell}>
                   <Text style={styles.statNum}>{s.n}</Text>
@@ -165,10 +217,10 @@ export default function ProfileScreen() {
 
             {/* Buttons */}
             <View style={styles.btnRow}>
-              <TouchableOpacity style={styles.btnPrimary} onPress={handleResetTutorial} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.btnPrimary} onPress={handleEditarPerfil} activeOpacity={0.8}>
                 <Text style={styles.btnPrimaryText}>Editar perfil</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.btnOutline} onPress={handleLimparHistorico} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.btnOutline} onPress={handleCompartilharPerfil} activeOpacity={0.8}>
                 <Text style={styles.btnOutlineText}>Compartilhar</Text>
               </TouchableOpacity>
             </View>
@@ -192,7 +244,11 @@ export default function ProfileScreen() {
         </View>
 
         {/* Conquistas */}
-        <SectionTitle title="🏅 Conquistas" action="Ver tudo →" />
+        <SectionTitle
+          title="🏅 Conquistas"
+          action="Ver tudo →"
+          onAction={handleVerTudoConquistas}
+        />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.conquistasRow}>
           {CONQUISTAS.map((c, i) => {
             const got = total >= c.min;
@@ -212,7 +268,12 @@ export default function ProfileScreen() {
         </ScrollView>
 
         {/* Meu jardim — grid 3 colunas */}
-        <SectionTitle title="🪴 Meu jardim" action="Adicionar +" actionColor={COLORS.green} />
+        <SectionTitle
+          title="🪴 Meu jardim"
+          action="Adicionar +"
+          actionColor={COLORS.green}
+          onAction={handleNovoDiagnostico}
+        />
         <View style={styles.gardenGrid}>
           {historico.slice(0, 5).map((h, i) => {
             const item = GARDEN_ITEMS[i % GARDEN_ITEMS.length];
@@ -230,10 +291,15 @@ export default function ProfileScreen() {
             );
           })}
           {/* Card "+ Nova" */}
-          <View style={[styles.gardenCardEmpty, { width: GARDEN_CARD_W }]}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleNovoDiagnostico}
+            style={[styles.gardenCardEmpty, { width: GARDEN_CARD_W }]}
+            accessibilityLabel="Adicionar nova planta ao meu jardim"
+          >
             <Text style={styles.gardenEmptyPlus}>➕</Text>
             <Text style={styles.gardenEmptyText}>+ Nova</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Links */}
@@ -256,8 +322,6 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={styles.versao}>Terra Gentil v1.0.0</Text>
-
-        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   );
@@ -269,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bg,
   },
   scrollContent: {
-    paddingBottom: 20,
+    // paddingBottom dinamico vem inline pra compensar TabBar + insets
   },
 
   // Cover
