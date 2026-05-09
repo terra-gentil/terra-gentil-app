@@ -24,7 +24,6 @@ import {
 } from "./src/api/diagnostico";
 import { ErrorScreen } from "./src/components/ErrorScreen";
 import { LoadingScreen } from "./src/components/LoadingScreen";
-import { SettingsScreen } from "./src/components/SettingsScreen";
 import { TutorialScreen } from "./src/components/TutorialScreen";
 import { WelcomeScreen } from "./src/components/WelcomeScreen";
 import HomeScreen from "./src/components/redesign/HomeScreen";
