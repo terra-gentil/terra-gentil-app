@@ -60,6 +60,7 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
       Alert.alert(
         "Não consegui abrir",
         "Tenta de novo com o celular conectado à internet.",
+        [{ text: "Combinado", style: "default" }],
       );
     }
   }
@@ -106,7 +107,7 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
       } else {
         Alert.alert(
           "PDF baixado no app",
-          "O Sharing nativo nao esta disponivel. Vou abrir o PDF no navegador pra voce baixar de la.",
+          "O sharing nativo não está disponível. Vou abrir o PDF no navegador pra você baixar de lá.",
           [
             { text: "Cancelar", style: "cancel" },
             { text: "Abrir no navegador", onPress: abrirNoNavegador },
@@ -121,7 +122,7 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
       setDownload("idle");
       Alert.alert(
         "Erro no download",
-        `${detalhe}\n\nQuer abrir direto no navegador? La voce baixa do mesmo jeito.`,
+        `${detalhe}\n\nQuer abrir direto no navegador? Lá você baixa do mesmo jeito.`,
         [
           { text: "Cancelar", style: "cancel" },
           { text: "Abrir no navegador", onPress: abrirNoNavegador },

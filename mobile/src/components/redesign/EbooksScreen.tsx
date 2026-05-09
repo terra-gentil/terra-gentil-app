@@ -9,8 +9,9 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Download, Gift, X } from "lucide-react-native";
+import { Camera, Download, Gift, X } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_GIFT } from "../../assets/mascot";
 import { Ebook, EBOOK_DESTAQUE, EBOOKS } from "../../data/ebooks";
@@ -24,12 +25,20 @@ interface Props {
 
 export default function EbooksScreen({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const [ebookAtivo, setEbookAtivo] = useState<Ebook | null>(null);
   const [viewerAberto, setViewerAberto] = useState(false);
 
   function abrirEbook(ebook: Ebook) {
     setEbookAtivo(ebook);
     setViewerAberto(true);
+  }
+
+  function pedirGuiaExclusivo() {
+    onClose();
+    setTimeout(() => {
+      navigation.navigate("HomeTab");
+    }, 250);
   }
 
   return (
@@ -131,13 +140,21 @@ export default function EbooksScreen({ visible, onClose }: Props) {
           </View>
 
           {/* RODAPE */}
-          <View style={styles.rodape}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={pedirGuiaExclusivo}
+            style={styles.rodape}
+          >
             <Text style={styles.rodapeTitulo}>Não achou um guia da sua planta?</Text>
             <Text style={styles.rodapeTexto}>
               Manda mensagem pelo formulário pós-diagnóstico. O Doutor escreve
               um guia exclusivo pra você e envia de graça.
             </Text>
-          </View>
+            <View style={styles.rodapeCta}>
+              <Camera size={14} color={COLORS.greenDark} strokeWidth={2.6} />
+              <Text style={styles.rodapeCtaText}>Tirar foto agora</Text>
+            </View>
+          </TouchableOpacity>
 
           <View style={{ height: 32 }} />
         </ScrollView>
@@ -414,5 +431,24 @@ const styles = StyleSheet.create({
     fontSize: SIZES.sm,
     color: COLORS.inkSoft,
     lineHeight: 18,
+  },
+  rodapeCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+    backgroundColor: "#fff",
+    borderWidth: 1.5,
+    borderColor: COLORS.green,
+  },
+  rodapeCtaText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.sm,
+    color: COLORS.greenDark,
+    letterSpacing: 0.3,
   },
 });
