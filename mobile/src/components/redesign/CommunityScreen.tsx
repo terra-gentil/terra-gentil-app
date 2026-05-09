@@ -29,6 +29,7 @@ import {
 } from "../../data/comunidade";
 import {
   alternarSeguir,
+  contarComentarios,
   listarMeusPosts,
   obterLikes,
   obterSaves,
@@ -39,7 +40,7 @@ import {
 } from "../../storage/comunidade";
 import { obterOuCriarNickname } from "../../storage/nickname";
 
-const FILTROS = ["Populares", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
+const FILTROS = ["Populares", "Salvos", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
@@ -49,6 +50,7 @@ export default function CommunityScreen() {
   const [likes, setLikes] = useState<Record<string, true>>({});
   const [saves, setSaves] = useState<Record<string, true>>({});
   const [seguindo, setSeguindo] = useState<Record<string, true>>({});
+  const [comentariosPorPost, setComentariosPorPost] = useState<Record<string, number>>({});
   const [nickname, setNickname] = useState("JARDIM");
   const [novaAberta, setNovaAberta] = useState(false);
   const [notifsAberta, setNotifsAberta] = useState(false);
@@ -56,6 +58,19 @@ export default function CommunityScreen() {
   const [postAtivo, setPostAtivo] = useState<PostBase | null>(null);
   const [buscaAberta, setBuscaAberta] = useState(false);
   const [buscaTexto, setBuscaTexto] = useState("");
+
+  const recarregarComentarios = useCallback(async (ids: (string | number)[]) => {
+    const entries = await Promise.all(
+      ids.map(async (id) => [String(id), await contarComentarios(id)] as const),
+    );
+    setComentariosPorPost((curr) => {
+      const next = { ...curr };
+      for (const [id, n] of entries) {
+        next[id] = n;
+      }
+      return next;
+    });
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -74,11 +89,17 @@ export default function CommunityScreen() {
         setSaves(s);
         setSeguindo(sg);
         setNickname(nick);
+
+        const todosIds = [
+          ...POSTS_MOCK.map((p) => p.id),
+          ...meus.map((m) => m.id),
+        ];
+        recarregarComentarios(todosIds);
       })();
       return () => {
         alive = false;
       };
-    }, [])
+    }, [recarregarComentarios])
   );
 
   const todosPosts: PostBase[] = useMemo(() => {
@@ -91,7 +112,9 @@ export default function CommunityScreen() {
   const postsFiltrados: PostBase[] = useMemo(() => {
     let lista = todosPosts;
 
-    if (filtro === "Meus posts") {
+    if (filtro === "Salvos") {
+      lista = lista.filter((p) => saves[String(p.id)]);
+    } else if (filtro === "Meus posts") {
       lista = lista.filter((p) => p.isMine);
     } else if (filtro === "Seguindo") {
       lista = lista.filter((p) => seguindo[p.author]);
@@ -113,7 +136,7 @@ export default function CommunityScreen() {
     }
 
     return lista;
-  }, [todosPosts, filtro, seguindo, buscaTexto]);
+  }, [todosPosts, filtro, seguindo, saves, buscaTexto]);
 
   function handleAbrirComentarios(post: PostBase) {
     setPostAtivo(post);
@@ -242,13 +265,21 @@ export default function CommunityScreen() {
         {postsFiltrados.length === 0 && (
           <View style={styles.vazio}>
             <Text style={styles.vazioEmoji}>
-              {buscaTexto.trim().length >= 2 ? "🔎" : filtro === "Meus posts" ? "✏️" : "🌱"}
+              {buscaTexto.trim().length >= 2
+                ? "🔎"
+                : filtro === "Meus posts"
+                ? "✏️"
+                : filtro === "Salvos"
+                ? "🔖"
+                : "🌱"}
             </Text>
             <Text style={styles.vazioTitulo}>
               {buscaTexto.trim().length >= 2
                 ? "Nada encontrado"
                 : filtro === "Meus posts"
                 ? "Você ainda não publicou"
+                : filtro === "Salvos"
+                ? "Nenhum post salvo ainda"
                 : filtro === "Seguindo"
                 ? "Sem novidades por aqui"
                 : "Nenhum post nesse filtro"}
@@ -258,6 +289,8 @@ export default function CommunityScreen() {
                 ? `Não achei nada com "${buscaTexto.trim()}". Tente outras palavras.`
                 : filtro === "Meus posts"
                 ? "Toque em Nova postagem para começar a compartilhar."
+                : filtro === "Salvos"
+                ? "Toque no marcador de página em qualquer post pra guardar pra depois."
                 : filtro === "Seguindo"
                 ? "Comece a seguir alguém na lista de Populares."
                 : "Tente outro filtro."}
@@ -272,6 +305,7 @@ export default function CommunityScreen() {
             liked={Boolean(likes[String(p.id)])}
             saved={Boolean(saves[String(p.id)])}
             seguindo={Boolean(seguindo[p.author])}
+            comentariosLocais={comentariosPorPost[String(p.id)] ?? 0}
             onLikedChange={(novo) => {
               setLikes((curr) => {
                 const next = { ...curr };
@@ -329,7 +363,10 @@ export default function CommunityScreen() {
         visible={comentariosAberta}
         post={postAtivo}
         nickname={nickname}
-        onClose={() => setComentariosAberta(false)}
+        onClose={() => {
+          setComentariosAberta(false);
+          if (postAtivo) recarregarComentarios([postAtivo.id]);
+        }}
       />
 
       <NotificacoesModal

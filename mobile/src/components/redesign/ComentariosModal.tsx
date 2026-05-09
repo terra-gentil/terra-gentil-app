@@ -109,12 +109,20 @@ export default function ComentariosModal({
             {/* Post resumo */}
             <View style={styles.postResumo}>
               <View style={styles.postResumoHero}>
-                <LinearGradient
-                  colors={post.gradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={StyleSheet.absoluteFillObject}
-                />
+                {post.imageUri ? (
+                  <Image
+                    source={{ uri: post.imageUri }}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <LinearGradient
+                    colors={post.gradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFillObject}
+                  />
+                )}
                 <LinearGradient
                   colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.6)"]}
                   start={{ x: 0, y: 0.3 }}

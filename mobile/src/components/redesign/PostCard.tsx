@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -21,7 +21,6 @@ import {
   alternarLike,
   alternarSave,
   alternarSeguir,
-  contarComentarios,
   formatarK,
 } from "../../storage/comunidade";
 
@@ -32,6 +31,7 @@ interface PostCardProps {
   liked: boolean;
   saved: boolean;
   seguindo: boolean;
+  comentariosLocais?: number;
   onLikedChange?: (next: boolean) => void;
   onSavedChange?: (next: boolean) => void;
   onSeguindoChange?: (autor: string, next: boolean) => void;
@@ -47,6 +47,7 @@ export default function PostCard({
   liked,
   saved,
   seguindo,
+  comentariosLocais = 0,
   onLikedChange,
   onSavedChange,
   onSeguindoChange,
@@ -56,18 +57,6 @@ export default function PostCard({
   onVerComentarios,
   onContinuarLendo,
 }: PostCardProps) {
-  const [comentariosLocais, setComentariosLocais] = useState(0);
-
-  useEffect(() => {
-    let alive = true;
-    contarComentarios(post.id).then((n) => {
-      if (alive) setComentariosLocais(n);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [post.id]);
-
   const likesAtual = post.likesBase + (liked ? 1 : 0);
   const comentariosAtual = post.comentariosBase + comentariosLocais;
 
