@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Modal,
   Platform,
   StyleSheet,
@@ -48,44 +49,84 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
 
   if (!ebook) return null;
 
+  async function abrirNoNavegador() {
+    if (!ebook) return;
+    try {
+      const ok = await Linking.canOpenURL(ebook.pdf);
+      if (!ok) throw new Error("Linking nao pode abrir a URL");
+      await Linking.openURL(ebook.pdf);
+    } catch (err) {
+      console.log("[ebook] fallback openURL falhou:", err);
+      Alert.alert(
+        "Não consegui abrir",
+        "Tenta de novo com o celular conectado à internet.",
+      );
+    }
+  }
+
   async function handleBaixar() {
     if (!ebook || download === "baixando") return;
     setDownload("baixando");
 
     try {
+      console.log("[ebook] iniciando download:", ebook.pdf);
+      console.log("[ebook] cacheDirectory:", FileSystem.cacheDirectory);
+
+      if (!FileSystem.cacheDirectory) {
+        throw new Error("cacheDirectory indisponivel");
+      }
+
       const nomeArquivo = `terra-gentil-${slug(ebook.titulo)}.pdf`;
       const destino = FileSystem.cacheDirectory + nomeArquivo;
 
+      console.log("[ebook] baixando para:", destino);
       const resultado = await FileSystem.downloadAsync(ebook.pdf, destino);
+      console.log("[ebook] resultado:", resultado.status, resultado.uri);
 
       if (resultado.status !== 200) {
-        throw new Error(`Status ${resultado.status}`);
+        throw new Error(`Servidor respondeu ${resultado.status}`);
       }
 
       setDownload("concluido");
 
       const podeCompartilhar = await Sharing.isAvailableAsync();
+      console.log("[ebook] sharing disponivel:", podeCompartilhar);
+
       if (podeCompartilhar) {
-        await Sharing.shareAsync(resultado.uri, {
-          dialogTitle: `Salvar ${ebook.titulo}`,
-          mimeType: "application/pdf",
-          UTI: "com.adobe.pdf",
-        });
+        try {
+          await Sharing.shareAsync(resultado.uri, {
+            dialogTitle: `Salvar ${ebook.titulo}`,
+            mimeType: "application/pdf",
+            UTI: "com.adobe.pdf",
+          });
+        } catch (shareErr) {
+          console.log("[ebook] sharing erro:", shareErr);
+          // sharing cancelado pelo user nao eh erro real
+        }
       } else {
         Alert.alert(
-          "PDF baixado",
-          "O guia foi baixado. Procure em Arquivos pelo nome do ebook.",
+          "PDF baixado no app",
+          "O Sharing nativo nao esta disponivel. Vou abrir o PDF no navegador pra voce baixar de la.",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Abrir no navegador", onPress: abrirNoNavegador },
+          ],
         );
       }
 
       setTimeout(() => setDownload("idle"), 1500);
-    } catch (err) {
-      console.log("[ebook] erro ao baixar:", err);
-      Alert.alert(
-        "Não foi possível baixar",
-        "Verifique sua conexão com a internet e tente de novo.",
-      );
+    } catch (err: any) {
+      const detalhe = err?.message ? String(err.message) : String(err);
+      console.log("[ebook] erro ao baixar:", detalhe, err);
       setDownload("idle");
+      Alert.alert(
+        "Erro no download",
+        `${detalhe}\n\nQuer abrir direto no navegador? La voce baixa do mesmo jeito.`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Abrir no navegador", onPress: abrirNoNavegador },
+        ],
+      );
     }
   }
 
