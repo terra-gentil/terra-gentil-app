@@ -15,6 +15,7 @@ import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
 import SectionTitle from "./SectionTitle";
 import DoctorScanner from "./DoctorScanner";
+import EbooksScreen from "./EbooksScreen";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -32,14 +33,14 @@ type Atalho = {
   bg: string;
   deep: string;
   tab?: string;
-  action?: "game";
+  action?: "game" | "ebooks";
   wide?: boolean;
 };
 
 const ATALHOS: Atalho[] = [
   { Icon: Users, label: "Comunidade", desc: "Posts e dicas", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
   { Icon: Tv, label: "Videos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
-  { Icon: BookOpen, label: "Ebooks", desc: "Em breve", bg: COLORS.amber, deep: "#d97706" },
+  { Icon: BookOpen, label: "Ebooks", desc: "20 guias grátis", bg: COLORS.amber, deep: "#d97706", action: "ebooks" },
   { Icon: ShoppingBag, label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
   { Icon: Gamepad2, label: "Resgate dos Jardins", desc: "Jogue com o Gentileza e relaxe", bg: COLORS.green, deep: COLORS.greenDeep, action: "game", wide: true },
 ];
@@ -61,6 +62,7 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const navigation = useNavigation<any>();
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
+  const [ebooksAberto, setEbooksAberto] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -79,6 +81,7 @@ export default function HomeScreen({
   }
 
   return (
+    <>
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar avatarSource={MASCOT_POSES[0]} badge={0} onAvatarPress={onSettings} />
 
@@ -146,6 +149,8 @@ export default function HomeScreen({
           const handler =
             a.action === "game"
               ? onJogar ?? (() => {})
+              : a.action === "ebooks"
+              ? () => setEbooksAberto(true)
               : a.tab
               ? () => navigation.navigate(a.tab as string)
               : () => {};
@@ -219,6 +224,12 @@ export default function HomeScreen({
 
       <View style={{ height: 100 }} />
     </ScrollView>
+
+    <EbooksScreen
+      visible={ebooksAberto}
+      onClose={() => setEbooksAberto(false)}
+    />
+    </>
   );
 }
 
