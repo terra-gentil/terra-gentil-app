@@ -14,6 +14,7 @@ import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
 import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
 import SectionTitle from "./SectionTitle";
+import DoctorScanner from "./DoctorScanner";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -109,6 +110,8 @@ export default function HomeScreen({
             </Text>
           </View>
         </View>
+
+        <DoctorScanner />
 
         <View style={styles.scannerButtons}>
           <TouchableOpacity
