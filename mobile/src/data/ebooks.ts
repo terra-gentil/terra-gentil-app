@@ -20,7 +20,7 @@ export const EBOOK_DESTAQUE: Ebook = {
   subtitulo: "Pare de matar suas plantas — o guia base do Doutor",
   emoji: "📘",
   paletaId: "verde",
-  capa: `${BASE_IMG}/O-Codigo-Secreto-das-Plantas.jpeg`,
+  capa: "https://plum-tarsier-720506.hostingersite.com/wp-content/uploads/2025/12/Realistic_and_welcoming_202512262000-1.jpeg",
   pdf: `${BASE_PDF}/1-O-Codigo-Secreto-das-Plantas.pdf`,
   keywords: ["geral", "iniciante", "basico"],
 };
