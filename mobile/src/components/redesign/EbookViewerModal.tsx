@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -46,6 +46,13 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const [carregando, setCarregando] = useState(true);
   const [download, setDownload] = useState<DownloadState>("idle");
+
+  useEffect(() => {
+    if (visible && ebook) {
+      setCarregando(true);
+      setDownload("idle");
+    }
+  }, [visible, ebook?.id]);
 
   if (!ebook) return null;
 
@@ -154,15 +161,10 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
 
         {/* Viewer */}
         <View style={styles.viewerWrap}>
-          {carregando && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color={COLORS.amber} />
-              <Text style={styles.loadingText}>Abrindo o guia...</Text>
-            </View>
-          )}
           <WebView
             source={{ uri: viewerUrl(ebook.pdf) }}
             style={styles.webview}
+            onLoadStart={() => setCarregando(true)}
             onLoadEnd={() => setCarregando(false)}
             startInLoadingState={false}
             javaScriptEnabled
@@ -170,6 +172,17 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
             allowsBackForwardNavigationGestures
             originWhitelist={["*"]}
           />
+          {carregando && (
+            <View style={styles.loadingOverlay} pointerEvents="none">
+              <View style={styles.loadingCard}>
+                <ActivityIndicator size="large" color={COLORS.amber} />
+                <Text style={styles.loadingText}>Abrindo o guia...</Text>
+                <Text style={styles.loadingSub}>
+                  Os PDFs grandes levam uns segundos. Já já o seu guia aparece aqui.
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Footer com botao baixar */}
@@ -260,12 +273,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: FUNDO,
     zIndex: 5,
+    paddingHorizontal: 32,
+  },
+  loadingCard: {
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 18,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.35)",
+    maxWidth: 320,
   },
   loadingText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: SIZES.body,
+    fontFamily: FONTS.displayBlack,
+    fontSize: SIZES.lg,
     color: COLORS.amber,
-    marginTop: 12,
+    marginTop: 14,
+    textAlign: "center",
+  },
+  loadingSub: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.smPlus,
+    color: "rgba(255,255,255,0.7)",
+    marginTop: 8,
+    textAlign: "center",
+    lineHeight: 18,
   },
   footer: {
     paddingHorizontal: 16,

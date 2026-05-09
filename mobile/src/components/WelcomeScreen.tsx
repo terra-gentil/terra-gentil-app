@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   Pressable,
@@ -33,6 +33,13 @@ export function WelcomeScreen({ onComecar }: Props) {
     await marcarWelcomeVisto();
     onComecar();
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleComecar();
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <View style={[styles.safeWrap, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
@@ -80,7 +87,7 @@ export function WelcomeScreen({ onComecar }: Props) {
           </View>
 
           {/* Hint */}
-          <Text style={styles.tapHint}>Toque em qualquer lugar pra começar 👆</Text>
+          <Text style={styles.tapHint}>Toque pra começar 👆 ou aguarde uns segundos</Text>
 
           {/* Dots */}
           <View style={styles.dotsRow}>
