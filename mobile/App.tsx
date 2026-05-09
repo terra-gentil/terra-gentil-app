@@ -331,9 +331,12 @@ export default function App() {
         <View style={styles.container}>
           <StatusBar style="dark" />
           <View style={styles.naoPlantaWrap}>
+            <View style={styles.naoPlantaMascotWrap}>
+              <Image source={MASCOT_POSES[1]} style={styles.naoPlantaMascot} resizeMode="cover" />
+            </View>
             <Text style={styles.naoPlantaTitle}>Hmm...</Text>
             <Text style={styles.naoPlantaMessage}>{resultado.plano_tratamento}</Text>
-            <TouchableOpacity style={styles.naoPlantaBtn} onPress={handleNovaFoto}>
+            <TouchableOpacity style={styles.naoPlantaBtn} onPress={handleNovaFoto} activeOpacity={0.85}>
               <Text style={styles.naoPlantaBtnText}>Tentar outra foto</Text>
             </TouchableOpacity>
           </View>
@@ -446,6 +449,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 32,
+  },
+  naoPlantaMascotWrap: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    overflow: "hidden",
+    borderWidth: 5,
+    borderColor: "#fff",
+    backgroundColor: COLORS.greenLeaf,
+    marginBottom: 22,
+    shadowColor: COLORS.greenDeep,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 0,
+    elevation: 6,
+  },
+  naoPlantaMascot: {
+    width: "100%",
+    height: "100%",
   },
   naoPlantaTitle: {
     fontFamily: FONTS.displayBlack,
