@@ -8,11 +8,14 @@ import {
   View,
   Linking,
 } from "react-native";
-import { Play, Clock, ExternalLink, Radio } from "lucide-react-native";
+import { Play, ExternalLink, Radio } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONTS, SIZES, RADIUS, SPACING, shadowChunky, shadowSoft } from "../../constants/theme";
 import TopBar from "./TopBar";
 import Pills from "./Pills";
 import SectionTitle from "./SectionTitle";
+import NotificacoesModal from "./NotificacoesModal";
 import { MASCOT_POSES } from "../../assets/mascot";
 
 const YOUTUBE_CHANNEL = "https://www.youtube.com/@TerraGentil";
@@ -25,7 +28,7 @@ function thumbUrlHQ(videoId: string) {
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }
 
-const CATEGORIAS = ["Todos", "Transformacoes", "Shorts", "Lives"];
+const CATEGORIAS = ["Todos", "Transformações", "Shorts", "Lives"];
 
 // Videos reais do canal Terra Gentil (UCX3xUnHpQrhSUJUGjqMAN2A)
 const TRANSFORMACOES = [
@@ -132,17 +135,29 @@ function abrirVideo(url: string) {
 }
 
 export default function VideosScreen() {
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [filtro, setFiltro] = useState("Todos");
+  const [notifAberto, setNotifAberto] = useState(false);
 
-  const mostrarTransformacoes = filtro === "Todos" || filtro === "Transformacoes";
+  const mostrarTransformacoes = filtro === "Todos" || filtro === "Transformações";
   const mostrarShorts = filtro === "Todos" || filtro === "Shorts";
   const mostrarLives = filtro === "Todos" || filtro === "Lives";
 
   return (
     <View style={styles.screen}>
-      <TopBar avatarSource={MASCOT_POSES[0]} badge={0} />
+      <TopBar
+        avatarSource={MASCOT_POSES[0]}
+        badge={0}
+        onAvatarPress={() => navigation.navigate("ProfileTab")}
+        onBellPress={() => setNotifAberto(true)}
+      />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 12 }]}
+      >
         {/* Header */}
         <View style={styles.headerWrap}>
           <View style={styles.headerRow}>
@@ -152,7 +167,7 @@ export default function VideosScreen() {
               <Text style={styles.subscribeBtnText}>Inscreva-se</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.headerSub}>Canal oficial  .  Transformacoes reais</Text>
+          <Text style={styles.headerSub}>Canal oficial  .  Transformações reais</Text>
         </View>
 
         {/* Pills */}
@@ -183,7 +198,7 @@ export default function VideosScreen() {
 
               {/* Info bottom */}
               <View style={styles.heroInfo}>
-                <Text style={styles.heroLabel}>TRANSFORMACOES  .  {TRANSFORMACOES[0].data}</Text>
+                <Text style={styles.heroLabel}>TRANSFORMAÇÕES  .  {TRANSFORMACOES[0].data}</Text>
                 <Text style={styles.heroTitulo} numberOfLines={2}>{TRANSFORMACOES[0].titulo}</Text>
               </View>
             </TouchableOpacity>
@@ -194,7 +209,7 @@ export default function VideosScreen() {
         <View style={styles.statStrip}>
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{TRANSFORMACOES.length + SHORTS.length + LIVES.length}</Text>
-            <Text style={styles.statLabel}>videos</Text>
+            <Text style={styles.statLabel}>vídeos</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -211,8 +226,8 @@ export default function VideosScreen() {
         {/* Secao: Transformacoes */}
         {mostrarTransformacoes && (
           <>
-            <SectionTitle title="Transformacoes" action={`${TRANSFORMACOES.length} videos →`} actionColor={COLORS.green} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
-            <Text style={styles.playlistDesc}>Transformacoes reais e gratuitas de jardins abandonados. Todo o trabalho feito de graca para quem nao pode pagar.</Text>
+            <SectionTitle title="Transformações" action={`${TRANSFORMACOES.length} vídeos →`} actionColor={COLORS.green} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
+            <Text style={styles.playlistDesc}>Transformações reais e gratuitas de jardins abandonados. Todo o trabalho feito de graça para quem não pode pagar.</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
               {TRANSFORMACOES.map((v) => (
                 <TouchableOpacity key={v.id} style={styles.videoCard} onPress={() => abrirVideo(v.url)} activeOpacity={0.8}>
@@ -235,8 +250,8 @@ export default function VideosScreen() {
         {/* Secao: Shorts */}
         {mostrarShorts && (
           <>
-            <SectionTitle title="Shorts" action={`${SHORTS.length} videos →`} actionColor={COLORS.coral} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
-            <Text style={styles.playlistDesc}>O melhor das transformacoes em poucos segundos.</Text>
+            <SectionTitle title="Shorts" action={`${SHORTS.length} vídeos →`} actionColor={COLORS.coral} onAction={() => abrirVideo(YOUTUBE_CHANNEL)} />
+            <Text style={styles.playlistDesc}>O melhor das transformações em poucos segundos.</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
               {SHORTS.map((v) => (
                 <TouchableOpacity key={v.id} style={styles.videoCard} onPress={() => abrirVideo(v.url)} activeOpacity={0.8}>
@@ -259,7 +274,7 @@ export default function VideosScreen() {
         {/* Lives */}
         {mostrarLives && (
           <>
-            <SectionTitle title="Transmissoes ao vivo" />
+            <SectionTitle title="Transmissões ao vivo" />
             <View style={styles.livesList}>
               {LIVES.map((v) => (
                 <TouchableOpacity key={v.id} style={styles.liveCard} onPress={() => abrirVideo(v.url)} activeOpacity={0.8}>
@@ -287,7 +302,7 @@ export default function VideosScreen() {
               <Image source={MASCOT_POSES[2]} style={styles.ctaMascot} resizeMode="cover" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.ctaTitle}>Inscreva-se no canal!</Text>
-                <Text style={styles.ctaSub}>Video novo toda semana. Transformacoes, gentileza e muito verde.</Text>
+                <Text style={styles.ctaSub}>Vídeo novo toda semana. Transformações, gentileza e muito verde.</Text>
               </View>
             </View>
             <View style={styles.ctaBtn}>
@@ -297,8 +312,12 @@ export default function VideosScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={{ height: 100 }} />
       </ScrollView>
+
+      <NotificacoesModal
+        visible={notifAberto}
+        onClose={() => setNotifAberto(false)}
+      />
     </View>
   );
 }
@@ -309,7 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bg,
   },
   scrollContent: {
-    paddingBottom: 20,
+    // paddingBottom dinamico vem inline pra compensar TabBar + insets
   },
   headerWrap: {
     paddingHorizontal: SPACING.screenPadding,
