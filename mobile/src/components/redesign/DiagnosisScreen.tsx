@@ -1,7 +1,9 @@
 import React from "react";
 import {
+  Alert,
   Image,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,7 +14,7 @@ import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/
 import StatCard from "./StatCard";
 import SectionTitle from "./SectionTitle";
 import { EbookCard } from "../EbookCard";
-import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Bell, Camera, Gift, MessageSquare } from "lucide-react-native";
+import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Camera, MessageSquare } from "lucide-react-native";
 
 const NIVEL_LUZ_LABEL: Record<string, string> = {
   sol_pleno: "Sol pleno",
@@ -23,19 +25,24 @@ const NIVEL_LUZ_LABEL: Record<string, string> = {
 };
 
 const NIVEL_DIFICULDADE_LABEL: Record<string, string> = {
-  facil: "Facil",
-  medio: "Medio",
-  dificil: "Dificil",
+  facil: "Fácil",
+  medio: "Médio",
+  dificil: "Difícil",
   nao_aplicavel: "N/A",
 };
 
 const ESTADO_SAUDE_LABEL: Record<string, string> = {
-  saudavel: "Saudavel",
-  atencao: "Atencao",
+  saudavel: "Saudável",
+  atencao: "Atenção",
   doente: "Doente",
-  critico: "Critico",
+  critico: "Crítico",
   nao_aplicavel: "N/A",
 };
+
+function regaLabel(dias: number): string {
+  if (dias <= 1) return "Diariamente";
+  return `A cada ${dias} dias`;
+}
 
 interface Props {
   imageUri: string;
@@ -47,17 +54,43 @@ interface Props {
 export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaConsulta }: Props) {
   const confiancaPct = Math.round(resultado.confianca * 100);
 
+  function handleSalvarFeedback() {
+    Alert.alert(
+      "Salvo no Meu Jardim ✓",
+      "Sua planta já está guardada na aba Eu, no seu jardim. Pode voltar a ela quando quiser.",
+      [{ text: "Combinado", style: "default" }],
+    );
+  }
+
+  async function handleSegundaOpiniao() {
+    try {
+      const partes = [
+        `Doutor Gentileza diagnosticou: ${resultado.nome_popular} (${resultado.especie_identificada})`,
+        resultado.diagnostico_titulo,
+        resultado.diagnostico_explicacao,
+        `O que você acha? Quero uma 2ª opinião.`,
+        "App Terra Gentil: https://terragentil.com.br",
+      ].filter(Boolean);
+      await Share.share({
+        message: partes.join("\n\n"),
+        title: `Diagnóstico: ${resultado.nome_popular}`,
+      });
+    } catch (err) {
+      console.log("[diagnosis] erro ao compartilhar:", err);
+    }
+  }
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onVoltar} style={styles.headerBtn}>
+        <TouchableOpacity onPress={onVoltar} style={styles.headerBtn} hitSlop={6}>
           <ArrowLeft size={22} color={COLORS.ink} strokeWidth={2.2} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Diagnostico</Text>
-        <View style={styles.headerBtn}>
-          <Bookmark size={20} color={COLORS.ink} strokeWidth={2.2} />
-        </View>
+        <Text style={styles.headerTitle}>Diagnóstico</Text>
+        <TouchableOpacity onPress={handleSalvarFeedback} style={styles.headerBtn} hitSlop={6} activeOpacity={0.7}>
+          <Bookmark size={20} color={COLORS.green} strokeWidth={2.2} fill={COLORS.green} />
+        </TouchableOpacity>
       </View>
 
       {/* Hero da planta */}
@@ -83,10 +116,10 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
           <StatCard icon={<Sun size={20} color={COLORS.amber} strokeWidth={2.2} />} label="Luz" value={NIVEL_LUZ_LABEL[resultado.nivel_luz] || resultado.nivel_luz} bgColor={COLORS.amberSoft} />
         </View>
         <View style={styles.statCell}>
-          <StatCard icon={<Droplets size={20} color={COLORS.sky} strokeWidth={2.2} />} label="Rega" value={`${resultado.rega_dias} em ${resultado.rega_dias} dias`} bgColor={COLORS.skySoft} />
+          <StatCard icon={<Droplets size={20} color={COLORS.sky} strokeWidth={2.2} />} label="Rega" value={regaLabel(resultado.rega_dias)} bgColor={COLORS.skySoft} />
         </View>
         <View style={styles.statCell}>
-          <StatCard icon={<Leaf size={20} color={COLORS.green} strokeWidth={2.2} />} label="Saude" value={ESTADO_SAUDE_LABEL[resultado.estado_saude] || resultado.estado_saude} bgColor={COLORS.greenSoft} />
+          <StatCard icon={<Leaf size={20} color={COLORS.green} strokeWidth={2.2} />} label="Saúde" value={ESTADO_SAUDE_LABEL[resultado.estado_saude] || resultado.estado_saude} bgColor={COLORS.greenSoft} />
         </View>
         <View style={styles.statCell}>
           <StatCard icon={<Star size={20} color={COLORS.lavender} strokeWidth={2.2} />} label="Cuidado" value={NIVEL_DIFICULDADE_LABEL[resultado.nivel_dificuldade] || resultado.nivel_dificuldade} bgColor={COLORS.lavenderSoft} />
@@ -107,14 +140,14 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
       {/* Toxicidade */}
       {resultado.toxica_para_pets && (
         <View style={styles.toxicCard}>
-          <Text style={styles.toxicTitle}>🚨 Toxica pra pets</Text>
+          <Text style={styles.toxicTitle}>🚨 Tóxica pra pets</Text>
           <Text style={styles.toxicText}>{resultado.toxicidade_detalhes}</Text>
         </View>
       )}
 
       {!resultado.toxica_para_pets && (
         <View style={styles.safeCard}>
-          <Text style={styles.safeText}>✅ Segura pra pets e criancas</Text>
+          <Text style={styles.safeText}>✅ Segura pra pets e crianças</Text>
         </View>
       )}
 
@@ -165,7 +198,7 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
         <Text style={styles.giftEmoji}>🎁</Text>
         <View style={styles.giftTextWrap}>
           <Text style={styles.giftTitle}>Presente do Doutor!</Text>
-          <Text style={styles.giftDesc}>Guia completo da {resultado.nome_popular}, gratis no seu email</Text>
+          <Text style={styles.giftDesc}>Guia completo da {resultado.nome_popular}, grátis no seu email</Text>
         </View>
       </View>
 
@@ -173,10 +206,10 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
 
       {/* Botoes de acao */}
       <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.actionOutline} onPress={onNovaConsulta} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.actionOutline} onPress={handleSegundaOpiniao} activeOpacity={0.8}>
           <View style={styles.actionRow}>
             <MessageSquare size={18} color={COLORS.greenDark} strokeWidth={2.2} />
-            <Text style={styles.actionOutlineText}>2a opiniao</Text>
+            <Text style={styles.actionOutlineText}>2ª opinião</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionPrimary} onPress={onNovaConsulta} activeOpacity={0.8}>
