@@ -2,7 +2,7 @@
 
 ## SOBRE ESTE DOCUMENTO
 Este documento contem TUDO que uma IA precisa saber pra trabalhar no projeto Terra Gentil.
-Atualizado em 8 maio 2026, pos CommunityScreen e jogo Resgate dos Jardins.
+Atualizado em 9 maio 2026, pos DoctorScanner, Comunidade funcional e EbooksScreen.
 Leia inteiro antes de tocar em qualquer arquivo.
 
 ---
@@ -15,6 +15,7 @@ Quando ele pede algo, espera receber prompts prontos pra colar no Claude Code.
 **Regras absolutas:**
 . Sem travessao em NADA (nem markdown, nem codigo, nem commit messages). Usa "." ou nenhum marcador
 . PT-BR sempre, inclusive em commits, comentarios e variaveis
+. Strings que aparecem na UI (Text, Alert, placeholder, label, status) DEVEM ter acentos e cedilha completos: "Diagnóstico", "Atenção", "padrões". Codigo, comentarios, mensagens de commit, variaveis e arquivos continuam sem acentos: "diagnostico", "Atencao". Travessao continua proibido em qualquer lugar
 . Publico alvo: 40 a 70 anos. Fonte grande, linguagem simples
 . Persona do app: "Doutor Gentileza", botanico acolhedor
 . Commits: pode commitar direto quando pedido, NAO precisa pedir confirmacao
@@ -180,18 +181,24 @@ mobile/
       WelcomeScreen.tsx            (redesenhada Pixel Garden, safe area com View wrapper)
       redesign/
         TopBar.tsx                 (avatar + search bar + bell com badge, useSafeAreaInsets topo)
-        HomeScreen.tsx             (greeting, streak, scanner card, atalhos 2x2 NAVEGANDO pras tabs, diagnosticos recentes)
+        HomeScreen.tsx             (greeting, streak, DoctorScanner card, atalhos 2x2 NAVEGANDO pras tabs incluindo Ebooks, diagnosticos recentes, modal EbooksScreen embutido)
         DiagnosisScreen.tsx        (hero image + stats grid + alerta + toxicidade + timeline + ebook + botoes)
         VideosScreen.tsx           (15 videos reais YouTube com thumbnails, 3 categorias, filtros, botao Inscreva-se, links individuais)
         ProfileScreen.tsx          (cover gradient, avatar+anel verde, stats, gamificacao/nivel, streak card amber 3D, conquistas, meu jardim grid 3col, configs, links YouTube/site)
-        CommunityScreen.tsx        (feed Pixel Garden, 5 pills, 3 posts gradient hero, FAB Nova postagem, Doutor Gentileza fixado oficial)
+        CommunityScreen.tsx        (feed FUNCIONAL: 5 filtros aplicaveis, busca inline, posts mock + meus, like/save/seguir persistentes, share nativo, more menu, modais Nova/Comentarios/Notificacoes, useFocusEffect recarrega)
         GameScreen.tsx             (WebView fullscreen do jogo Resgate dos Jardins, integrado via flag showGame no App.tsx)
+        DoctorScanner.tsx          (animacao cinematografica 11s em loop com 6 atos: intro/scan/think/result/plan/ebook usando 6 das 8 poses do mascote, HUD com chip de status, scanner line, card de diagnostico rotacionando 3 exemplos, throttle ~30fps via raf)
+        EbooksScreen.tsx           (modal fullscreen, hero gift amber gradient, ebook destaque com pill +POPULAR, grid 2col com 19 capas reais hospedadas em terragentil.com.br/ebooks/covers/, rodape verde tracejado)
+        EbookViewerModal.tsx       (modal preto fullscreen, WebView do PDF: iOS direto, Android via Google Docs gview; botao baixar amber 3 estados (idle/baixando/concluido), download via FileSystem legacy + Sharing nativo com fallback Linking.openURL)
+        NovaPostagemModal.tsx      (formulario completo: categoria, titulo, 5 paletas de cor, tags, preview ao vivo do hero, validacao 10 chars min, confirma descarte)
+        ComentariosModal.tsx       (lista mock destacada + locais, input com KeyboardAvoidingView, emoji por hash do nickname, timeAgo)
+        NotificacoesModal.tsx      (estado vazio amigavel + 3 cards explicando o que vai notificar)
         Pills.tsx                  (filtros horizontais com sombra chunky)
         SectionTitle.tsx           (titulo secao + acao direita)
         ChunkyButton.tsx           (botao com sombra 3D, variante outline)
         FloatCTA.tsx               (botao flutuante centralizado, icon aceita ReactNode pra Lucide)
         PlantCard.tsx              (card de planta 150px para scroll horizontal)
-        PostCard.tsx               (card de post com gradient hero, like/save locais, comment preview)
+        PostCard.tsx               (card de post: like/save/seguir persistentes, contador likesBase+1, share/comment/more callbacks, badge MEU pra meus posts, badge OFICIAL pra Doutor)
         StatCard.tsx               (card de stat com icone/label/valor)
         StreakStrip.tsx             (faixa de streak com badge)
     config/
@@ -199,6 +206,9 @@ mobile/
     constants/
       branding.ts                  (BRANDING: textos da marca)
       theme.ts                     (DESIGN SYSTEM CENTRALIZADO: cores, fontes, tamanhos, radii, sombras)
+    data/
+      comunidade.ts                (PostBase interface, POSTS_MOCK, PALETAS, CATEGORIAS, TAGS_DISPONIVEIS, postBaseFromMeu helper)
+      ebooks.ts                    (Ebook interface, EBOOK_DESTAQUE, EBOOKS[19], TODOS_EBOOKS, ebookPorPlanta keyword matching)
     errors/
       AppError.ts                  (ErrorCode enum + AppError class)
       errorHandler.ts              (toAppError converte fetch/timeout/HTTP em AppError)
@@ -206,6 +216,8 @@ mobile/
     storage/
       historico.ts                 (salvarConsulta, listarConsultas, limparHistorico. Buffer 20, mostra 5)
       preferencias.ts              (welcome + tutorial flags: jaVisto, marcar, resetar)
+      nickname.ts                  (obterNickname, obterOuCriarNickname, definirNickname; usado pelo jogo E pela Comunidade)
+      comunidade.ts                (alternarLike/Save/Seguir, listarMeusPosts, adicionarMeuPost, removerMeuPost, listarComentarios, adicionarComentario, registrarBusca, formatarK helper)
 ```
 
 ### Design System "Pixel Garden" (theme.ts)
@@ -246,9 +258,9 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 ### Fluxo do usuario
 1. Primeira abertura: Welcome (Pixel Garden) > Tutorial (4 slides swipe) > Home
 2. Aberturas seguintes: direto pra Home
-3. Na Home: toca no FAB camera ou botao "Tirar foto" no scanner card > abre camera > tira foto
+3. Na Home: scanner card mostra a animacao DoctorScanner (11s, 6 atos) embaixo do cabecalho. Toca no FAB camera ou botao "Tirar foto" > abre camera > tira foto
 4. Ou toca "Galeria" > abre galeria
-5. Atalhos rapidos: Comunidade (tab), Videos (tab), Ebooks (em breve), Promocoes (em breve)
+5. Atalhos rapidos: Comunidade (tab), Videos (tab), Ebooks (modal EbooksScreen), Promocoes (em breve), Resgate dos Jardins (jogo wide card)
 6. LoadingScreen aparece com laser verde + promo YouTube
 7. Resultado chega: DiagnosisScreen com hero image, stats, timeline, toxicidade, ebook
 8. Se nao for planta: tela "Hmm..." com mensagem
@@ -256,9 +268,10 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 10. Historico aparece na Home como scroll horizontal de PlantCards (ultimas 5)
 11. Aba Videos: 15 videos reais com thumbnails, filtros (Todos/Transformacoes/Shorts/Lives), botao Inscreva-se
 12. Aba Eu (Profile): cover, avatar, stats, nivel/gamificacao, streak, conquistas, meu jardim, configs, links
-13. Aba Comunidade: feed com filtros (Populares/Meus posts/Seguindo/Pragas/Suculentas), 3 posts mock com gradient hero, comment preview, FAB "Nova postagem". Acoes (like, comment, share, bookmark, seguir) atualmente abrem Alert "em breve"
+13. Aba Comunidade FUNCIONAL: feed com 5 filtros aplicaveis (Populares/Meus posts/Seguindo/Pragas/Suculentas), busca inline (TopBar > input filtra titulo/cat/autor/tag), 3 posts mock + posts criados localmente. Acoes persistentes via AsyncStorage: like (incrementa contador), save, seguir (label muda Seguir/Seguindo), share nativo via RN Share API, more menu (Alert com Compartilhar/Seguir/Reportar/Apagar pra meus). Comentarios em modal com input. Nova postagem em modal com formulario completo
 14. Profile > Editar perfil: reseta tutorial. Profile > settings: reseta welcome+tutorial pra fluxo completo
 15. HomeScreen tem atalho "Jogar" que dispara onJogar > setShowGame(true) > GameScreen WebView fullscreen do jogo Resgate dos Jardins
+16. Atalho Ebooks abre modal EbooksScreen: hero gift, destaque, grid 2col com 19 capas. Toca em ebook > EbookViewerModal: WebView do PDF + botao baixar amber. Baixar usa expo-file-system pra cache + expo-sharing pra menu nativo (Salvar em Arquivos, Drive, etc); fallback Linking.openURL se algo falhar
 
 ---
 
@@ -275,8 +288,11 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 9. **Componentes legados nao removidos**: HistoricoList, ScannerArea, ResultCard, StatsGrid, SettingsScreen ainda existem nos arquivos mas nao sao mais usados. Podem ser removidos com seguranca
 10. **Conquistas sao 100% client-side**: calculadas do AsyncStorage local. Se limpar historico ou trocar celular, perde tudo. Persistencia real precisa do Sprint 7 (Supabase)
 11. **Shadow chunky colorido nao funciona no Android**: elevation so gera sombra cinza. Workaround atual: borderBottomWidth + borderBottomColor nos elementos com shadow chunky
-12. **CommunityScreen tem dados mock**: os 3 posts sao hardcoded em CommunityScreen.tsx. Todas as interacoes (like, comment, share, bookmark, seguir, nova postagem, busca, notificacoes) abrem Alert "em breve". Persistencia real precisa de backend social (Sprint 7+)
+12. **CommunityScreen FUNCIONAL mas local-only**: os 3 posts mock continuam hardcoded em data/comunidade.ts mas todas as interacoes (like, save, comment, share, seguir, nova postagem, busca, notificacoes) FUNCIONAM via AsyncStorage. Outros usuarios nao veem teus posts; Sprint 7 (Supabase) sera necessaria pra comunidade real
 13. **Credenciais GitHub conta errada**: o Git Credential Manager pode ficar cacheando a conta andrehz4 que NAO tem acesso ao remote terra-gentil/terra-gentil-app. Se push der 403, limpar credencial: `printf "protocol=https\nhost=github.com\n\n" | git credential reject` e push novamente abre popup de login pra logar com a conta certa
+14. **Dependencia externa do site pros ebooks**: as capas estao em `terragentil.com.br/ebooks/covers/` e PDFs em `terragentil.com.br/ebooks/`. Se o site mudar de host ou renomear pasta, quebra. Capa do destaque (Codigo Secreto) esta em outro host: `plum-tarsier-720506.hostingersite.com/wp-content/uploads/2025/12/Realistic_and_welcoming_202512262000-1.jpeg`
+15. **WebView do PDF no Android via Google Docs**: usa `https://docs.google.com/gview?embedded=true&url=...` que tem rate limit eventual e pode falhar com PDFs grandes. iOS abre direto. Considerar bibliotecas dedicadas (react-native-pdf) se o problema aparecer
+16. **expo-file-system v19 API legacy**: usa `import * as FileSystem from "expo-file-system/legacy"` pra ter `cacheDirectory` e `downloadAsync()`. A nova API com classes (File, Paths) NAO foi adotada. Se atualizar Expo SDK, validar
 
 ---
 
@@ -350,13 +366,39 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 . PostCard reutilizavel com like/save locais e icones Lucide
 . FloatCTA estendido pra aceitar ReactNode no icon
 
+### DoctorScanner + Comunidade funcional + EbooksScreen (9 maio 2026)
+. **DoctorScanner cinematografico** no scanner card da Home: animacao 11s em loop com 6 atos narrativos (intro/scan/think/result/plan/ebook) usando 6 das 8 poses do mascote como keyframes. Crossfade suave entre fotos + leve scale zoom. HUD persistente (badge marca + chip de status que muda cor por fase). Linha verde do scanner durante scan. Pilula "Analisando padrões na folha" durante think. Card branco de diagnostico desliza com 3 exemplos rotacionando a cada loop completo (Tomateiro/Pothos/Manjericão). Throttle ~30fps via raf. Strings UI com acentos completos
+. **Comunidade FUNCIONAL** local-only via AsyncStorage:
+  - storage/comunidade.ts: alternarLike/Save/Seguir, listarMeusPosts, adicionarMeuPost, removerMeuPost, comentarios, busca recente, formatarK helper
+  - data/comunidade.ts: PostBase, POSTS_MOCK (3 posts hardcoded com tags), 5 PALETAS de cor, CATEGORIAS, TAGS_DISPONIVEIS, postBaseFromMeu helper
+  - PostCard refatorado: likesBase number, comentariosBase number, contador real (4200 + 1 quando user da like), badge OFICIAL pra Doutor, badge MEU pra meus posts
+  - CommunityScreen: useFocusEffect recarrega tudo, 5 filtros funcionais (Populares/Meus posts/Seguindo/Pragas/Suculentas filtra por tags), busca inline (TopBar search abre input que filtra titulo/cat/autor/tag), Share nativo via RN Share API, more menu via Alert.alert com opcoes diferentes pra meus posts (Apagar) vs outros (Reportar)
+  - 3 modais novos: NovaPostagemModal (categoria + titulo 10+ chars + 5 paletas + tags + preview ao vivo + valida descarte), ComentariosModal (mock destacado + locais, KeyboardAvoidingView, emoji por hash do nickname, timeAgo), NotificacoesModal (estado vazio amigavel + 3 cards explicativos)
+  - Identidade local reusa nickname do jogo (storage/nickname.ts)
+. **EbooksScreen** com biblioteca real do site:
+  - data/ebooks.ts: TODOS_EBOOKS (19 ebooks + 1 destaque), keywords pra ebookPorPlanta() matching
+  - URLs em terragentil.com.br/ebooks/{n}-Nome.pdf e .../ebooks/covers/{nome}.jpeg (capa do destaque excecionalmente em outro host hostingersite)
+  - Hero gift amber gradient com mascote presente, pill "20 GUIAS DE GRAÇA"
+  - Card destaque com pill "+ POPULAR" e CTA verde
+  - Grid 2col com 19 capas, badge numerado por paleta de cor
+  - Rodape verde-tracejado com call to action pro formulario do diagnostico
+. **EbookViewerModal** com botao baixar bonito:
+  - Modal preto fullscreen, header com X + titulo
+  - WebView do PDF: iOS direto, Android via Google Docs gview
+  - Loading overlay com spinner amber
+  - Botao baixar amber + shadow chunky com 3 estados (idle: Download icon + "Baixar PDF gratis" + sub; baixando: spinner + texto; concluido: vira verde + Check + "Pronto!")
+  - Download via expo-file-system/legacy pra cacheDirectory, abre menu nativo via expo-sharing, fallback Linking.openURL se algo falhar
+  - Logs com prefix [ebook] em console.log pra debug
+. Atalho Ebooks da Home agora abre o modal (era "Em breve")
+. Deps adicionadas: expo-file-system 19.0.22, expo-sharing 14.0.8
+
 ---
 
 ## 7. PROXIMOS SPRINTS
 
-### Pixel Garden Fase 2 (pendente: 2 telas)
-. EbooksScreen: hero gift, destaque, grid de capas. Componente novo: BookCard.tsx
-. PromotionsScreen: deals, countdown, ofertas relampago. Componente novo: DealCard.tsx
+### Pixel Garden Fase 2 (pendente: 1 tela)
+. EbooksScreen: ✅ FEITO em 9 maio 2026 (sem BookCard separado, ficou inline no EbooksScreen)
+. PromotionsScreen: deals, countdown, ofertas relampago. Componente novo: DealCard.tsx — UNICA TELA PENDENTE
 Design reference: C:\Users\engan\Downloads\app-terragentil (1).zip
 Quando precisar abrir o zip, extrair pra C:\Users\engan\Downloads\figma-extract com Expand-Archive (PowerShell) e ler os JSX em src/screens/.
 
@@ -476,6 +518,15 @@ Tudo pushado, up to date com origin/main.
 
 ### Ultimos commits
 ```
+6a6ac2b fix(mobile): capa nova do Codigo Secreto (ebook destaque)
+d25eb24 fix(mobile): botao baixar ebook com fallback pro navegador e logs
+df506fe fix(mobile): URLs dos ebooks migraram pra /ebooks no terragentil
+1e01387 fix(mobile): capas dos ebooks na subpasta /covers do wp-uploads
+4cc4e71 feat(mobile): EbooksScreen com 20 guias reais e WebView com botao baixar
+3ec0b0b feat(mobile): comunidade funcional com persistencia local
+dcf2611 feat(mobile): DoctorScanner cinematografico no scanner card da Home
+38143ba feat(mobile): jogo na grid de atalhos como 5o card wide e nickname
+29a1a58 docs: atualiza HANDOFF pos CommunityScreen e jogo Resgate dos Jardins
 49dbe58 feat(mobile): CommunityScreen Pixel Garden com feed e PostCard
 d811319 feat(mobile): WebView do jogo Resgate dos Jardins (Gentileza)
 5280774 feat(mobile): ProfileScreen gamificada, atalhos Home navegando, safe area Welcome/Tutorial
@@ -491,13 +542,6 @@ d811319 feat(mobile): WebView do jogo Resgate dos Jardins (Gentileza)
 70fbaf7 feat(mobile): tutorial de foto pos boas-vindas
 ecc369c feat(mobile): boas-vindas primeira abertura e tela de configuracoes
 aa9dfbc feat(mobile): fonte maior para acessibilidade 40+
-9c279b3 feat(mobile): expande pool de dicas do scanner
-c98316f feat(mobile): prontuario do jardim com historico local
-a01a15d feat(mobile): ebook on demand pos diagnostico e cross-promo YouTube
-70af993 feat(mobile): mascote Doutor Gentileza e tela de resultado rica
-7cca42a fix(backend): gemini retry e max_tokens ampliado
-a3b93bc feat(backend): schema enriquecido v3 com persona Doutor Gentileza
-976527c feat(mobile): sistema de error handling centralizado
 ```
 
 ---
@@ -518,7 +562,7 @@ pytest==8.3.3
 httpx==0.27.2
 ```
 
-### Mobile (package.json, atualizado pos Pixel Garden Fase 2)
+### Mobile (package.json, atualizado pos EbooksScreen)
 ```
 @expo-google-fonts/nunito: ^0.4.2
 @expo-google-fonts/plus-jakarta-sans: ^0.4.2
@@ -527,8 +571,11 @@ httpx==0.27.2
 @react-navigation/native: ^7.2.2
 @react-navigation/native-stack: ^7.14.12
 expo: ~54.0.33
+expo-file-system: ~19.0.22       # NOVO: download de PDF dos ebooks
 expo-image-picker: ~17.0.10
 expo-linear-gradient: ~15.0.8
+expo-screen-orientation: ~9.0.9
+expo-sharing: ~14.0.8            # NOVO: menu nativo Salvar em Arquivos
 expo-status-bar: ~3.0.9
 lucide-react-native: ^1.11.0
 react: 19.1.0
@@ -536,6 +583,7 @@ react-native: 0.81.5
 react-native-safe-area-context: ~5.6.0
 react-native-screens: ~4.16.0
 react-native-svg: 15.12.1
+react-native-webview: 13.15.0    # usado pelo GameScreen e EbookViewerModal
 ```
 
 NAO tem: react-native-reanimated, expo-updates.
@@ -563,11 +611,11 @@ Sao referencias visuais hi-fi (cores, tipografia, espacamentos definitivos).
 NAO sao codigo de producao pra copiar. A tarefa e recriar em React Native.
 SEMPRE extrair e ler o JSX da tela correspondente antes de implementar.
 
-Telas JA implementadas seguindo o figma: Onboarding, Home, Diagnosis, Videos, Profile, Community.
-Telas PENDENTES: Ebooks, Promotions.
+Telas JA implementadas seguindo o figma: Onboarding, Home, Diagnosis, Videos, Profile, Community, Ebooks.
+Telas PENDENTES: Promotions.
 
 Componentes reutilizaveis a criar pra Fase 2:
-. BookCard.tsx (capa de ebook, pra EbooksScreen)
+. ~~BookCard.tsx~~ — nao foi criado, ficou inline no EbooksScreen.tsx (decisao de simplificar)
 . DealCard.tsx (card de promocao, pra PromotionsScreen)
 PostCard.tsx ja foi criado pra CommunityScreen.
 
@@ -583,8 +631,13 @@ PostCard.tsx ja foi criado pra CommunityScreen.
 . Cada video abre seu link individual no YouTube (nao o canal generico)
 . Reset de boas-vindas no Profile reseta AMBOS os flags (welcome + tutorial) pra fluxo completo funcionar
 . Safe area no WelcomeScreen usa View wrapper com paddingTop/Bottom dos insets (nao contentContainerStyle)
-. CommunityScreen e dados mock: POSTS hardcoded em CommunityScreen.tsx, todas acoes abrem Alert "em breve"
+. CommunityScreen e dados mock parciais: POSTS_MOCK hardcoded em data/comunidade.ts (3 posts), mas TODAS acoes funcionam via AsyncStorage local (storage/comunidade.ts). Usuario gera nickname automatico (reusa do jogo via storage/nickname.ts), cria meus posts, comentarios, likes, saves, seguir, busca, todos persistentes
 . GameScreen e renderizado fullscreen via flag showGame no App.tsx (nao via React Navigation), pausando o fluxo principal sem desmontar o NavigationContainer
+. DoctorScanner usa requestAnimationFrame com throttle ~30fps pra economizar bateria. State t (tempo) atualiza, computa opacidades de 6 fotos + posicao da scanner line + visibilidade de overlays. Scale tween 1.02 a 1.04 nas fotos pra dar vida sutil
+. EbookViewerModal usa Google Docs gview no Android (https://docs.google.com/gview?embedded=true&url=...) pq WebView nativo nao renderiza PDF. iOS abre PDF direto. Pode ter rate limit do Google se usar muito
+. Botao baixar usa expo-file-system/legacy (NAO a nova API com File/Paths). Fluxo: cacheDirectory + downloadAsync > Sharing.shareAsync. Fallback: Linking.openURL pro browser
+. Strings UI seguem regra: textos exibidos ao usuario com acentos completos (DIAGNÓSTICO, padrões, Manjericão, Atenção); codigo, variaveis, comentarios, commits e nomes de arquivo continuam sem acentos
+. PostCard mostra contador real de likes calculado como likesBase + (liked ? 1 : 0). Mock: likesBase 4200 vira "4,2K" via formatarK helper
 
 ---
 
