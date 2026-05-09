@@ -188,7 +188,7 @@ export default function App() {
   async function handleTirarFoto() {
     const permissao = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert("Permissao negada", "Precisamos da camera pra fotografar a planta.");
+      Alert.alert("Permissão negada", "Precisamos da câmera pra fotografar a planta.");
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -208,7 +208,7 @@ export default function App() {
   async function handleEscolherGaleria() {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert("Permissao negada", "Precisamos acessar a galeria pra escolher a imagem.");
+      Alert.alert("Permissão negada", "Precisamos acessar a galeria pra escolher a imagem.");
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({

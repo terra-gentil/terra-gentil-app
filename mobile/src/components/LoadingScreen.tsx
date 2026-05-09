@@ -42,7 +42,7 @@ export function LoadingScreen() {
         <Image source={MASCOT_ANALYZING} style={styles.image} resizeMode="cover" />
         <Animated.View style={[styles.laser, { transform: [{ translateY: laserTranslateY }] }]} />
       </View>
-      <Text style={styles.title}>O Doutor esta analisando...</Text>
+      <Text style={styles.title}>O Doutor está analisando...</Text>
       <Text style={styles.subtitle}>
         Verificando luz, toxicidade e criando tratamento
       </Text>
@@ -50,7 +50,7 @@ export function LoadingScreen() {
       <TouchableOpacity style={styles.promoBox} onPress={abrirCanal} activeOpacity={0.7}>
         <Text style={styles.promoTitle}>📺 Enquanto espera</Text>
         <Text style={styles.promoText}>
-          Da uma olhada no canal Terra Gentil no YouTube. Tenho dicas novas toda semana.
+          Dá uma olhada no canal Terra Gentil no YouTube. Tenho dicas novas toda semana.
         </Text>
         <Text style={styles.promoLink}>Abrir canal</Text>
       </TouchableOpacity>
