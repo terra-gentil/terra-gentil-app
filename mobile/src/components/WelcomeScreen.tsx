@@ -18,7 +18,7 @@ interface Props {
 
 const BENEFICIOS = [
   { emoji: "🌿", texto: "Identifico a planta" },
-  { emoji: "⚠️", texto: "Aviso se e toxica pra pets" },
+  { emoji: "⚠️", texto: "Aviso se é tóxica pra pets" },
   { emoji: "📋", texto: "Monto plano de cuidados" },
 ];
 
@@ -60,7 +60,7 @@ export function WelcomeScreen({ onComecar }: Props) {
           <Text style={styles.greetingAccent}>Doutor Gentileza</Text>
         </Text>
         <Text style={styles.intro}>
-          Tire uma foto da sua planta e eu te conto tudo: nome, cuidado, e se tem algum probleminha de saude.
+          Tire uma foto da sua planta e eu te conto tudo: nome, cuidado, e se tem algum probleminha de saúde.
         </Text>
       </View>
 
@@ -84,7 +84,7 @@ export function WelcomeScreen({ onComecar }: Props) {
         disabled={salvando}
         activeOpacity={0.8}
       >
-        <Text style={styles.ctaText}>Comecar agora →</Text>
+        <Text style={styles.ctaText}>Começar agora →</Text>
       </TouchableOpacity>
 
       {/* Dots */}

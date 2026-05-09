@@ -32,19 +32,19 @@ const SLIDES: Slide[] = [
   {
     titulo: "Bora tirar uma foto bem tirada",
     descricao:
-      "Vou te mostrar em 3 passos simples como conseguir a melhor foto pra eu analisar sua planta com precisao.",
+      "Vou te mostrar em 3 passos simples como conseguir a melhor foto pra eu analisar sua planta com precisão.",
     imagem: MASCOT_POSES[0],
     emoji: "📸",
   },
   {
     titulo: "Chegue perto da folha",
     descricao:
-      "Aproxime o celular da parte que esta com problema. Quanto mais perto, melhor eu enxergo os detalhes. Foco numa folha so, sem bagunca no quadro.",
+      "Aproxime o celular da parte que está com problema. Quanto mais perto, melhor eu enxergo os detalhes. Foco numa folha só, sem bagunça no quadro.",
     imagem: MASCOT_POSES[1],
     emoji: "🌿",
   },
   {
-    titulo: "Luz natural e o segredo",
+    titulo: "Luz natural é o segredo",
     descricao:
       "Prefira sombra clarinha ou luz natural suave. Evite sol a pino e sombras pesadas projetadas. Se puder, foto de dia, perto de uma janela.",
     imagem: MASCOT_POSES[2],
@@ -53,7 +53,7 @@ const SLIDES: Slide[] = [
   {
     titulo: "Foque no problema",
     descricao:
-      "Toque na tela pra focar antes de clicar. Se o problema esta numa folha, fotografe ela. Se esta no caule, inclua o caule. Me mostre o que preocupa voce.",
+      "Toque na tela pra focar antes de clicar. Se o problema está numa folha, fotografe ela. Se está no caule, inclua o caule. Me mostre o que preocupa você.",
     imagem: MASCOT_POSES[3],
     emoji: "🎯",
   },
@@ -158,7 +158,7 @@ export function TutorialScreen({ onConcluir }: Props) {
           activeOpacity={0.8}
         >
           <Text style={styles.ctaText}>
-            {isUltimo ? "Entendi, vamos comecar!" : "Proximo →"}
+            {isUltimo ? "Entendi, vamos começar!" : "Próximo →"}
           </Text>
         </TouchableOpacity>
       </View>
