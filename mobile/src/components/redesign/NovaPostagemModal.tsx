@@ -65,8 +65,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
     }
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [4, 3],
+      allowsEditing: false,
       quality: 0.6,
     });
     if (!result.canceled) {
@@ -82,8 +81,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [4, 3],
+      allowsEditing: false,
       quality: 0.6,
     });
     if (!result.canceled) {
