@@ -16,6 +16,7 @@ import StreakStrip from "./StreakStrip";
 import SectionTitle from "./SectionTitle";
 import DoctorScanner from "./DoctorScanner";
 import EbooksScreen from "./EbooksScreen";
+import PromotionsScreen from "./PromotionsScreen";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -33,13 +34,13 @@ type Atalho = {
   bg: string;
   deep: string;
   tab?: string;
-  action?: "game" | "ebooks";
+  action?: "game" | "ebooks" | "promotions";
   wide?: boolean;
 };
 
 const ATALHOS: Atalho[] = [
   { Icon: BookOpen, label: "Ebooks", desc: "20 guias grátis", bg: COLORS.amber, deep: "#d97706", action: "ebooks" },
-  { Icon: ShoppingBag, label: "Promoções", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
+  { Icon: ShoppingBag, label: "Promoções", desc: "Até 60% off", bg: COLORS.sky, deep: "#0284c7", action: "promotions" },
   { Icon: Users, label: "Comunidade", desc: "Posts e dicas", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
   { Icon: Tv, label: "Vídeos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
   { Icon: Gamepad2, label: "Resgate dos Jardins", desc: "Jogue com o Gentileza e relaxe", bg: COLORS.green, deep: COLORS.greenDeep, action: "game", wide: true },
@@ -63,6 +64,7 @@ export default function HomeScreen({
   const navigation = useNavigation<any>();
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
   const [ebooksAberto, setEbooksAberto] = useState(false);
+  const [promosAberto, setPromosAberto] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -135,6 +137,8 @@ export default function HomeScreen({
               ? onJogar ?? (() => {})
               : a.action === "ebooks"
               ? () => setEbooksAberto(true)
+              : a.action === "promotions"
+              ? () => setPromosAberto(true)
               : a.tab
               ? () => navigation.navigate(a.tab as string)
               : () => {};
@@ -212,6 +216,10 @@ export default function HomeScreen({
     <EbooksScreen
       visible={ebooksAberto}
       onClose={() => setEbooksAberto(false)}
+    />
+    <PromotionsScreen
+      visible={promosAberto}
+      onClose={() => setPromosAberto(false)}
     />
     </>
   );
