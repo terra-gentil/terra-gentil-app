@@ -10,9 +10,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { X, Check } from "lucide-react-native";
+import * as ImagePicker from "expo-image-picker";
+import { X, Check, Camera, Image as ImageIcon, Trash2 } from "lucide-react-native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CATEGORIAS, PALETAS, TAGS_DISPONIVEIS, paletaPorId } from "../../data/comunidade";
@@ -30,6 +32,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
   const [cat, setCat] = useState(CATEGORIAS[0]);
   const [paletaId, setPaletaId] = useState(PALETAS[0].id);
   const [tagsSelecionadas, setTagsSelecionadas] = useState<string[]>([]);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
   const paleta = paletaPorId(paletaId);
@@ -39,6 +42,57 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
     setCat(CATEGORIAS[0]);
     setPaletaId(PALETAS[0].id);
     setTagsSelecionadas([]);
+    setImageUri(null);
+  }
+
+  async function handleAdicionarFoto() {
+    Alert.alert(
+      "Adicionar foto",
+      "De onde vem a foto da sua planta?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Tirar agora", onPress: tirarFoto },
+        { text: "Galeria", onPress: escolherGaleria },
+      ],
+    );
+  }
+
+  async function tirarFoto() {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permissão negada", "Pra tirar foto eu preciso de acesso à câmera.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.6,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  }
+
+  async function escolherGaleria() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permissão negada", "Pra escolher uma foto eu preciso de acesso à galeria.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.6,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  }
+
+  function removerFoto() {
+    setImageUri(null);
   }
 
   function toggleTag(tag: string) {
@@ -63,6 +117,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
         title: tituloLimpo,
         paletaId,
         tags: tagsSelecionadas,
+        imageUri: imageUri ?? undefined,
       });
       reset();
       onCriado(novo);
@@ -75,7 +130,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
   }
 
   function handleClose() {
-    if (titulo.trim().length > 0) {
+    if (titulo.trim().length > 0 || imageUri) {
       Alert.alert(
         "Descartar?",
         "Você escreveu algo. Sair sem publicar vai apagar o que escreveu.",
@@ -119,14 +174,24 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
           >
             {/* Preview do hero */}
             <View style={styles.previewWrap}>
-              <LinearGradient
-                colors={paleta.gradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-              />
-              <View style={styles.previewCircleA} />
-              <View style={styles.previewCircleB} />
+              {imageUri ? (
+                <Image
+                  source={{ uri: imageUri }}
+                  style={StyleSheet.absoluteFillObject}
+                  resizeMode="cover"
+                />
+              ) : (
+                <>
+                  <LinearGradient
+                    colors={paleta.gradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFillObject}
+                  />
+                  <View style={styles.previewCircleA} />
+                  <View style={styles.previewCircleB} />
+                </>
+              )}
               <LinearGradient
                 colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.55)"]}
                 start={{ x: 0, y: 0.3 }}
@@ -137,7 +202,41 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
               <Text style={styles.previewTitle} numberOfLines={3}>
                 {titulo.trim() ? titulo : "Seu título aparece aqui"}
               </Text>
+              {imageUri && (
+                <TouchableOpacity
+                  onPress={removerFoto}
+                  style={styles.previewRemove}
+                  hitSlop={8}
+                  activeOpacity={0.8}
+                >
+                  <Trash2 size={14} color="#fff" strokeWidth={2.6} />
+                </TouchableOpacity>
+              )}
             </View>
+
+            {/* Foto */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleAdicionarFoto}
+              style={[
+                styles.fotoBtn,
+                imageUri && { backgroundColor: paleta.accent + "15", borderColor: paleta.accent },
+              ]}
+            >
+              {imageUri ? (
+                <Camera size={18} color={paleta.accent} strokeWidth={2.4} />
+              ) : (
+                <ImageIcon size={18} color={COLORS.greenDark} strokeWidth={2.4} />
+              )}
+              <Text
+                style={[
+                  styles.fotoBtnText,
+                  imageUri && { color: paleta.accent },
+                ]}
+              >
+                {imageUri ? "Trocar foto" : "Adicionar foto da planta"}
+              </Text>
+            </TouchableOpacity>
 
             {/* Categoria */}
             <Text style={styles.sectionLabel}>Categoria</Text>
@@ -337,6 +436,36 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: "#fff",
     lineHeight: 22,
+  },
+  previewRemove: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fotoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: COLORS.green,
+    marginBottom: 14,
+  },
+  fotoBtnText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.smPlus,
+    color: COLORS.greenDark,
   },
   sectionLabel: {
     fontFamily: FONTS.bodyExtraBold,

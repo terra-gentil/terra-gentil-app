@@ -19,6 +19,7 @@ export interface PostBase {
   accentDeep: string;
   tags: string[];
   isMine?: boolean;
+  imageUri?: string;
   comment?: {
     avatar: string;
     name: string;
@@ -187,5 +188,6 @@ export function postBaseFromMeu(meu: MeuPost, nickname: string): PostBase {
     accentDeep: paleta.accentDeep,
     tags: meu.tags,
     isMine: true,
+    imageUri: meu.imageUri,
   };
 }

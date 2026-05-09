@@ -143,21 +143,31 @@ export default function PostCard({
         </TouchableOpacity>
       </View>
 
-      {/* Hero gradient com circulos decorativos e overlay */}
+      {/* Hero: foto real ou gradient com circulos decorativos, sempre com overlay */}
       <TouchableOpacity
         style={styles.heroWrap}
         activeOpacity={0.92}
         onPress={onVerComentarios}
         accessibilityLabel={`Abrir post: ${post.title}`}
       >
-        <LinearGradient
-          colors={post.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <View style={styles.circleA} />
-        <View style={styles.circleB} />
+        {post.imageUri ? (
+          <Image
+            source={{ uri: post.imageUri }}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+          />
+        ) : (
+          <>
+            <LinearGradient
+              colors={post.gradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
+            />
+            <View style={styles.circleA} />
+            <View style={styles.circleB} />
+          </>
+        )}
         <LinearGradient
           colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.55)"]}
           start={{ x: 0, y: 0.3 }}

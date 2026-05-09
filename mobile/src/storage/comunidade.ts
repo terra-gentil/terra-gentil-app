@@ -18,6 +18,7 @@ export interface MeuPost {
   tags: string[];
   comentariosBase: number;
   likesBase: number;
+  imageUri?: string;
 }
 
 export interface Comentario {
