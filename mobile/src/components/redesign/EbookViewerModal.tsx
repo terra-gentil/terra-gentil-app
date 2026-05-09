@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -42,17 +42,54 @@ function viewerUrl(pdfUrl: string): string {
   return pdfUrl;
 }
 
+const LOADING_MIN_MS = 10000;
+
 export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const [carregando, setCarregando] = useState(true);
   const [download, setDownload] = useState<DownloadState>("idle");
+  const startedAt = useRef<number>(Date.now());
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (visible && ebook) {
       setCarregando(true);
       setDownload("idle");
+      startedAt.current = Date.now();
     }
+    return () => {
+      if (fallbackTimer.current) {
+        clearTimeout(fallbackTimer.current);
+        fallbackTimer.current = null;
+      }
+    };
   }, [visible, ebook?.id]);
+
+  function pararLoading() {
+    const elapsed = Date.now() - startedAt.current;
+    const restante = LOADING_MIN_MS - elapsed;
+    if (fallbackTimer.current) {
+      clearTimeout(fallbackTimer.current);
+      fallbackTimer.current = null;
+    }
+    if (restante <= 0) {
+      setCarregando(false);
+    } else {
+      fallbackTimer.current = setTimeout(() => {
+        setCarregando(false);
+        fallbackTimer.current = null;
+      }, restante);
+    }
+  }
+
+  function iniciarLoading() {
+    if (fallbackTimer.current) {
+      clearTimeout(fallbackTimer.current);
+      fallbackTimer.current = null;
+    }
+    setCarregando(true);
+    startedAt.current = Date.now();
+  }
 
   if (!ebook) return null;
 
@@ -164,8 +201,8 @@ export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
           <WebView
             source={{ uri: viewerUrl(ebook.pdf) }}
             style={styles.webview}
-            onLoadStart={() => setCarregando(true)}
-            onLoadEnd={() => setCarregando(false)}
+            onLoadStart={iniciarLoading}
+            onLoadEnd={pararLoading}
             startInLoadingState={false}
             javaScriptEnabled
             domStorageEnabled
