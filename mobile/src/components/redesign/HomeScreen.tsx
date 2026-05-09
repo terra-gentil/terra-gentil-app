@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
+  Animated,
   Image,
   ScrollView,
   StyleSheet,
@@ -54,6 +55,49 @@ interface HomeScreenProps {
   onSettings?: () => void;
   onJogar?: () => void;
   loading?: boolean;
+}
+
+function JogoCardWide({ atalho, onPress }: { atalho: Atalho; onPress: () => void }) {
+  const bobAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bobAnim, { toValue: 1, duration: 650, useNativeDriver: true }),
+        Animated.timing(bobAnim, { toValue: 0, duration: 650, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [bobAnim]);
+
+  const translateY = bobAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -7] });
+  const rotate = bobAnim.interpolate({ inputRange: [0, 1], outputRange: ["-5deg", "5deg"] });
+
+  return (
+    <TouchableOpacity
+      style={styles.atalhoWide}
+      activeOpacity={0.85}
+      onPress={onPress}
+      accessibilityLabel={`Abrir ${atalho.label}`}
+    >
+      <Animated.View
+        style={[
+          styles.atalhoWideMascotWrap,
+          { transform: [{ translateY }, { rotate }] },
+        ]}
+      >
+        <Image source={MASCOT_POSES[5]} style={styles.atalhoWideMascotImg} />
+      </Animated.View>
+      <View style={styles.atalhoWideTextWrap}>
+        <Text style={styles.atalhoWideLabel}>{atalho.label}</Text>
+        <Text style={styles.atalhoWideDesc}>{atalho.desc}</Text>
+      </View>
+      <View style={[styles.atalhoWidePill, { backgroundColor: COLORS.coral, shadowColor: COLORS.coralDeep }]}>
+        <Text style={styles.atalhoWidePillText}>Jogar</Text>
+      </View>
+    </TouchableOpacity>
+  );
 }
 
 export default function HomeScreen({
@@ -165,26 +209,7 @@ export default function HomeScreen({
               : () => {};
 
           if (a.wide) {
-            return (
-              <TouchableOpacity
-                key={a.label}
-                style={styles.atalhoWide}
-                activeOpacity={0.85}
-                onPress={handler}
-                accessibilityLabel={`Abrir ${a.label}`}
-              >
-                <View style={[styles.atalhoWideIconWrap, { backgroundColor: a.bg, shadowColor: a.deep }]}>
-                  <a.Icon size={26} color="#fff" strokeWidth={2.4} />
-                </View>
-                <View style={styles.atalhoWideTextWrap}>
-                  <Text style={styles.atalhoWideLabel}>{a.label}</Text>
-                  <Text style={styles.atalhoWideDesc}>{a.desc}</Text>
-                </View>
-                <View style={[styles.atalhoWidePill, { backgroundColor: COLORS.coral, shadowColor: COLORS.coralDeep }]}>
-                  <Text style={styles.atalhoWidePillText}>Jogar</Text>
-                </View>
-              </TouchableOpacity>
-            );
+            return <JogoCardWide key={a.label} atalho={a} onPress={handler} />;
           }
 
           return (
@@ -423,6 +448,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 3,
+  },
+  atalhoWideMascotWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    overflow: "hidden",
+    borderWidth: 3,
+    borderColor: "#fff",
+    backgroundColor: COLORS.greenLeaf,
+    ...shadowChunky(COLORS.greenDeep + "55"),
+  },
+  atalhoWideMascotImg: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   atalhoWideTextWrap: {
     flex: 1,
