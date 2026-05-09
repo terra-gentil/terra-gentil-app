@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus, Search, X } from "lucide-react-native";
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
@@ -43,6 +43,7 @@ const FILTROS = ["Populares", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const [filtro, setFiltro] = useState(FILTROS[0]);
   const [meusPosts, setMeusPosts] = useState<MeuPost[]>([]);
   const [likes, setLikes] = useState<Record<string, true>>({});
@@ -199,6 +200,7 @@ export default function CommunityScreen() {
         <TopBar
           avatarSource={MASCOT_POSES[0]}
           badge={0}
+          onAvatarPress={() => navigation.navigate("ProfileTab")}
           onBellPress={() => setNotifsAberta(true)}
           onSearchPress={() => setBuscaAberta(true)}
         />
@@ -302,7 +304,6 @@ export default function CommunityScreen() {
           />
         ))}
 
-        <View style={{ height: 140 }} />
       </ScrollView>
 
       {!buscaAberta && (
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bg,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 140,
   },
   searchBar: {
     flexDirection: "row",

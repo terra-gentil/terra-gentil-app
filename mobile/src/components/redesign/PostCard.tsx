@@ -144,7 +144,12 @@ export default function PostCard({
       </View>
 
       {/* Hero gradient com circulos decorativos e overlay */}
-      <View style={styles.heroWrap}>
+      <TouchableOpacity
+        style={styles.heroWrap}
+        activeOpacity={0.92}
+        onPress={onVerComentarios}
+        accessibilityLabel={`Abrir post: ${post.title}`}
+      >
         <LinearGradient
           colors={post.gradient}
           start={{ x: 0, y: 0 }}
@@ -162,7 +167,7 @@ export default function PostCard({
         <Text style={styles.heroTitle} numberOfLines={3}>
           {post.title}
         </Text>
-      </View>
+      </TouchableOpacity>
 
       {/* Action row */}
       <View style={styles.actionRow}>
