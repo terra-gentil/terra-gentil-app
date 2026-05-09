@@ -206,10 +206,11 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
                 <TouchableOpacity
                   onPress={removerFoto}
                   style={styles.previewRemove}
-                  hitSlop={8}
-                  activeOpacity={0.8}
+                  hitSlop={6}
+                  activeOpacity={0.85}
                 >
-                  <Trash2 size={14} color="#fff" strokeWidth={2.6} />
+                  <Trash2 size={16} color={COLORS.coralDeep} strokeWidth={2.6} />
+                  <Text style={styles.previewRemoveText}>Remover foto</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -441,12 +442,26 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "rgba(0,0,0,0.55)",
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: COLORS.coralDeep,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  previewRemoveText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.sm,
+    color: COLORS.coralDeep,
+    letterSpacing: 0.3,
   },
   fotoBtn: {
     flexDirection: "row",
