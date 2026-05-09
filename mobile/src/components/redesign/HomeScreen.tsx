@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_POSES } from "../../assets/mascot";
 import { Camera, Users, Tv, BookOpen, ShoppingBag, Gamepad2 } from "lucide-react-native";
@@ -17,6 +18,7 @@ import SectionTitle from "./SectionTitle";
 import DoctorScanner from "./DoctorScanner";
 import EbooksScreen from "./EbooksScreen";
 import PromotionsScreen from "./PromotionsScreen";
+import NotificacoesModal from "./NotificacoesModal";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -62,9 +64,12 @@ export default function HomeScreen({
   loading = false,
 }: HomeScreenProps) {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
   const [ebooksAberto, setEbooksAberto] = useState(false);
   const [promosAberto, setPromosAberto] = useState(false);
+  const [notifAberto, setNotifAberto] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -84,8 +89,17 @@ export default function HomeScreen({
 
   return (
     <>
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar avatarSource={MASCOT_POSES[0]} badge={0} onAvatarPress={onSettings} />
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 12 }]}
+      showsVerticalScrollIndicator={false}
+    >
+      <TopBar
+        avatarSource={MASCOT_POSES[0]}
+        badge={0}
+        onAvatarPress={onSettings}
+        onBellPress={() => setNotifAberto(true)}
+      />
 
       {/* Greeting */}
       <View style={styles.greeting}>
@@ -94,7 +108,11 @@ export default function HomeScreen({
       </View>
 
       {/* Streak */}
-      <StreakStrip days={historico.length} badge={historico.length >= 5 ? "Mao Verde" : undefined} />
+      <StreakStrip
+        days={historico.length}
+        badge={historico.length >= 5 ? "Mao Verde" : undefined}
+        onPress={() => navigation.navigate("ProfileTab")}
+      />
 
       {/* Scanner card grande - clicavel inteiro */}
       <TouchableOpacity
@@ -210,7 +228,6 @@ export default function HomeScreen({
         </>
       )}
 
-      <View style={{ height: 100 }} />
     </ScrollView>
 
     <EbooksScreen
@@ -220,6 +237,10 @@ export default function HomeScreen({
     <PromotionsScreen
       visible={promosAberto}
       onClose={() => setPromosAberto(false)}
+    />
+    <NotificacoesModal
+      visible={notifAberto}
+      onClose={() => setNotifAberto(false)}
     />
     </>
   );
@@ -231,7 +252,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bg,
   },
   content: {
-    paddingBottom: 20,
+    // paddingBottom dinamico vem inline pra compensar TabBar + insets
   },
   greeting: {
     paddingHorizontal: 16,
