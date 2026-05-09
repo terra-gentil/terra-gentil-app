@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  ImageSourcePropType,
   Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,33 +15,27 @@ import {
   MoreHorizontal,
   Pin,
 } from "lucide-react-native";
-import { COLORS, FONTS, SIZES, RADIUS } from "../../constants/theme";
+import { COLORS, FONTS, SIZES } from "../../constants/theme";
+import { PostBase } from "../../data/comunidade";
+import {
+  alternarLike,
+  alternarSave,
+  alternarSeguir,
+  contarComentarios,
+  formatarK,
+} from "../../storage/comunidade";
 
-export interface PostData {
-  id: string | number;
-  cat: string;
-  author: string;
-  avatarColor: string;
-  avatarEmoji?: string;
-  avatarSource?: ImageSourcePropType;
-  pinned?: boolean;
-  title: string;
-  gradient: [string, string, string];
-  likes: string;
-  comments: string;
-  accent: string;
-  accentDeep: string;
-  comment: {
-    avatar: string;
-    name: string;
-    text: string;
-  };
-}
+export type PostData = PostBase;
 
 interface PostCardProps {
-  post: PostData;
+  post: PostBase;
+  liked: boolean;
+  saved: boolean;
+  seguindo: boolean;
+  onLikedChange?: (next: boolean) => void;
+  onSavedChange?: (next: boolean) => void;
+  onSeguindoChange?: (autor: string, next: boolean) => void;
   onMore?: () => void;
-  onSeguir?: () => void;
   onComment?: () => void;
   onShare?: () => void;
   onVerComentarios?: () => void;
@@ -51,15 +44,49 @@ interface PostCardProps {
 
 export default function PostCard({
   post,
+  liked,
+  saved,
+  seguindo,
+  onLikedChange,
+  onSavedChange,
+  onSeguindoChange,
   onMore,
-  onSeguir,
   onComment,
   onShare,
   onVerComentarios,
   onContinuarLendo,
 }: PostCardProps) {
-  const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [comentariosLocais, setComentariosLocais] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    contarComentarios(post.id).then((n) => {
+      if (alive) setComentariosLocais(n);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [post.id]);
+
+  const likesAtual = post.likesBase + (liked ? 1 : 0);
+  const comentariosAtual = post.comentariosBase + comentariosLocais;
+
+  async function handleLike() {
+    const novo = await alternarLike(post.id);
+    onLikedChange?.(novo);
+  }
+
+  async function handleSave() {
+    const novo = await alternarSave(post.id);
+    onSavedChange?.(novo);
+  }
+
+  async function handleSeguir() {
+    const novo = await alternarSeguir(post.author);
+    onSeguindoChange?.(post.author, novo);
+  }
+
+  const ehDoutor = post.author === "Doutor Gentileza";
 
   return (
     <View style={styles.article}>
@@ -88,16 +115,28 @@ export default function PostCard({
                 <Text style={styles.pinnedBadgeText}>OFICIAL</Text>
               </View>
             )}
+            {post.isMine && (
+              <View style={styles.myBadge}>
+                <Text style={styles.myBadgeText}>MEU</Text>
+              </View>
+            )}
           </View>
-          <Text style={styles.authorMeta} numberOfLines={1}>
-            por {post.author} {"  "}
-            <Text
-              style={[styles.authorFollow, { color: post.accent }]}
-              onPress={onSeguir}
-            >
-              Seguir
+          <View style={styles.metaRow}>
+            <Text style={styles.authorMeta} numberOfLines={1}>
+              por {post.author}
             </Text>
-          </Text>
+            {!post.isMine && !ehDoutor && (
+              <Text
+                style={[
+                  styles.authorFollow,
+                  { color: seguindo ? COLORS.inkMute : post.accent },
+                ]}
+                onPress={handleSeguir}
+              >
+                {seguindo ? "Seguindo" : "Seguir"}
+              </Text>
+            )}
+          </View>
         </View>
         <TouchableOpacity onPress={onMore} style={styles.moreBtn} hitSlop={8}>
           <MoreHorizontal size={20} color={COLORS.inkMute} strokeWidth={2.2} />
@@ -112,10 +151,8 @@ export default function PostCard({
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFillObject}
         />
-        {/* Circulos decorativos */}
         <View style={styles.circleA} />
         <View style={styles.circleB} />
-        {/* Escurecimento bottom pra legibilidade do titulo */}
         <LinearGradient
           colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.55)"]}
           start={{ x: 0, y: 0.3 }}
@@ -129,23 +166,19 @@ export default function PostCard({
 
       {/* Action row */}
       <View style={styles.actionRow}>
-        <TouchableOpacity
-          style={styles.actionItem}
-          onPress={() => setLiked((v) => !v)}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={styles.actionItem} onPress={handleLike} activeOpacity={0.7}>
           <Heart
             size={22}
             color={liked ? post.accent : COLORS.inkSoft}
             fill={liked ? post.accent : "transparent"}
             strokeWidth={2.2}
           />
-          <Text style={styles.actionCount}>{post.likes}</Text>
+          <Text style={styles.actionCount}>{formatarK(likesAtual)}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionItem} onPress={onComment} activeOpacity={0.7}>
           <MessageCircle size={22} color={COLORS.inkSoft} strokeWidth={2.2} />
-          <Text style={styles.actionCount}>{post.comments}</Text>
+          <Text style={styles.actionCount}>{formatarK(comentariosAtual)}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={onShare} activeOpacity={0.7} hitSlop={8}>
@@ -154,11 +187,7 @@ export default function PostCard({
 
         <View style={{ flex: 1 }} />
 
-        <TouchableOpacity
-          onPress={() => setSaved((v) => !v)}
-          activeOpacity={0.7}
-          hitSlop={8}
-        >
+        <TouchableOpacity onPress={handleSave} activeOpacity={0.7} hitSlop={8}>
           <Bookmark
             size={22}
             color={saved ? post.accent : COLORS.inkSoft}
@@ -169,28 +198,42 @@ export default function PostCard({
       </View>
 
       {/* Top comment preview */}
-      <View style={styles.commentWrap}>
-        <View style={styles.commentBox}>
-          <View style={[styles.commentAvatar, { backgroundColor: post.accent }]}>
-            <Text style={styles.commentAvatarEmoji}>{post.comment.avatar}</Text>
-          </View>
-          <Text style={styles.commentText}>
-            <Text style={styles.commentName}>{post.comment.name}: </Text>
-            {post.comment.text}{" "}
-            <Text
-              style={[styles.commentMore, { color: post.accent }]}
-              onPress={onContinuarLendo}
-            >
-              Continuar lendo
+      {post.comment && (
+        <View style={styles.commentWrap}>
+          <View style={styles.commentBox}>
+            <View style={[styles.commentAvatar, { backgroundColor: post.accent }]}>
+              <Text style={styles.commentAvatarEmoji}>{post.comment.avatar}</Text>
+            </View>
+            <Text style={styles.commentText}>
+              <Text style={styles.commentName}>{post.comment.name}: </Text>
+              {post.comment.text}{" "}
+              <Text
+                style={[styles.commentMore, { color: post.accent }]}
+                onPress={onContinuarLendo}
+              >
+                Continuar lendo
+              </Text>
             </Text>
-          </Text>
+          </View>
+          <TouchableOpacity onPress={onVerComentarios} activeOpacity={0.6}>
+            <Text style={[styles.verComentarios, { color: post.accent }]}>
+              Ver todos os {formatarK(comentariosAtual)} comentários
+            </Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={onVerComentarios} activeOpacity={0.6}>
-          <Text style={[styles.verComentarios, { color: post.accent }]}>
-            Ver todos os {post.comments} comentarios
-          </Text>
-        </TouchableOpacity>
-      </View>
+      )}
+
+      {post.isMine && !post.comment && (
+        <View style={styles.commentWrap}>
+          <TouchableOpacity onPress={onVerComentarios} activeOpacity={0.6}>
+            <Text style={[styles.verComentarios, { color: post.accent }]}>
+              {comentariosLocais > 0
+                ? `Ver os ${comentariosLocais} comentário${comentariosLocais > 1 ? "s" : ""}`
+                : "Seja o primeiro a comentar"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -216,7 +259,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#fff",
-    // anel externo simulado
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -256,14 +298,33 @@ const styles = StyleSheet.create({
     color: COLORS.greenDark,
     letterSpacing: 0.4,
   },
+  myBadge: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    backgroundColor: COLORS.amberSoft,
+  },
+  myBadgeText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: 9,
+    color: "#b45309",
+    letterSpacing: 0.4,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 1,
+  },
   authorMeta: {
     fontFamily: FONTS.body,
     fontSize: SIZES.xs,
     color: COLORS.inkMute,
-    marginTop: 1,
+    flexShrink: 1,
   },
   authorFollow: {
     fontFamily: FONTS.bodyBold,
+    fontSize: SIZES.xs,
   },
   moreBtn: {
     padding: 4,
