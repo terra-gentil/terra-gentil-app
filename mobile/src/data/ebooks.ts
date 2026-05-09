@@ -10,8 +10,8 @@ export interface Ebook {
   keywords: string[];
 }
 
-const BASE_PDF = "https://terragentil.com.br/wp-content/uploads/2025/12";
-const BASE_IMG = "https://terragentil.com.br/wp-content/uploads/2025/12/covers";
+const BASE_PDF = "https://terragentil.com.br/ebooks";
+const BASE_IMG = "https://terragentil.com.br/ebooks/covers";
 
 export const EBOOK_DESTAQUE: Ebook = {
   id: "ebook-01",
