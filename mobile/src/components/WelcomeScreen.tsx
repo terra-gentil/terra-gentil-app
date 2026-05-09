@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,77 +25,73 @@ const BENEFICIOS = [
 export function WelcomeScreen({ onComecar }: Props) {
   const insets = useSafeAreaInsets();
   const [pose] = useState(() => getRandomMascotPose());
-  const [salvando, setSalvando] = useState(false);
+  const disparado = useRef(false);
 
   async function handleComecar() {
-    setSalvando(true);
+    if (disparado.current) return;
+    disparado.current = true;
     await marcarWelcomeVisto();
     onComecar();
   }
 
   return (
     <View style={[styles.safeWrap, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.appName}>TERRA GENTIL</Text>
-        <Text style={styles.appSubtitle}>DOUTOR DAS PLANTAS</Text>
-      </View>
-
-      {/* Mascote */}
-      <View style={styles.mascotWrapper}>
-        <Image source={pose} style={styles.mascotImage} resizeMode="cover" />
-        <Text style={styles.sparkle}>✨</Text>
-        <Text style={styles.leaf}>🌱</Text>
-      </View>
-
-      {/* Titulo */}
-      <View style={styles.titleWrap}>
-        <Text style={styles.greeting}>
-          Oi! Eu sou o{"\n"}
-          <Text style={styles.greetingAccent}>Doutor Gentileza</Text>
-        </Text>
-        <Text style={styles.intro}>
-          Tire uma foto da sua planta e eu te conto tudo: nome, cuidado, e se tem algum probleminha de saúde.
-        </Text>
-      </View>
-
-      {/* Beneficios */}
-      <View style={styles.beneficiosList}>
-        {BENEFICIOS.map((b, idx) => (
-          <View key={idx} style={styles.beneficioItem}>
-            <View style={styles.beneficioIconWrap}>
-              <Text style={styles.beneficioEmoji}>{b.emoji}</Text>
-            </View>
-            <Text style={styles.beneficioTexto}>{b.texto}</Text>
-            <Text style={styles.checkmark}>✓</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* CTA */}
-      <TouchableOpacity
-        style={[styles.ctaButton, salvando && styles.ctaDisabled]}
-        onPress={handleComecar}
-        disabled={salvando}
-        activeOpacity={0.8}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.ctaText}>Começar agora →</Text>
-      </TouchableOpacity>
+        <Pressable onPress={handleComecar} style={styles.tapArea}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.appName}>TERRA GENTIL</Text>
+            <Text style={styles.appSubtitle}>DOUTOR DAS PLANTAS</Text>
+          </View>
 
-      {/* Dots */}
-      <View style={styles.dotsRow}>
-        <Text style={styles.dotInactive}>▪</Text>
-        <Text style={styles.dotInactive}>▪</Text>
-        <Text style={styles.dotActive}>●</Text>
-        <Text style={styles.dotInactive}>▪</Text>
-        <Text style={styles.dotInactive}>▪</Text>
-      </View>
-    </ScrollView>
+          {/* Mascote */}
+          <View style={styles.mascotWrapper}>
+            <Image source={pose} style={styles.mascotImage} resizeMode="cover" />
+            <Text style={styles.sparkle}>✨</Text>
+            <Text style={styles.leaf}>🌱</Text>
+          </View>
+
+          {/* Titulo */}
+          <View style={styles.titleWrap}>
+            <Text style={styles.greeting}>
+              Oi! Eu sou o{"\n"}
+              <Text style={styles.greetingAccent}>Doutor Gentileza</Text>
+            </Text>
+            <Text style={styles.intro}>
+              Tire uma foto da sua planta e eu te conto tudo: nome, cuidado, e se tem algum probleminha de saúde.
+            </Text>
+          </View>
+
+          {/* Beneficios */}
+          <View style={styles.beneficiosList}>
+            {BENEFICIOS.map((b, idx) => (
+              <View key={idx} style={styles.beneficioItem}>
+                <View style={styles.beneficioIconWrap}>
+                  <Text style={styles.beneficioEmoji}>{b.emoji}</Text>
+                </View>
+                <Text style={styles.beneficioTexto}>{b.texto}</Text>
+                <Text style={styles.checkmark}>✓</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Hint */}
+          <Text style={styles.tapHint}>Toque em qualquer lugar pra começar 👆</Text>
+
+          {/* Dots */}
+          <View style={styles.dotsRow}>
+            <Text style={styles.dotInactive}>▪</Text>
+            <Text style={styles.dotInactive}>▪</Text>
+            <Text style={styles.dotActive}>●</Text>
+            <Text style={styles.dotInactive}>▪</Text>
+            <Text style={styles.dotInactive}>▪</Text>
+          </View>
+        </Pressable>
+      </ScrollView>
     </View>
   );
 }
@@ -218,21 +214,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: COLORS.green,
   },
-  ctaButton: {
+  tapArea: {
     width: "100%",
-    paddingVertical: 18,
-    borderRadius: 18,
-    backgroundColor: COLORS.green,
     alignItems: "center",
-    ...shadowChunky(COLORS.greenDeep),
   },
-  ctaDisabled: {
-    opacity: 0.7,
-  },
-  ctaText: {
+  tapHint: {
     fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.md,
-    color: "#fff",
+    fontSize: SIZES.body,
+    color: COLORS.green,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 8,
   },
   dotsRow: {
     flexDirection: "row",
