@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_POSES } from "../../assets/mascot";
-import { Camera, ImageIcon, Users, Tv, BookOpen, ShoppingBag, Gamepad2 } from "lucide-react-native";
+import { Camera, Users, Tv, BookOpen, ShoppingBag, Gamepad2 } from "lucide-react-native";
 import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
 import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
@@ -38,10 +38,10 @@ type Atalho = {
 };
 
 const ATALHOS: Atalho[] = [
-  { Icon: Users, label: "Comunidade", desc: "Posts e dicas", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
-  { Icon: Tv, label: "Videos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
   { Icon: BookOpen, label: "Ebooks", desc: "20 guias grátis", bg: COLORS.amber, deep: "#d97706", action: "ebooks" },
-  { Icon: ShoppingBag, label: "Promocoes", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
+  { Icon: ShoppingBag, label: "Promoções", desc: "Em breve", bg: COLORS.sky, deep: "#0284c7" },
+  { Icon: Users, label: "Comunidade", desc: "Posts e dicas", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
+  { Icon: Tv, label: "Vídeos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
   { Icon: Gamepad2, label: "Resgate dos Jardins", desc: "Jogue com o Gentileza e relaxe", bg: COLORS.green, deep: COLORS.greenDeep, action: "game", wide: true },
 ];
 
@@ -94,8 +94,14 @@ export default function HomeScreen({
       {/* Streak */}
       <StreakStrip days={historico.length} badge={historico.length >= 5 ? "Mao Verde" : undefined} />
 
-      {/* Scanner card grande */}
-      <View style={styles.scannerCard}>
+      {/* Scanner card grande - clicavel inteiro */}
+      <TouchableOpacity
+        style={styles.scannerCard}
+        onPress={onTirarFoto}
+        disabled={loading}
+        activeOpacity={0.92}
+        accessibilityLabel="Tocar para tirar foto da planta"
+      >
         <View style={styles.scannerCircleBg1} />
         <View style={styles.scannerCircleBg2} />
 
@@ -106,41 +112,19 @@ export default function HomeScreen({
           <View style={styles.scannerTextWrap}>
             <Text style={styles.scannerTitle}>
               Doutor Gentileza{"\n"}
-              <Text style={styles.scannerTitleAccent}>esta pronto!</Text>
+              <Text style={styles.scannerTitleAccent}>está pronto!</Text>
             </Text>
             <Text style={styles.scannerDesc}>
-              Tire uma foto e em 15s eu descubro tudo da sua planta.
+              Toque aqui pra tirar uma foto. Em 15s descubro tudo.
             </Text>
+          </View>
+          <View style={styles.scannerCameraBadge}>
+            <Camera size={20} color="#fff" strokeWidth={2.4} />
           </View>
         </View>
 
         <DoctorScanner />
-
-        <View style={styles.scannerButtons}>
-          <TouchableOpacity
-            style={styles.btnPrimary}
-            onPress={onTirarFoto}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            <View style={styles.btnRow}>
-              <Camera size={20} color="#fff" strokeWidth={2.2} />
-              <Text style={styles.btnPrimaryText}>Tirar foto</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.btnOutline}
-            onPress={onEscolherGaleria}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            <View style={styles.btnRow}>
-              <ImageIcon size={18} color={COLORS.greenDark} strokeWidth={2.2} />
-              <Text style={styles.btnOutlineText}>Galeria</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Atalhos rapidos */}
       <SectionTitle title="Atalhos rapidos" />
@@ -312,6 +296,15 @@ const styles = StyleSheet.create({
   scannerTextWrap: {
     flex: 1,
   },
+  scannerCameraBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.green,
+    justifyContent: "center",
+    alignItems: "center",
+    ...shadowChunky(COLORS.greenDeep),
+  },
   scannerTitle: {
     fontFamily: FONTS.displayBlack,
     fontSize: SIZES.lg,
@@ -328,52 +321,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 18,
   },
-  scannerButtons: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 14,
-  },
-  btnPrimary: {
-    flex: 2,
-    paddingVertical: 14,
-    borderRadius: 16,
-    backgroundColor: COLORS.green,
-    alignItems: "center",
-    justifyContent: "center",
-    ...shadowChunky(COLORS.greenDeep),
-  },
-  btnRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  btnPrimaryText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.body + 1,
-    color: "#fff",
-  },
-  btnOutline: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    borderRadius: 16,
-    backgroundColor: "#fff",
-    borderWidth: 2,
-    borderColor: COLORS.green,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: COLORS.greenDeep + "40",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 5,
-  },
-  btnOutlineText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.smPlus,
-    color: COLORS.greenDark,
-  },
-
   // Atalhos
   atalhosGrid: {
     flexDirection: "row",
