@@ -30,5 +30,27 @@ class Settings(BaseSettings):
         description="Modelo do Gemini a usar: gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite",
     )
 
+    GOOGLE_CLIENT_ID: str = Field(default="", description="Google OAuth client ID")
+    GOOGLE_CLIENT_SECRET: str = Field(default="", description="Google OAuth client secret")
+    JWT_SECRET: str = Field(default="", description="Segredo para assinar JWTs do fórum")
+    FORUM_CORS_ORIGIN: str = Field(
+        default="https://setlists-pj-ev.pages.dev",
+        description="Origem do frontend do fórum (usado no redirect OAuth)",
+    )
+    SITE_ORIGINS: str = Field(
+        default="https://setlists-pj-ev.pages.dev=pj",
+        description="Mapeamento origem→site: 'https://a.com=pj,https://b.com=terra-gentil'",
+    )
+
+    @property
+    def site_origin_map(self) -> dict[str, str]:
+        result = {}
+        for pair in self.SITE_ORIGINS.split(","):
+            pair = pair.strip()
+            if "=" in pair:
+                origin, site = pair.split("=", 1)
+                result[origin.strip()] = site.strip()
+        return result
+
 
 settings = Settings()
