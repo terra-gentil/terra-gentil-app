@@ -34,7 +34,8 @@ def verify_jwt(token: str) -> dict:
 
 
 async def upsert_user(profile: dict) -> str:
-    user_id = str(profile.get("sub") or uuid.uuid4())
+    sub = str(profile.get("sub") or "")
+    user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, sub) if sub else uuid.uuid4())
     display_name = profile.get("name", "Usuário")
     avatar_url = profile.get("picture")
 
