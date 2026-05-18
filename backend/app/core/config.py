@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = Field(default="", description="Google OAuth client ID")
     GOOGLE_CLIENT_SECRET: str = Field(default="", description="Google OAuth client secret")
     JWT_SECRET: str = Field(default="", description="Segredo para assinar JWTs do fórum")
+    BACKEND_URL: str = Field(
+        default="http://localhost:8000",
+        description="URL pública do backend (usado no redirect OAuth)",
+    )
     FORUM_CORS_ORIGIN: str = Field(
         default="https://setlists-pj-ev.pages.dev",
         description="Origem do frontend do fórum (usado no redirect OAuth)",
