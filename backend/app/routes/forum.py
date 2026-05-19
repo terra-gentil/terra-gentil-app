@@ -103,7 +103,9 @@ async def list_topics(
                    u.display_name, u.avatar_url, t.pinned,
                    t.created_at::text,
                    COALESCE(t.last_post_at, t.created_at)::text AS last_post_at,
-                   (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id)::int AS reply_count
+                   (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id)::int AS reply_count,
+                   (SELECT COUNT(*)::int FROM forum_reactions WHERE target_id = t.id AND type = 'mata') AS mata_cnt,
+                   (SELECT COUNT(*)::int FROM forum_reactions WHERE target_id = t.id AND type = 'tava_la') AS tava_la_cnt
             FROM forum_topics t
             JOIN forum_users u ON u.id = t.user_id
             WHERE {list_filter}{noreply_filter}
@@ -115,7 +117,12 @@ async def list_topics(
         count_q = "SELECT COUNT(*) FROM forum_topics t WHERE " + count_filter + noreply_filter
         total = await conn.fetchval(count_q, *count_params)
 
-    items = [TopicOut(**dict(r)) for r in rows]
+    items = []
+    for r in rows:
+        d = dict(r)
+        mata = d.pop("mata_cnt", 0) or 0
+        tava = d.pop("tava_la_cnt", 0) or 0
+        items.append(TopicOut(**d, reactions={"mata": mata, "tava_la": tava}))
     return TopicsPageOut(items=items, total=total or 0, page=page, per_page=per_page, site=site)
 
 
