@@ -90,27 +90,30 @@ async def list_topics(
     noreply = sort == "noreply"
 
     async with get_conn() as conn:
-        base_filter = "t.site = $3" + (" AND t.category = $4" if category else "")
         noreply_filter = " AND (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id) = 0" if noreply else ""
-        params_base = [per_page, offset, site] + ([category] if category else [])
+        list_filter = "t.site = $3" + (" AND t.category = $4" if category else "")
+        count_filter = "t.site = $1" + (" AND t.category = $2" if category else "")
+        list_params = [per_page, offset, site] + ([category] if category else [])
+        count_params = [site] + ([category] if category else [])
 
         rows = await conn.fetch(
             f"""
             SELECT t.id::text, t.title, t.body, t.category, t.site,
                    t.user_id::text,
                    u.display_name, u.avatar_url, t.pinned,
-                   t.created_at::text, t.last_post_at::text,
+                   t.created_at::text,
+                   COALESCE(t.last_post_at, t.created_at)::text AS last_post_at,
                    (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id)::int AS reply_count
             FROM forum_topics t
             JOIN forum_users u ON u.id = t.user_id
-            WHERE {base_filter}{noreply_filter}
+            WHERE {list_filter}{noreply_filter}
             ORDER BY t.pinned DESC, {order}
             LIMIT $1 OFFSET $2
             """,
-            *params_base,
+            *list_params,
         )
-        count_q = "SELECT COUNT(*) FROM forum_topics t WHERE " + base_filter + noreply_filter
-        total = await conn.fetchval(count_q, *params_base[2:])
+        count_q = "SELECT COUNT(*) FROM forum_topics t WHERE " + count_filter + noreply_filter
+        total = await conn.fetchval(count_q, *count_params)
 
     items = [TopicOut(**dict(r)) for r in rows]
     return TopicsPageOut(items=items, total=total or 0, page=page, per_page=per_page, site=site)
@@ -155,7 +158,8 @@ async def get_topic(
             SELECT t.id::text, t.title, t.body, t.category, t.site,
                    t.user_id::text,
                    u.display_name, u.avatar_url, t.pinned,
-                   t.created_at::text, t.last_post_at::text,
+                   t.created_at::text,
+                   COALESCE(t.last_post_at, t.created_at)::text AS last_post_at,
                    (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id)::int AS reply_count
             FROM forum_topics t
             JOIN forum_users u ON u.id = t.user_id
@@ -317,7 +321,8 @@ async def get_user_profile(user_id: str, request: Request):
             """
             SELECT t.id::text, t.title, t.body, t.category, t.site,
                    t.user_id::text, u.display_name, u.avatar_url, t.pinned,
-                   t.created_at::text, t.last_post_at::text,
+                   t.created_at::text,
+                   COALESCE(t.last_post_at, t.created_at)::text AS last_post_at,
                    (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id)::int AS reply_count
             FROM forum_topics t
             JOIN forum_users u ON u.id = t.user_id
