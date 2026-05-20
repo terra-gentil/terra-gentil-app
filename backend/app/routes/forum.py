@@ -140,7 +140,7 @@ async def list_topics(
 
 
 @router.post("/topics", response_model=TopicOut, status_code=status.HTTP_201_CREATED, tags=["Forum"])
-@limiter.limit("1/minute")
+@limiter.limit("10/minute")
 async def create_topic(
     request: Request,
     payload: TopicCreate,
@@ -225,7 +225,7 @@ async def get_topic(
     status_code=status.HTTP_201_CREATED,
     tags=["Forum"],
 )
-@limiter.limit("1/minute")
+@limiter.limit("10/minute")
 async def create_post(
     request: Request,
     topic_id: str,
