@@ -90,7 +90,8 @@ async def list_topics(
     noreply = sort == "noreply"
 
     async with get_conn() as conn:
-        noreply_filter = " AND (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id) = 0" if noreply else ""
+        noreply_where = " AND COALESCE(pc.reply_count, 0) = 0" if noreply else ""
+        noreply_count = " AND NOT EXISTS (SELECT 1 FROM forum_posts p WHERE p.topic_id = t.id)" if noreply else ""
         list_filter = "t.site = $3" + (" AND t.category = $4" if category else "")
         count_filter = "t.site = $1" + (" AND t.category = $2" if category else "")
         list_params = [per_page, offset, site] + ([category] if category else [])
@@ -103,18 +104,30 @@ async def list_topics(
                    u.display_name, u.avatar_url, t.pinned,
                    t.created_at::text,
                    COALESCE(t.last_post_at, t.created_at)::text AS last_post_at,
-                   (SELECT COUNT(*) FROM forum_posts p WHERE p.topic_id = t.id)::int AS reply_count,
-                   (SELECT COUNT(*)::int FROM forum_reactions WHERE target_id = t.id AND type = 'mata') AS mata_cnt,
-                   (SELECT COUNT(*)::int FROM forum_reactions WHERE target_id = t.id AND type = 'tava_la') AS tava_la_cnt
+                   COALESCE(pc.reply_count, 0)::int AS reply_count,
+                   COALESCE(rc_mata.cnt, 0)::int AS mata_cnt,
+                   COALESCE(rc_tava.cnt, 0)::int AS tava_la_cnt
             FROM forum_topics t
             JOIN forum_users u ON u.id = t.user_id
-            WHERE {list_filter}{noreply_filter}
+            LEFT JOIN (
+                SELECT topic_id, COUNT(*)::int AS reply_count
+                FROM forum_posts GROUP BY topic_id
+            ) pc ON pc.topic_id = t.id
+            LEFT JOIN (
+                SELECT target_id, COUNT(*)::int AS cnt
+                FROM forum_reactions WHERE type = 'mata' GROUP BY target_id
+            ) rc_mata ON rc_mata.target_id = t.id
+            LEFT JOIN (
+                SELECT target_id, COUNT(*)::int AS cnt
+                FROM forum_reactions WHERE type = 'tava_la' GROUP BY target_id
+            ) rc_tava ON rc_tava.target_id = t.id
+            WHERE {list_filter}{noreply_where}
             ORDER BY t.pinned DESC, {order}
             LIMIT $1 OFFSET $2
             """,
             *list_params,
         )
-        count_q = "SELECT COUNT(*) FROM forum_topics t WHERE " + count_filter + noreply_filter
+        count_q = "SELECT COUNT(*) FROM forum_topics t WHERE " + count_filter + noreply_count
         total = await conn.fetchval(count_q, *count_params)
 
     items = []
@@ -300,6 +313,10 @@ async def create_report(
 
 @router.get("/users/{user_id}/profile", tags=["Forum"])
 async def get_user_profile(user_id: str, request: Request):
+    try:
+        uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
     site = _resolve_site(request)
     async with get_conn() as conn:
         user = await conn.fetchrow(
@@ -347,5 +364,5 @@ async def get_user_profile(user_id: str, request: Request):
         "topic_count": topic_count or 0,
         "post_count": post_count or 0,
         "reactions_received": (topic_reactions or 0) + (post_reactions or 0),
-        "recent_topics": [TopicOut(**dict(r)) for r in recent_rows],
+        "recent_topics": [TopicOut(**dict(r), reactions={}, my_reactions=[]) for r in recent_rows],
     }
