@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -45,6 +45,12 @@ class Settings(BaseSettings):
         default="https://setlists-pj-ev.pages.dev=pj",
         description="Mapeamento origem→site: 'https://a.com=pj,https://b.com=terra-gentil'",
     )
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> "Settings":
+        if self.ENVIRONMENT == "production" and not self.JWT_SECRET:
+            raise ValueError("JWT_SECRET nao pode ser vazio em producao. Configure a variavel de ambiente.")
+        return self
 
     @property
     def site_origin_map(self) -> dict[str, str]:

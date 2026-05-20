@@ -2,7 +2,7 @@ import logging
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 
 from app.core.config import settings
 from app.core.limiter import limiter
@@ -75,16 +75,16 @@ async def _attach_reactions(conn, target_ids: list[str], user_id: Optional[str])
 
 
 @router.get("/topics", response_model=TopicsPageOut, tags=["Forum"])
+@limiter.limit("30/minute")
 async def list_topics(
     request: Request,
-    page: int = 1,
-    per_page: int = 20,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=50),
     category: str = "",
     sort: str = "activity",
     user_id: Optional[str] = Depends(_optional_auth),
 ):
     site = _resolve_site(request)
-    per_page = min(per_page, 50)
     offset = (page - 1) * per_page
     order = "t.last_post_at DESC" if sort == "activity" else "t.created_at DESC"
     noreply = sort == "noreply"
@@ -166,6 +166,7 @@ async def create_topic(
 
 
 @router.get("/topics/{topic_id}", response_model=TopicDetailOut, tags=["Forum"])
+@limiter.limit("30/minute")
 async def get_topic(
     topic_id: str,
     request: Request,
@@ -268,22 +269,23 @@ async def toggle_reaction(
     user_id: str = Depends(_require_auth),
 ):
     async with get_conn() as conn:
-        exists = await conn.fetchval(
-            "SELECT 1 FROM forum_reactions WHERE target_id=$1::uuid AND user_id=$2::uuid AND type=$3",
-            payload.target_id, user_id, payload.type,
-        )
-        if exists:
-            await conn.execute(
-                "DELETE FROM forum_reactions WHERE target_id=$1::uuid AND user_id=$2::uuid AND type=$3",
+        async with conn.transaction():
+            exists = await conn.fetchval(
+                "SELECT 1 FROM forum_reactions WHERE target_id=$1::uuid AND user_id=$2::uuid AND type=$3",
                 payload.target_id, user_id, payload.type,
             )
-            active = False
-        else:
-            await conn.execute(
-                "INSERT INTO forum_reactions (target_id, target_type, user_id, type) VALUES ($1::uuid, $2, $3::uuid, $4)",
-                payload.target_id, payload.target_type, user_id, payload.type,
-            )
-            active = True
+            if exists:
+                await conn.execute(
+                    "DELETE FROM forum_reactions WHERE target_id=$1::uuid AND user_id=$2::uuid AND type=$3",
+                    payload.target_id, user_id, payload.type,
+                )
+                active = False
+            else:
+                await conn.execute(
+                    "INSERT INTO forum_reactions (target_id, target_type, user_id, type) VALUES ($1::uuid, $2, $3::uuid, $4) ON CONFLICT DO NOTHING",
+                    payload.target_id, payload.target_type, user_id, payload.type,
+                )
+                active = True
         count = await conn.fetchval(
             "SELECT COUNT(*)::int FROM forum_reactions WHERE target_id=$1::uuid AND type=$2",
             payload.target_id, payload.type,
@@ -300,6 +302,13 @@ async def create_report(
     site = _resolve_site(request)
     report_id = str(uuid.uuid4())
     async with get_conn() as conn:
+        table = "forum_topics" if payload.target_type == "topic" else "forum_posts"
+        target_exists = await conn.fetchval(
+            f"SELECT 1 FROM {table} WHERE id = $1::uuid AND site = $2",
+            payload.target_id, site,
+        )
+        if not target_exists:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conteúdo não encontrado")
         await conn.execute(
             """
             INSERT INTO forum_reports (id, target_id, target_type, reason, reporter_id, site)
@@ -312,6 +321,7 @@ async def create_report(
 
 
 @router.get("/users/{user_id}/profile", tags=["Forum"])
+@limiter.limit("20/minute")
 async def get_user_profile(user_id: str, request: Request):
     try:
         uuid.UUID(user_id)
