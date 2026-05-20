@@ -5,10 +5,9 @@ Ponto de entrada do backend. Registra middlewares e rotas.
 """
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -45,7 +44,24 @@ app.add_middleware(
 
 app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET or "dev-session-secret")
 app.add_middleware(SlowAPIMiddleware)
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+_ALLOWED_ORIGINS = set(list(settings.site_origin_map.keys()) + [
+    "http://localhost:3000", "http://localhost:8000",
+    "http://localhost:5500", "http://localhost:8080",
+])
+
+async def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    origin = request.headers.get("origin", "")
+    headers = {"Access-Control-Allow-Credentials": "true"}
+    if origin in _ALLOWED_ORIGINS:
+        headers["Access-Control-Allow-Origin"] = origin
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Muitas tentativas seguidas. Aguarde um momento antes de tentar novamente."},
+        headers=headers,
+    )
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(diagnostico.router)
