@@ -2,7 +2,7 @@ import logging
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
 
 from app.core.config import settings
 from app.core.limiter import limiter
@@ -224,6 +224,27 @@ async def get_topic(
         for p in posts_rows
     ]
     return TopicDetailOut(topic=topic, posts=posts)
+
+
+@router.delete("/topics/{topic_id}", status_code=204, tags=["Forum"])
+async def deletar_topic(
+    topic_id: str,
+    request: Request,
+    user_id: str = Depends(_require_auth),
+):
+    site = _resolve_site(request)
+    async with get_conn() as conn:
+        row = await conn.fetchrow(
+            "SELECT user_id::text FROM forum_topics WHERE id = $1::uuid AND site = $2",
+            topic_id, site,
+        )
+        if not row:
+            raise HTTPException(status_code=404, detail="Tópico não encontrado")
+        if row["user_id"] != user_id:
+            raise HTTPException(status_code=403, detail="Sem permissão para apagar este tópico")
+        await conn.execute("DELETE FROM forum_topics WHERE id = $1::uuid", topic_id)
+    logger.info("Tópico deletado id=%s por user=%s", topic_id, user_id)
+    return Response(status_code=204)
 
 
 @router.post(

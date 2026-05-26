@@ -114,6 +114,17 @@ export async function criarResposta(
   });
 }
 
+export async function deletarTopic(topicId: string, token: string): Promise<void> {
+  const resp = await fetch(`${API_BASE_URL}/forum/topics/${topicId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json", "X-Site": SITE, Authorization: `Bearer ${token}` },
+  });
+  if (!resp.ok && resp.status !== 204) {
+    const texto = await resp.text().catch(() => String(resp.status));
+    throw new Error(`${resp.status}: ${texto}`);
+  }
+}
+
 export async function toggleReacao(
   data: {
     target_id: string;

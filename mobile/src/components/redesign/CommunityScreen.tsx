@@ -42,15 +42,20 @@ import {
 } from "../../storage/comunidade";
 import { obterOuCriarNickname } from "../../storage/nickname";
 import { getToken, getUser, AuthUser } from "../../storage/auth";
-import { listarTopics, TopicOut } from "../../api/forum";
+import { listarTopics, deletarTopic, TopicOut } from "../../api/forum";
 import LoginModal from "./LoginModal";
 
-const FILTROS = ["Populares", "Salvos", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
+const FILTROS = ["Recentes", "Populares", "Salvos", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
+
+function sortParaFiltro(filtro: string): "activity" | "newest" | "noreply" {
+  if (filtro === "Recentes") return "newest";
+  return "activity";
+}
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const [filtro, setFiltro] = useState(FILTROS[0]);
+  const [filtro, setFiltro] = useState<string>("Recentes");
   const [meusPosts, setMeusPosts] = useState<MeuPost[]>([]);
   const [apiTopics, setApiTopics] = useState<TopicOut[]>([]);
   const [likes, setLikes] = useState<Record<string, true>>({});
@@ -84,13 +89,18 @@ export default function CommunityScreen() {
     });
   }, []);
 
-  const carregarTopics = useCallback(async (pagina = 1, resetar = false) => {
+  const carregarTopics = useCallback(async (
+    pagina = 1,
+    resetar = false,
+    sort: "activity" | "newest" | "noreply" = "newest",
+  ) => {
     if (carregandoRef.current) return;
     carregandoRef.current = true;
     setCarregando(true);
     try {
       const token = await getToken();
-      const resultado = await listarTopics({ page: pagina, perPage: 20, token });
+      const resultado = await listarTopics({ page: pagina, perPage: 20, sort, token });
+      console.log(`[comunidade] topics carregados sort=${sort} pagina=${pagina} total=${resultado.items.length}`);
       setApiTopics((prev) => (resetar ? resultado.items : [...prev, ...resultado.items]));
       setTemMais(resultado.items.length >= 20);
       setPaginaAtual(pagina);
@@ -130,7 +140,7 @@ export default function CommunityScreen() {
         ];
         recarregarComentarios(todosIds);
       })();
-      carregarTopics(1, true);
+      carregarTopics(1, true, "newest");
       return () => {
         alive = false;
       };
@@ -215,9 +225,20 @@ export default function CommunityScreen() {
                 text: "Apagar",
                 style: "destructive",
                 onPress: async () => {
-                  await removerMeuPost(String(post.id));
-                  const atualizada = await listarMeusPosts();
-                  setMeusPosts(atualizada);
+                  if (post.isApiTopic) {
+                    const token = await getToken();
+                    if (!token) { Alert.alert("Erro", "Você precisa estar logado para apagar."); return; }
+                    try {
+                      await deletarTopic(String(post.id), token);
+                      await carregarTopics(1, true, sortParaFiltro(filtro));
+                    } catch (err) {
+                      Alert.alert("Erro", "Não foi possível apagar o post. Tente de novo.");
+                    }
+                  } else {
+                    await removerMeuPost(String(post.id));
+                    const atualizada = await listarMeusPosts();
+                    setMeusPosts(atualizada);
+                  }
                 },
               },
             ]),
@@ -265,8 +286,15 @@ export default function CommunityScreen() {
     setBuscaAberta(false);
   }
 
+  function handleFiltroChange(novoFiltro: string) {
+    setFiltro(novoFiltro);
+    if (novoFiltro === "Recentes" || novoFiltro === "Populares") {
+      carregarTopics(1, true, sortParaFiltro(novoFiltro));
+    }
+  }
+
   function handleEndReached() {
-    if (temMais && !carregando) carregarTopics(paginaAtual + 1);
+    if (temMais && !carregando) carregarTopics(paginaAtual + 1, false, sortParaFiltro(filtro));
   }
 
   return (
@@ -355,7 +383,7 @@ export default function CommunityScreen() {
                   {nomeUsuario ? `Logado: ${nomeUsuario}` : "Sem conta"}
                 </Text>
               </View>
-              <Pills items={FILTROS} active={filtro} onChange={setFiltro} />
+              <Pills items={FILTROS} active={filtro} onChange={handleFiltroChange} />
             </View>
           ) : null
         }
@@ -433,8 +461,9 @@ export default function CommunityScreen() {
         onCriado={async (viaApi) => {
           setNovaAberta(false);
           if (viaApi) {
-            carregarTopics(1, true);
-            setFiltro("Populares");
+            console.log("[comunidade] post criado via API, recarregando com sort=newest");
+            setFiltro("Recentes");
+            await carregarTopics(1, true, "newest");
           } else {
             const atualizada = await listarMeusPosts();
             setMeusPosts(atualizada);
