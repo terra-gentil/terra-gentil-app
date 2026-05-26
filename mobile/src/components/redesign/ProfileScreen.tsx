@@ -21,9 +21,9 @@ import { MASCOT_POSES } from "../../assets/mascot";
 import SectionTitle from "./SectionTitle";
 import { listarConsultas, limparHistorico, ConsultaHistorico } from "../../storage/historico";
 import { resetarWelcome, resetarTutorial } from "../../storage/preferencias";
-import { obterNickname } from "../../storage/nickname";
-import { getUser, clearAuth, AuthUser } from "../../storage/auth";
+import { getUser, clearAuth, AuthUser, getProfileExtra } from "../../storage/auth";
 import LoginModal from "./LoginModal";
+import EditarPerfilModal from "./EditarPerfilModal";
 
 const YOUTUBE_URL = "https://www.youtube.com/@TerraGentil";
 const SITE_URL = "https://terragentil.com.br";
@@ -65,12 +65,17 @@ export default function ProfileScreen() {
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
   const [usuario, setUsuario] = useState<AuthUser | null>(null);
+  const [nomeExibido, setNomeExibido] = useState<string | null>(null);
   const [loginAberto, setLoginAberto] = useState(false);
+  const [editarAberto, setEditarAberto] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       listarConsultas().then(setHistorico);
-      getUser().then(setUsuario);
+      Promise.all([getUser(), getProfileExtra()]).then(([u, extra]) => {
+        setUsuario(u);
+        setNomeExibido(u ? (extra.nome || u.display_name) : null);
+      });
     }, [])
   );
 
@@ -140,15 +145,8 @@ export default function ProfileScreen() {
     );
   }
 
-  async function handleEditarPerfil() {
-    const nick = await obterNickname();
-    Alert.alert(
-      "Editar perfil",
-      nick
-        ? `Seu nome de jardim atual é ${nick}.\n\nEm breve você vai poder mudar nome, avatar e bio direto por aqui.`
-        : "Em breve você vai poder personalizar seu perfil direto pelo app.",
-      [{ text: "Combinado", style: "default" }],
-    );
+  function handleEditarPerfil() {
+    setEditarAberto(true);
   }
 
   async function handleCompartilharPerfil() {
@@ -215,7 +213,7 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>{usuario?.display_name ?? "Meu Jardim"}</Text>
+                <Text style={styles.profileName}>{nomeExibido ?? "Meu Jardim"}</Text>
                 <Text style={styles.profileBio}>{especiesUnicas} especie{especiesUnicas !== 1 ? "s" : ""} diferentes</Text>
               </View>
             </View>
@@ -365,7 +363,18 @@ export default function ProfileScreen() {
         onClose={() => setLoginAberto(false)}
         onLogin={(user: AuthUser) => {
           setUsuario(user);
+          setNomeExibido(user.display_name);
           setLoginAberto(false);
+        }}
+      />
+
+      <EditarPerfilModal
+        visible={editarAberto}
+        usuario={usuario}
+        onClose={() => setEditarAberto(false)}
+        onSalvo={(nome) => {
+          setNomeExibido(nome);
+          setEditarAberto(false);
         }}
       />
     </View>

@@ -33,3 +33,33 @@ export async function setAuth(token: string, user: AuthUser): Promise<void> {
 export async function clearAuth(): Promise<void> {
   await AsyncStorage.multiRemove([KEY_TOKEN, KEY_USER]);
 }
+
+// Campos extras editaveis pelo usuario (nome pode sobrescrever display_name do Google)
+export interface ProfileExtra {
+  nome?: string;
+  sexo?: string;
+  idade?: string;
+  email?: string;
+}
+
+const KEY_PROFILE_EXTRA = "@terragentil:profile_extra";
+
+export async function getProfileExtra(): Promise<ProfileExtra> {
+  const raw = await AsyncStorage.getItem(KEY_PROFILE_EXTRA);
+  if (!raw) return {};
+  try { return JSON.parse(raw) as ProfileExtra; } catch { return {}; }
+}
+
+export async function saveProfileExtra(data: ProfileExtra): Promise<void> {
+  await AsyncStorage.setItem(KEY_PROFILE_EXTRA, JSON.stringify(data));
+}
+
+export async function updateDisplayName(nome: string): Promise<void> {
+  const raw = await AsyncStorage.getItem(KEY_USER);
+  if (!raw) return;
+  try {
+    const user = JSON.parse(raw) as AuthUser;
+    user.display_name = nome;
+    await AsyncStorage.setItem(KEY_USER, JSON.stringify(user));
+  } catch {}
+}

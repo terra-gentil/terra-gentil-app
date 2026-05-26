@@ -147,3 +147,21 @@ async def me(credentials: HTTPAuthorizationCredentials = Depends(_bearer)):
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
     return {"id": str(row["id"]), "display_name": row["display_name"], "avatar_url": row["avatar_url"]}
+
+
+@router.patch("/me", tags=["Auth"])
+async def update_me(
+    display_name: str = Body(..., min_length=2, max_length=60),
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
+):
+    if not credentials:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token ausente")
+    payload = verify_jwt(credentials.credentials)
+    user_id = payload["user_id"]
+    async with get_conn() as conn:
+        await conn.execute(
+            "UPDATE forum_users SET display_name = $1 WHERE id = $2::uuid",
+            display_name, user_id,
+        )
+    logger.info("display_name atualizado user_id=%s -> %s", user_id, display_name)
+    return {"display_name": display_name}
