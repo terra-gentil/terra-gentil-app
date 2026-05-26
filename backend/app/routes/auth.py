@@ -37,10 +37,11 @@ async def google_login(request: Request):
 
 
 @router.get("/google/login/mobile", tags=["Auth"])
-async def google_login_mobile(request: Request):
+async def google_login_mobile(request: Request, redirect_uri: str = "terragentil://auth"):
     request.session["is_mobile"] = True
-    redirect_uri = f"{settings.BACKEND_URL}/auth/google/callback"
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    request.session["mobile_redirect_uri"] = redirect_uri
+    callback_uri = f"{settings.BACKEND_URL}/auth/google/callback"
+    return await oauth.google.authorize_redirect(request, callback_uri)
 
 
 @router.get("/google/callback", name="google_callback", tags=["Auth"])
@@ -52,10 +53,12 @@ async def google_callback(request: Request):
     display_name = quote(str(profile.get("name", "")))
     avatar_url = quote(str(profile.get("picture", "")))
     is_mobile = request.session.pop("is_mobile", False)
+    mobile_redirect_uri = request.session.pop("mobile_redirect_uri", "terragentil://auth")
     logger.info("OAuth callback OK, is_mobile=%s, user_id=%s", is_mobile, user_id)
     if is_mobile:
+        sep = "&" if "?" in mobile_redirect_uri else "?"
         redirect_url = (
-            f"terragentil://auth?token={jwt_token}"
+            f"{mobile_redirect_uri}{sep}token={jwt_token}"
             f"&user_id={user_id}&name={display_name}&avatar={avatar_url}"
         )
     else:

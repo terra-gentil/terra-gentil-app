@@ -41,8 +41,9 @@ import {
   MeuPost,
 } from "../../storage/comunidade";
 import { obterOuCriarNickname } from "../../storage/nickname";
-import { getToken, getUser } from "../../storage/auth";
+import { getToken, getUser, AuthUser } from "../../storage/auth";
 import { listarTopics, TopicOut } from "../../api/forum";
+import LoginModal from "./LoginModal";
 
 const FILTROS = ["Populares", "Salvos", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
 
@@ -59,6 +60,7 @@ export default function CommunityScreen() {
   const [nickname, setNickname] = useState("JARDIM");
   const [userId, setUserId] = useState<string | null>(null);
   const [novaAberta, setNovaAberta] = useState(false);
+  const [loginAberto, setLoginAberto] = useState(false);
   const [notifsAberta, setNotifsAberta] = useState(false);
   const [comentariosAberta, setComentariosAberta] = useState(false);
   const [postAtivo, setPostAtivo] = useState<PostBase | null>(null);
@@ -402,7 +404,14 @@ export default function CommunityScreen() {
         <FloatCTA
           label="Nova postagem"
           icon={<Plus size={18} color="#fff" strokeWidth={2.6} />}
-          onPress={() => setNovaAberta(true)}
+          onPress={async () => {
+            const token = await getToken();
+            if (token) {
+              setNovaAberta(true);
+            } else {
+              setLoginAberto(true);
+            }
+          }}
         />
       )}
 
@@ -437,6 +446,16 @@ export default function CommunityScreen() {
       <NotificacoesModal
         visible={notifsAberta}
         onClose={() => setNotifsAberta(false)}
+      />
+
+      <LoginModal
+        visible={loginAberto}
+        onClose={() => setLoginAberto(false)}
+        onLogin={(user: AuthUser) => {
+          setLoginAberto(false);
+          setUserId(user.id);
+          setNovaAberta(true);
+        }}
       />
     </View>
   );

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
+import * as Linking from "expo-linking";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
@@ -37,17 +38,19 @@ export default function LoginModal({ visible, onClose, onLogin }: Props) {
   async function handleGoogle() {
     setCarregando("google");
     try {
-      const result = await WebBrowser.openAuthSessionAsync(
-        `${FORUM_API_URL}/auth/google/login/mobile`,
-        "terragentil://",
-      );
+      // Linking.createURL funciona em Expo Go (exp://ip:port/--/auth) e em builds nativos (terragentil://auth)
+      const redirectUri = Linking.createURL("auth");
+      const loginUrl = `${FORUM_API_URL}/auth/google/login/mobile?redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUri);
       if (result.type !== "success") return;
 
-      const url = new URL(result.url);
-      const token = url.searchParams.get("token");
-      const user_id = url.searchParams.get("user_id");
-      const name = url.searchParams.get("name");
-      const avatar = url.searchParams.get("avatar");
+      const parsed = Linking.parse(result.url);
+      const params = parsed.queryParams ?? {};
+      const token = params["token"] as string | undefined;
+      const user_id = params["user_id"] as string | undefined;
+      const name = params["name"] as string | undefined;
+      const avatar = params["avatar"] as string | undefined;
 
       if (!token || !user_id) {
         Alert.alert("Erro", "Não foi possível completar o login. Tente de novo.");
