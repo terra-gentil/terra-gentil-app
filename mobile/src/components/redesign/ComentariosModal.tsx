@@ -24,8 +24,9 @@ import {
   adicionarComentario,
   listarComentarios,
 } from "../../storage/comunidade";
-import { getToken } from "../../storage/auth";
+import { getToken, AuthUser } from "../../storage/auth";
 import { buscarTopicComPosts, criarResposta, PostOut } from "../../api/forum";
+import LoginModal from "./LoginModal";
 
 interface Props {
   visible: boolean;
@@ -69,6 +70,7 @@ export default function ComentariosModal({ visible, post, nickname, onClose }: P
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState(false);
+  const [loginVisivel, setLoginVisivel] = useState(false);
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -101,6 +103,10 @@ export default function ComentariosModal({ visible, post, nickname, onClose }: P
 
   if (!post) return null;
 
+  function handleLoginSuccess(_user: AuthUser) {
+    setLoginVisivel(false);
+  }
+
   async function handleEnviar() {
     if (!post) return;
     const limpo = texto.trim();
@@ -109,10 +115,7 @@ export default function ComentariosModal({ visible, post, nickname, onClose }: P
     if (post.isApiTopic) {
       const token = await getToken();
       if (!token) {
-        Alert.alert(
-          "Entre para comentar",
-          "Você precisa fazer login com Google para comentar na comunidade.",
-        );
+        setLoginVisivel(true);
         return;
       }
       setEnviando(true);
@@ -294,6 +297,12 @@ export default function ComentariosModal({ visible, post, nickname, onClose }: P
           </View>
         </KeyboardAvoidingView>
       </View>
+
+      <LoginModal
+        visible={loginVisivel}
+        onClose={() => setLoginVisivel(false)}
+        onLogin={handleLoginSuccess}
+      />
 
       {/* Foto fullscreen */}
       {post.imageUri && (

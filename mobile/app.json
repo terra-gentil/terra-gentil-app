@@ -13,7 +13,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "br.com.terragentil.app",
+      "supportsTablet": true,
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "br.com.terragentil.app",
@@ -33,6 +35,11 @@
         "projectId": "f5d75a08-a9e1-421a-ab64-c77097cb19a0"
       }
     },
-    "owner": "terra-gentil-app"
+    "owner": "terra-gentil-app",
+    "scheme": "terragentil",
+    "plugins": [
+      "expo-web-browser",
+      "expo-apple-authentication"
+    ]
   }
 }

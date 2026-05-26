@@ -19,8 +19,9 @@ import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CATEGORIAS, PALETAS, TAGS_DISPONIVEIS, paletaPorId } from "../../data/comunidade";
 import { adicionarMeuPost } from "../../storage/comunidade";
-import { getToken } from "../../storage/auth";
+import { getToken, AuthUser } from "../../storage/auth";
 import { criarTopic } from "../../api/forum";
+import LoginModal from "./LoginModal";
 
 interface Props {
   visible: boolean;
@@ -36,6 +37,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
   const [tagsSelecionadas, setTagsSelecionadas] = useState<string[]>([]);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [loginVisivel, setLoginVisivel] = useState(false);
 
   const paleta = paletaPorId(paletaId);
 
@@ -118,27 +120,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
         reset();
         onCriado(true);
       } else {
-        Alert.alert(
-          "Login necessário",
-          "Para publicar na comunidade você precisa entrar com Google. Seu post ficará só no seu aparelho até você fazer login.",
-          [
-            { text: "Cancelar", style: "cancel" },
-            {
-              text: "Salvar só aqui",
-              onPress: async () => {
-                await adicionarMeuPost({
-                  cat,
-                  title: tituloLimpo,
-                  paletaId,
-                  tags: tagsSelecionadas,
-                  imageUri: imageUri ?? undefined,
-                });
-                reset();
-                onCriado(false);
-              },
-            },
-          ],
-        );
+        setLoginVisivel(true);
       }
     } catch (err) {
       console.log("[nova-postagem] erro:", err);
@@ -168,6 +150,25 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
       return;
     }
     onClose();
+  }
+
+  async function handleLoginSuccess(user: AuthUser) {
+    setLoginVisivel(false);
+    const tituloLimpo = titulo.trim();
+    if (tituloLimpo.length < 10) return;
+    const token = await getToken();
+    if (!token) return;
+    setSalvando(true);
+    try {
+      await criarTopic({ title: tituloLimpo, body: tituloLimpo, category: cat }, token);
+      reset();
+      onCriado(true);
+    } catch (err) {
+      console.log("[nova-postagem] erro pos-login:", err);
+      Alert.alert("Ops", "Não foi possível publicar agora. Tente de novo.");
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
@@ -375,6 +376,12 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
           </View>
         </KeyboardAvoidingView>
       </View>
+
+      <LoginModal
+        visible={loginVisivel}
+        onClose={() => setLoginVisivel(false)}
+        onLogin={handleLoginSuccess}
+      />
     </Modal>
   );
 }

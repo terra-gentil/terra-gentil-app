@@ -1,10 +1,12 @@
 import logging
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
+import httpx
 from authlib.integrations.starlette_client import OAuth
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import jwt as jose_jwt
 from starlette.config import Config
 
 from app.core.config import settings
@@ -34,6 +36,13 @@ async def google_login(request: Request):
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
+@router.get("/google/login/mobile", tags=["Auth"])
+async def google_login_mobile(request: Request):
+    request.session["is_mobile"] = True
+    redirect_uri = f"{settings.BACKEND_URL}/auth/google/callback"
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
 @router.get("/google/callback", name="google_callback", tags=["Auth"])
 async def google_callback(request: Request):
     token = await oauth.google.authorize_access_token(request)
@@ -42,12 +51,80 @@ async def google_callback(request: Request):
     jwt_token = create_jwt(user_id)
     display_name = quote(str(profile.get("name", "")))
     avatar_url = quote(str(profile.get("picture", "")))
-    redirect_url = (
-        f"{settings.FORUM_CORS_ORIGIN}/auth-callback.html"
-        f"?token={jwt_token}&name={display_name}&avatar={avatar_url}"
-    )
-    logger.info("OAuth callback OK, redirecionando user_id=%s", user_id)
+    is_mobile = request.session.pop("is_mobile", False)
+    logger.info("OAuth callback OK, is_mobile=%s, user_id=%s", is_mobile, user_id)
+    if is_mobile:
+        redirect_url = (
+            f"terragentil://auth?token={jwt_token}"
+            f"&user_id={user_id}&name={display_name}&avatar={avatar_url}"
+        )
+    else:
+        redirect_url = (
+            f"{settings.FORUM_CORS_ORIGIN}/auth-callback.html"
+            f"?token={jwt_token}&name={display_name}&avatar={avatar_url}"
+        )
     return RedirectResponse(url=redirect_url)
+
+
+@router.post("/apple/mobile", tags=["Auth"])
+async def apple_login_mobile(
+    identity_token: str = Body(...),
+    full_name: str | None = Body(default=None),
+):
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.get("https://appleid.apple.com/auth/keys", timeout=10)
+            r.raise_for_status()
+            jwks = r.json()
+
+        header = jose_jwt.get_unverified_header(identity_token)
+        kid = header.get("kid", "")
+        matching = [k for k in jwks.get("keys", []) if k.get("kid") == kid]
+        if not matching:
+            raise HTTPException(status_code=400, detail="Chave Apple nao encontrada")
+
+        claims = jose_jwt.decode(
+            identity_token,
+            matching[0],
+            algorithms=["RS256"],
+            audience="br.com.terragentil.app",
+            issuer="https://appleid.apple.com",
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning("Apple token invalido: %s", exc)
+        raise HTTPException(status_code=400, detail="Token Apple invalido") from exc
+
+    apple_sub = claims.get("sub", "")
+    email = claims.get("email")
+
+    import uuid as _uuid
+    user_id = str(_uuid.uuid5(_uuid.NAMESPACE_URL, f"apple:{apple_sub}"))
+    display_name = full_name or email or "Usuário"
+
+    async with get_conn() as conn:
+        await conn.execute(
+            """
+            INSERT INTO forum_users (id, display_name, avatar_url, provider)
+            VALUES ($1::uuid, $2, $3, 'apple')
+            ON CONFLICT (id) DO UPDATE
+              SET display_name = CASE WHEN forum_users.display_name = 'Usuário'
+                                      THEN EXCLUDED.display_name
+                                      ELSE forum_users.display_name END,
+                  avatar_url = COALESCE(forum_users.avatar_url, EXCLUDED.avatar_url)
+            """,
+            user_id, display_name, None,
+        )
+
+    jwt_token = create_jwt(user_id)
+    logger.info("Apple login OK, user_id=%s", user_id)
+    return JSONResponse({
+        "token": jwt_token,
+        "user_id": user_id,
+        "display_name": display_name,
+        "avatar_url": None,
+    })
 
 
 _bearer = HTTPBearer(auto_error=False)
