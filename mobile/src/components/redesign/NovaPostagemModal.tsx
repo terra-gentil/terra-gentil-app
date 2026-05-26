@@ -18,12 +18,14 @@ import { X, Check, Camera, Image as ImageIcon, Trash2 } from "lucide-react-nativ
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CATEGORIAS, PALETAS, TAGS_DISPONIVEIS, paletaPorId } from "../../data/comunidade";
-import { adicionarMeuPost, MeuPost } from "../../storage/comunidade";
+import { adicionarMeuPost } from "../../storage/comunidade";
+import { getToken } from "../../storage/auth";
+import { criarTopic } from "../../api/forum";
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onCriado: (post: MeuPost) => void;
+  onCriado: (viaApi?: boolean) => void;
 }
 
 export default function NovaPostagemModal({ visible, onClose, onCriado }: Props) {
@@ -110,15 +112,34 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
     }
     setSalvando(true);
     try {
-      const novo = await adicionarMeuPost({
-        cat,
-        title: tituloLimpo,
-        paletaId,
-        tags: tagsSelecionadas,
-        imageUri: imageUri ?? undefined,
-      });
-      reset();
-      onCriado(novo);
+      const token = await getToken();
+      if (token) {
+        await criarTopic({ title: tituloLimpo, body: tituloLimpo, category: cat }, token);
+        reset();
+        onCriado(true);
+      } else {
+        Alert.alert(
+          "Login necessário",
+          "Para publicar na comunidade você precisa entrar com Google. Seu post ficará só no seu aparelho até você fazer login.",
+          [
+            { text: "Cancelar", style: "cancel" },
+            {
+              text: "Salvar só aqui",
+              onPress: async () => {
+                await adicionarMeuPost({
+                  cat,
+                  title: tituloLimpo,
+                  paletaId,
+                  tags: tagsSelecionadas,
+                  imageUri: imageUri ?? undefined,
+                });
+                reset();
+                onCriado(false);
+              },
+            },
+          ],
+        );
+      }
     } catch (err) {
       console.log("[nova-postagem] erro:", err);
       Alert.alert("Ops", "Não foi possível publicar agora. Tente de novo.");

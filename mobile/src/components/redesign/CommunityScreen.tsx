@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  FlatList,
   Pressable,
-  ScrollView,
   Share,
   StyleSheet,
   Text,
@@ -26,6 +27,7 @@ import {
   PostBase,
   POSTS_MOCK,
   postBaseFromMeu,
+  topicToPost,
 } from "../../data/comunidade";
 import {
   alternarSeguir,
@@ -39,6 +41,8 @@ import {
   MeuPost,
 } from "../../storage/comunidade";
 import { obterOuCriarNickname } from "../../storage/nickname";
+import { getToken, getUser } from "../../storage/auth";
+import { listarTopics, TopicOut } from "../../api/forum";
 
 const FILTROS = ["Populares", "Salvos", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
 
@@ -47,17 +51,22 @@ export default function CommunityScreen() {
   const navigation = useNavigation<any>();
   const [filtro, setFiltro] = useState(FILTROS[0]);
   const [meusPosts, setMeusPosts] = useState<MeuPost[]>([]);
+  const [apiTopics, setApiTopics] = useState<TopicOut[]>([]);
   const [likes, setLikes] = useState<Record<string, true>>({});
   const [saves, setSaves] = useState<Record<string, true>>({});
   const [seguindo, setSeguindo] = useState<Record<string, true>>({});
   const [comentariosPorPost, setComentariosPorPost] = useState<Record<string, number>>({});
   const [nickname, setNickname] = useState("JARDIM");
+  const [userId, setUserId] = useState<string | null>(null);
   const [novaAberta, setNovaAberta] = useState(false);
   const [notifsAberta, setNotifsAberta] = useState(false);
   const [comentariosAberta, setComentariosAberta] = useState(false);
   const [postAtivo, setPostAtivo] = useState<PostBase | null>(null);
   const [buscaAberta, setBuscaAberta] = useState(false);
   const [buscaTexto, setBuscaTexto] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [temMais, setTemMais] = useState(true);
 
   const recarregarComentarios = useCallback(async (ids: (string | number)[]) => {
     const entries = await Promise.all(
@@ -65,23 +74,38 @@ export default function CommunityScreen() {
     );
     setComentariosPorPost((curr) => {
       const next = { ...curr };
-      for (const [id, n] of entries) {
-        next[id] = n;
-      }
+      for (const [id, n] of entries) next[id] = n;
       return next;
     });
   }, []);
+
+  const carregarTopics = useCallback(async (pagina = 1, resetar = false) => {
+    if (carregando) return;
+    setCarregando(true);
+    try {
+      const token = await getToken();
+      const resultado = await listarTopics({ page: pagina, perPage: 20, token });
+      setApiTopics((prev) => (resetar ? resultado.items : [...prev, ...resultado.items]));
+      setTemMais(resultado.items.length >= 20);
+      setPaginaAtual(pagina);
+    } catch (err) {
+      console.log("[comunidade] erro ao buscar topics:", err);
+    } finally {
+      setCarregando(false);
+    }
+  }, [carregando]);
 
   useFocusEffect(
     useCallback(() => {
       let alive = true;
       (async () => {
-        const [meus, l, s, sg, nick] = await Promise.all([
+        const [meus, l, s, sg, nick, user] = await Promise.all([
           listarMeusPosts(),
           obterLikes(),
           obterSaves(),
           obterSeguindo(),
           obterOuCriarNickname(),
+          getUser(),
         ]);
         if (!alive) return;
         setMeusPosts(meus);
@@ -89,6 +113,7 @@ export default function CommunityScreen() {
         setSaves(s);
         setSeguindo(sg);
         setNickname(nick);
+        setUserId(user?.id ?? null);
 
         const todosIds = [
           ...POSTS_MOCK.map((p) => p.id),
@@ -96,18 +121,23 @@ export default function CommunityScreen() {
         ];
         recarregarComentarios(todosIds);
       })();
+      carregarTopics(1, true);
       return () => {
         alive = false;
       };
-    }, [recarregarComentarios])
+    }, [recarregarComentarios, carregarTopics])
   );
 
   const todosPosts: PostBase[] = useMemo(() => {
     const meus = meusPosts.map((m) => postBaseFromMeu(m, nickname));
-    const pinados = POSTS_MOCK.filter((p) => p.pinned);
-    const naoPinados = POSTS_MOCK.filter((p) => !p.pinned);
+    const fonte: PostBase[] =
+      apiTopics.length > 0
+        ? apiTopics.map((t) => topicToPost(t, userId))
+        : POSTS_MOCK;
+    const pinados = fonte.filter((p) => p.pinned);
+    const naoPinados = fonte.filter((p) => !p.pinned);
     return [...pinados, ...meus, ...naoPinados];
-  }, [meusPosts, nickname]);
+  }, [meusPosts, nickname, apiTopics, userId]);
 
   const postsFiltrados: PostBase[] = useMemo(() => {
     let lista = todosPosts;
@@ -119,9 +149,17 @@ export default function CommunityScreen() {
     } else if (filtro === "Seguindo") {
       lista = lista.filter((p) => seguindo[p.author]);
     } else if (filtro === "Pragas") {
-      lista = lista.filter((p) => p.tags.some((t) => t.toLowerCase().includes("praga")));
+      lista = lista.filter(
+        (p) =>
+          p.tags.some((t) => t.toLowerCase().includes("praga")) ||
+          p.cat.toLowerCase().includes("praga"),
+      );
     } else if (filtro === "Suculentas") {
-      lista = lista.filter((p) => p.tags.some((t) => t.toLowerCase().includes("suculenta")));
+      lista = lista.filter(
+        (p) =>
+          p.tags.some((t) => t.toLowerCase().includes("suculenta")) ||
+          p.cat.toLowerCase().includes("suculenta"),
+      );
     }
 
     const termo = buscaTexto.trim().toLowerCase();
@@ -131,7 +169,7 @@ export default function CommunityScreen() {
           p.title.toLowerCase().includes(termo) ||
           p.cat.toLowerCase().includes(termo) ||
           p.author.toLowerCase().includes(termo) ||
-          p.tags.some((t) => t.toLowerCase().includes(termo))
+          p.tags.some((t) => t.toLowerCase().includes(termo)),
       );
     }
 
@@ -162,22 +200,18 @@ export default function CommunityScreen() {
           text: "Apagar post",
           style: "destructive",
           onPress: () =>
-            Alert.alert(
-              "Apagar post?",
-              "Essa ação não pode ser desfeita.",
-              [
-                { text: "Cancelar", style: "cancel" },
-                {
-                  text: "Apagar",
-                  style: "destructive",
-                  onPress: async () => {
-                    await removerMeuPost(String(post.id));
-                    const atualizada = await listarMeusPosts();
-                    setMeusPosts(atualizada);
-                  },
+            Alert.alert("Apagar post?", "Essa ação não pode ser desfeita.", [
+              { text: "Cancelar", style: "cancel" },
+              {
+                text: "Apagar",
+                style: "destructive",
+                onPress: async () => {
+                  await removerMeuPost(String(post.id));
+                  const atualizada = await listarMeusPosts();
+                  setMeusPosts(atualizada);
                 },
-              ]
-            ),
+              },
+            ]),
         },
         { text: "Compartilhar", onPress: () => handleShare(post) },
       ]);
@@ -187,7 +221,9 @@ export default function CommunityScreen() {
       { text: "Cancelar", style: "cancel" },
       { text: "Compartilhar", onPress: () => handleShare(post) },
       {
-        text: seguindo[post.author] ? `Deixar de seguir ${post.author}` : `Seguir ${post.author}`,
+        text: seguindo[post.author]
+          ? `Deixar de seguir ${post.author}`
+          : `Seguir ${post.author}`,
         onPress: async () => {
           if (post.author === "Doutor Gentileza") {
             Alert.alert("Doutor Gentileza", "O Doutor Gentileza está sempre por aqui!");
@@ -202,19 +238,26 @@ export default function CommunityScreen() {
           });
         },
       },
-      { text: "Reportar", style: "destructive", onPress: () => Alert.alert("Recebido", "Vamos analisar e tomar as providências.") },
+      {
+        text: "Reportar",
+        style: "destructive",
+        onPress: () =>
+          Alert.alert("Recebido", "Vamos analisar e tomar as providências."),
+      },
     ]);
   }
 
   function handleSubmitBusca() {
-    if (buscaTexto.trim().length >= 2) {
-      registrarBusca(buscaTexto.trim());
-    }
+    if (buscaTexto.trim().length >= 2) registrarBusca(buscaTexto.trim());
   }
 
   function fecharBusca() {
     setBuscaTexto("");
     setBuscaAberta(false);
+  }
+
+  function handleEndReached() {
+    if (temMais && !carregando) carregarTopics(paginaAtual + 1);
   }
 
   return (
@@ -253,54 +296,11 @@ export default function CommunityScreen() {
         </View>
       )}
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        {!buscaAberta && (
-          <Pills items={FILTROS} active={filtro} onChange={setFiltro} />
-        )}
-
-        {postsFiltrados.length === 0 && (
-          <View style={styles.vazio}>
-            <Text style={styles.vazioEmoji}>
-              {buscaTexto.trim().length >= 2
-                ? "🔎"
-                : filtro === "Meus posts"
-                ? "✏️"
-                : filtro === "Salvos"
-                ? "🔖"
-                : "🌱"}
-            </Text>
-            <Text style={styles.vazioTitulo}>
-              {buscaTexto.trim().length >= 2
-                ? "Nada encontrado"
-                : filtro === "Meus posts"
-                ? "Você ainda não publicou"
-                : filtro === "Salvos"
-                ? "Nenhum post salvo ainda"
-                : filtro === "Seguindo"
-                ? "Sem novidades por aqui"
-                : "Nenhum post nesse filtro"}
-            </Text>
-            <Text style={styles.vazioTexto}>
-              {buscaTexto.trim().length >= 2
-                ? `Não achei nada com "${buscaTexto.trim()}". Tente outras palavras.`
-                : filtro === "Meus posts"
-                ? "Toque em Nova postagem para começar a compartilhar."
-                : filtro === "Salvos"
-                ? "Toque no marcador de página em qualquer post pra guardar pra depois."
-                : filtro === "Seguindo"
-                ? "Comece a seguir alguém na lista de Populares."
-                : "Tente outro filtro."}
-            </Text>
-          </View>
-        )}
-
-        {postsFiltrados.map((p) => (
+      <FlatList
+        data={postsFiltrados}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item: p }) => (
           <PostCard
-            key={p.id}
             post={p}
             liked={Boolean(likes[String(p.id)])}
             saved={Boolean(saves[String(p.id)])}
@@ -336,9 +336,64 @@ export default function CommunityScreen() {
             onVerComentarios={() => handleAbrirComentarios(p)}
             onContinuarLendo={() => handleAbrirComentarios(p)}
           />
-        ))}
-
-      </ScrollView>
+        )}
+        ListHeaderComponent={
+          !buscaAberta ? (
+            <Pills items={FILTROS} active={filtro} onChange={setFiltro} />
+          ) : null
+        }
+        ListEmptyComponent={
+          !carregando ? (
+            <View style={styles.vazio}>
+              <Text style={styles.vazioEmoji}>
+                {buscaTexto.trim().length >= 2
+                  ? "🔎"
+                  : filtro === "Meus posts"
+                  ? "✏️"
+                  : filtro === "Salvos"
+                  ? "🔖"
+                  : "🌱"}
+              </Text>
+              <Text style={styles.vazioTitulo}>
+                {buscaTexto.trim().length >= 2
+                  ? "Nada encontrado"
+                  : filtro === "Meus posts"
+                  ? "Você ainda não publicou"
+                  : filtro === "Salvos"
+                  ? "Nenhum post salvo ainda"
+                  : filtro === "Seguindo"
+                  ? "Sem novidades por aqui"
+                  : "Nenhum post nesse filtro"}
+              </Text>
+              <Text style={styles.vazioTexto}>
+                {buscaTexto.trim().length >= 2
+                  ? `Não achei nada com "${buscaTexto.trim()}". Tente outras palavras.`
+                  : filtro === "Meus posts"
+                  ? "Toque em Nova postagem para começar a compartilhar."
+                  : filtro === "Salvos"
+                  ? "Toque no marcador de página em qualquer post pra guardar pra depois."
+                  : filtro === "Seguindo"
+                  ? "Comece a seguir alguém na lista de Populares."
+                  : "Tente outro filtro."}
+              </Text>
+            </View>
+          ) : null
+        }
+        ListFooterComponent={
+          carregando ? (
+            <ActivityIndicator
+              size="small"
+              color={COLORS.green}
+              style={styles.footer}
+            />
+          ) : null
+        }
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.3}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      />
 
       {!buscaAberta && (
         <FloatCTA
@@ -351,11 +406,16 @@ export default function CommunityScreen() {
       <NovaPostagemModal
         visible={novaAberta}
         onClose={() => setNovaAberta(false)}
-        onCriado={async () => {
+        onCriado={async (viaApi) => {
           setNovaAberta(false);
-          const atualizada = await listarMeusPosts();
-          setMeusPosts(atualizada);
-          setFiltro("Meus posts");
+          if (viaApi) {
+            carregarTopics(1, true);
+            setFiltro("Populares");
+          } else {
+            const atualizada = await listarMeusPosts();
+            setMeusPosts(atualizada);
+            setFiltro("Meus posts");
+          }
         }}
       />
 
@@ -365,7 +425,9 @@ export default function CommunityScreen() {
         nickname={nickname}
         onClose={() => {
           setComentariosAberta(false);
-          if (postAtivo) recarregarComentarios([postAtivo.id]);
+          if (postAtivo && !postAtivo.isApiTopic) {
+            recarregarComentarios([postAtivo.id]);
+          }
         }}
       />
 
@@ -443,5 +505,8 @@ const styles = StyleSheet.create({
     color: COLORS.inkSoft,
     textAlign: "center",
     lineHeight: 20,
+  },
+  footer: {
+    paddingVertical: 24,
   },
 });

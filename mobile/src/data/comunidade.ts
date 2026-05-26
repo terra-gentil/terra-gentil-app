@@ -2,6 +2,7 @@ import { ImageSourcePropType } from "react-native";
 import { COLORS } from "../constants/theme";
 import { MASCOT_POSES } from "../assets/mascot";
 import { MeuPost } from "../storage/comunidade";
+import { TopicOut } from "../api/forum";
 
 export interface PostBase {
   id: string | number;
@@ -19,6 +20,7 @@ export interface PostBase {
   accentDeep: string;
   tags: string[];
   isMine?: boolean;
+  isApiTopic?: boolean;
   imageUri?: string;
   comment?: {
     avatar: string;
@@ -165,7 +167,47 @@ export const POSTS_MOCK: PostBase[] = [
   },
 ];
 
-const EMOJIS_MEU = ["🌱", "🍀", "🌿", "🌳", "🌷", "🌻", "🌼", "🌺", "🌸"];
+export const EMOJIS_MEU = ["🌱", "🍀", "🌿", "🌳", "🌷", "🌻", "🌼", "🌺", "🌸"];
+
+export function topicToPost(topic: TopicOut, currentUserId?: string | null): PostBase {
+  const seed = topic.user_id
+    ? topic.user_id.replace(/-/g, "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
+    : 0;
+  const paleta = PALETAS[seed % PALETAS.length];
+  const emojiIdx = seed % EMOJIS_MEU.length;
+  const likeCount =
+    (topic.reactions?.curtir ?? 0) +
+    (topic.reactions?.tava_la ?? 0);
+  return {
+    id: topic.id,
+    cat: topic.category || "Geral",
+    author: topic.display_name || "Usuário",
+    avatarColor: paleta.accent,
+    avatarEmoji: EMOJIS_MEU[emojiIdx],
+    avatarSource: topic.avatar_url ? { uri: topic.avatar_url } : undefined,
+    pinned: topic.pinned,
+    title: topic.title,
+    gradient: paleta.gradient,
+    likesBase: likeCount,
+    comentariosBase: topic.reply_count,
+    accent: paleta.accent,
+    accentDeep: paleta.accentDeep,
+    tags: [],
+    isMine: currentUserId ? topic.user_id === currentUserId : false,
+    isApiTopic: true,
+    comment:
+      topic.body && topic.body.trim()
+        ? {
+            avatar: EMOJIS_MEU[emojiIdx],
+            name: topic.display_name || "Autor",
+            text:
+              topic.body.length > 120
+                ? topic.body.substring(0, 117) + "..."
+                : topic.body,
+          }
+        : undefined,
+  };
+}
 
 export function postBaseFromMeu(meu: MeuPost, nickname: string): PostBase {
   const paleta = paletaPorId(meu.paletaId);

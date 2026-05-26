@@ -12,6 +12,7 @@ import {
   Platform,
   Image,
   Pressable,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Maximize2, X, Send } from "lucide-react-native";
@@ -23,6 +24,8 @@ import {
   adicionarComentario,
   listarComentarios,
 } from "../../storage/comunidade";
+import { getToken } from "../../storage/auth";
+import { buscarTopicComPosts, criarResposta, PostOut } from "../../api/forum";
 
 interface Props {
   visible: boolean;
@@ -49,12 +52,18 @@ function timeAgo(ts: number): string {
   return `há ${days}d`;
 }
 
-export default function ComentariosModal({
-  visible,
-  post,
-  nickname,
-  onClose,
-}: Props) {
+function postOutToComentario(p: PostOut): Comentario {
+  return {
+    id: p.id,
+    timestamp: new Date(p.created_at).getTime(),
+    postId: p.topic_id,
+    autor: p.display_name || "Usuário",
+    emoji: escolherEmoji(p.display_name || ""),
+    texto: p.body,
+  };
+}
+
+export default function ComentariosModal({ visible, post, nickname, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [texto, setTexto] = useState("");
@@ -68,7 +77,7 @@ export default function ComentariosModal({
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
-      ])
+      ]),
     );
     loop.start();
     return () => loop.stop();
@@ -78,7 +87,16 @@ export default function ComentariosModal({
 
   useEffect(() => {
     if (!visible || !post) return;
-    listarComentarios(post.id).then(setComentarios);
+    setComentarios([]);
+    if (post.isApiTopic) {
+      getToken().then((token) => {
+        buscarTopicComPosts(String(post.id), token)
+          .then((detalhe) => setComentarios(detalhe.posts.map(postOutToComentario)))
+          .catch((err) => console.log("[comentarios] erro ao buscar replies:", err));
+      });
+    } else {
+      listarComentarios(post.id).then(setComentarios);
+    }
   }, [visible, post]);
 
   if (!post) return null;
@@ -87,14 +105,33 @@ export default function ComentariosModal({
     if (!post) return;
     const limpo = texto.trim();
     if (limpo.length < 2) return;
+
+    if (post.isApiTopic) {
+      const token = await getToken();
+      if (!token) {
+        Alert.alert(
+          "Entre para comentar",
+          "Você precisa fazer login com Google para comentar na comunidade.",
+        );
+        return;
+      }
+      setEnviando(true);
+      try {
+        const novo = await criarResposta(String(post.id), limpo, token);
+        setComentarios((curr) => [...curr, postOutToComentario(novo)]);
+        setTexto("");
+      } catch (err) {
+        Alert.alert("Erro", "Não foi possível enviar o comentário. Tente de novo.");
+      } finally {
+        setEnviando(false);
+      }
+      return;
+    }
+
+    // Post local
     setEnviando(true);
     try {
-      const novo = await adicionarComentario(
-        post.id,
-        nickname,
-        limpo,
-        escolherEmoji(nickname),
-      );
+      const novo = await adicionarComentario(post.id, nickname, limpo, escolherEmoji(nickname));
       setComentarios((curr) => [...curr, novo]);
       setTexto("");
     } finally {
@@ -179,7 +216,7 @@ export default function ComentariosModal({
               </View>
             </View>
 
-            {/* Comentario destaque (mock do post) */}
+            {/* Corpo do post (texto original do topic API) */}
             {post.comment && (
               <View style={[styles.comentarioBox, styles.comentarioDestaque]}>
                 <View style={[styles.comentAvatar, { backgroundColor: post.accent }]}>
@@ -195,7 +232,7 @@ export default function ComentariosModal({
               </View>
             )}
 
-            {/* Lista de comentarios locais */}
+            {/* Lista de comentários */}
             {comentarios.length === 0 && !post.comment && (
               <View style={styles.vazio}>
                 <Text style={styles.vazioEmoji}>💬</Text>
@@ -231,9 +268,7 @@ export default function ComentariosModal({
 
           {/* Input */}
           <View style={[styles.inputBar, { paddingBottom: insets.bottom + 10 }]}>
-            <View
-              style={[styles.youAvatar, { backgroundColor: post.accent }]}
-            >
+            <View style={[styles.youAvatar, { backgroundColor: post.accent }]}>
               <Text style={styles.youAvatarEmoji}>{escolherEmoji(nickname)}</Text>
             </View>
             <TextInput
@@ -251,10 +286,7 @@ export default function ComentariosModal({
               activeOpacity={0.8}
               style={[
                 styles.enviarBtn,
-                {
-                  backgroundColor:
-                    texto.trim().length < 2 ? COLORS.inkMute : post.accent,
-                },
+                { backgroundColor: texto.trim().length < 2 ? COLORS.inkMute : post.accent },
               ]}
             >
               <Send size={18} color="#fff" strokeWidth={2.4} />
@@ -271,10 +303,7 @@ export default function ComentariosModal({
           animationType="fade"
           onRequestClose={() => setFotoAmpliada(false)}
         >
-          <Pressable
-            onPress={() => setFotoAmpliada(false)}
-            style={styles.fotoFullWrap}
-          >
+          <Pressable onPress={() => setFotoAmpliada(false)} style={styles.fotoFullWrap}>
             <Image
               source={{ uri: post.imageUri }}
               style={styles.fotoFull}
@@ -430,7 +459,7 @@ const styles = StyleSheet.create({
   comentDestaqueBadge: {
     fontFamily: FONTS.bodyBold,
     fontSize: 9,
-    color: COLORS.amberSoft,
+    color: "#fff",
     backgroundColor: COLORS.amber,
     paddingHorizontal: 6,
     paddingVertical: 2,

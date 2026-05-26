@@ -23,17 +23,24 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+_MOBILE_VALID_SITES = {"terra-gentil", "pj"}
+
+
 def _resolve_site(request: Request) -> str:
     origin = request.headers.get("origin", "")
     site = settings.site_origin_map.get(origin)
-    if not site:
-        if settings.ENVIRONMENT == "development":
-            return "pj"
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Origem não autorizada: {origin!r}",
-        )
-    return site
+    if site:
+        return site
+    # Apps mobile nao enviam Origin. Aceitam header X-Site com o nome do site.
+    x_site = request.headers.get("x-site", "").strip()
+    if x_site and x_site in (set(settings.site_origin_map.values()) | _MOBILE_VALID_SITES):
+        return x_site
+    if settings.ENVIRONMENT == "development":
+        return "pj"
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=f"Origem não autorizada: {origin!r}",
+    )
 
 
 def _require_auth(authorization: Optional[str] = Header(default=None)) -> str:
