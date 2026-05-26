@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -67,6 +67,7 @@ export default function CommunityScreen() {
   const [carregando, setCarregando] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [temMais, setTemMais] = useState(true);
+  const carregandoRef = useRef(false);
 
   const recarregarComentarios = useCallback(async (ids: (string | number)[]) => {
     const entries = await Promise.all(
@@ -80,7 +81,8 @@ export default function CommunityScreen() {
   }, []);
 
   const carregarTopics = useCallback(async (pagina = 1, resetar = false) => {
-    if (carregando) return;
+    if (carregandoRef.current) return;
+    carregandoRef.current = true;
     setCarregando(true);
     try {
       const token = await getToken();
@@ -91,9 +93,10 @@ export default function CommunityScreen() {
     } catch (err) {
       console.log("[comunidade] erro ao buscar topics:", err);
     } finally {
+      carregandoRef.current = false;
       setCarregando(false);
     }
-  }, [carregando]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
