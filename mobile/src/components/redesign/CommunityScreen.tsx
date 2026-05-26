@@ -59,6 +59,7 @@ export default function CommunityScreen() {
   const [comentariosPorPost, setComentariosPorPost] = useState<Record<string, number>>({});
   const [nickname, setNickname] = useState("JARDIM");
   const [userId, setUserId] = useState<string | null>(null);
+  const [nomeUsuario, setNomeUsuario] = useState<string | null>(null);
   const [novaAberta, setNovaAberta] = useState(false);
   const [loginAberto, setLoginAberto] = useState(false);
   const [notifsAberta, setNotifsAberta] = useState(false);
@@ -119,6 +120,7 @@ export default function CommunityScreen() {
         setSeguindo(sg);
         setNickname(nick);
         setUserId(user?.id ?? null);
+        setNomeUsuario(user?.display_name ?? null);
 
         const todosIds = [
           ...POSTS_MOCK.map((p) => p.id),
@@ -344,7 +346,15 @@ export default function CommunityScreen() {
         )}
         ListHeaderComponent={
           !buscaAberta ? (
-            <Pills items={FILTROS} active={filtro} onChange={setFiltro} />
+            <View>
+              <View style={styles.loginStatus}>
+                <View style={[styles.loginDot, { backgroundColor: nomeUsuario ? COLORS.green : COLORS.inkMute }]} />
+                <Text style={[styles.loginStatusText, { color: nomeUsuario ? COLORS.greenDark : COLORS.inkMute }]}>
+                  {nomeUsuario ? `Logado: ${nomeUsuario}` : "Sem conta"}
+                </Text>
+              </View>
+              <Pills items={FILTROS} active={filtro} onChange={setFiltro} />
+            </View>
           ) : null
         }
         ListEmptyComponent={
@@ -454,6 +464,7 @@ export default function CommunityScreen() {
         onLogin={(user: AuthUser) => {
           setLoginAberto(false);
           setUserId(user.id);
+          setNomeUsuario(user.display_name);
           setNovaAberta(true);
         }}
       />
@@ -530,5 +541,22 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: 24,
+  },
+  loginStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  loginDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  loginStatusText: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.xs,
   },
 });

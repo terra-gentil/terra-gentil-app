@@ -38,14 +38,24 @@ export default function LoginModal({ visible, onClose, onLogin }: Props) {
   async function handleGoogle() {
     setCarregando("google");
     try {
-      // Linking.createURL funciona em Expo Go (exp://ip:port/--/auth) e em builds nativos (terragentil://auth)
       const redirectUri = Linking.createURL("auth");
+      console.log("[login] redirectUri gerado:", redirectUri);
+
       const loginUrl = `${FORUM_API_URL}/auth/google/login/mobile?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      console.log("[login] abrindo:", loginUrl);
 
       const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUri);
-      if (result.type !== "success") return;
+      console.log("[login] resultado:", JSON.stringify(result));
 
+      if (result.type !== "success") {
+        console.log("[login] cancelado ou falhou, type=", result.type);
+        return;
+      }
+
+      console.log("[login] URL retornada:", result.url);
       const parsed = Linking.parse(result.url);
+      console.log("[login] params parseados:", JSON.stringify(parsed.queryParams));
+
       const params = parsed.queryParams ?? {};
       const token = params["token"] as string | undefined;
       const user_id = params["user_id"] as string | undefined;
@@ -53,6 +63,7 @@ export default function LoginModal({ visible, onClose, onLogin }: Props) {
       const avatar = params["avatar"] as string | undefined;
 
       if (!token || !user_id) {
+        console.log("[login] token ou user_id ausente, params=", JSON.stringify(params));
         Alert.alert("Erro", "Não foi possível completar o login. Tente de novo.");
         return;
       }
@@ -63,6 +74,7 @@ export default function LoginModal({ visible, onClose, onLogin }: Props) {
         avatar_url: avatar ? decodeURIComponent(avatar) : null,
       };
       await setAuth(token, user);
+      console.log("[login] sucesso! usuario:", user.display_name);
       onLogin(user);
     } catch (err) {
       console.log("[login] google erro:", err);
