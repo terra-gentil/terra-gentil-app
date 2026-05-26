@@ -52,6 +52,61 @@ function sortParaFiltro(filtro: string): "activity" | "newest" | "noreply" {
   return "activity";
 }
 
+const CAT_EMOJI: Record<string, string> = {
+  "Meu jardim": "🪴",
+  "Pragas e doenças": "🐛",
+  "Plantas pet-friendly": "🐾",
+  "Suculentas": "🌵",
+  "Hortas": "🥕",
+  "Floração": "🌸",
+  "Antes e depois": "✨",
+  "Dúvida": "🤔",
+};
+
+function formatarNumero(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+  return String(n);
+}
+
+function gerarTextoCompartilhamento(post: PostBase, url: string): string {
+  const catEmoji = CAT_EMOJI[post.cat] ?? "🌿";
+  const likes = post.likesBase ?? 0;
+  const comments = post.comentariosBase ?? 0;
+  const totalEngajamento = likes + comments;
+
+  const stats: string[] = [];
+  if (likes > 0) stats.push(`💚 ${formatarNumero(likes)} curtidas`);
+  if (comments > 0) stats.push(`💬 ${formatarNumero(comments)} comentários`);
+  const statsLinha = stats.join("  ·  ");
+
+  let cabecalho: string;
+  let rodape: string;
+
+  if (post.pinned) {
+    cabecalho = `📌 Fixado pelo Doutor Gentileza`;
+    rodape = `Baixa o app Terra Gentil e descubra como cuidar das suas plantas 🌱`;
+  } else if (totalEngajamento >= 1000) {
+    cabecalho = `🔥 Bombando na comunidade Terra Gentil`;
+    rodape = `Mais de ${formatarNumero(totalEngajamento)} pessoas já participaram desta conversa. Vem você também 👇`;
+  } else if (totalEngajamento >= 100) {
+    cabecalho = `${catEmoji} Em alta — Terra Gentil`;
+    rodape = `A galera está debatendo isso na maior comunidade de plantas do Brasil 🌿`;
+  } else {
+    cabecalho = `${catEmoji} ${post.cat} — Terra Gentil`;
+    rodape = `Compartilha o que você sabe. Toda planta importa 🌱`;
+  }
+
+  const partes = [
+    cabecalho,
+    `"${post.title}"`,
+    statsLinha || `por ${post.author}`,
+    rodape,
+    url,
+  ].filter(Boolean);
+
+  return partes.join("\n\n");
+}
+
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
@@ -202,10 +257,9 @@ export default function CommunityScreen() {
 
   async function handleShare(post: PostBase) {
     try {
-      await Share.share({
-        message: `${post.title}\n\nNa comunidade do Doutor Gentileza: https://terragentil.com.br`,
-        title: post.title,
-      });
+      const url = "https://terragentil.com.br";
+      const msg = gerarTextoCompartilhamento(post, url);
+      await Share.share({ message: msg, url, title: post.title });
     } catch (err) {
       console.log("[comunidade] erro ao compartilhar:", err);
     }
