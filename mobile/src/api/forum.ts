@@ -1,6 +1,7 @@
-import { API_BASE_URL } from "../config/api";
+import { FORUM_API_URL } from "../config/api";
 
 const SITE = "terra-gentil";
+const API_BASE_URL = FORUM_API_URL;
 
 // Tipos espelho dos schemas do backend
 
