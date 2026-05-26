@@ -22,6 +22,8 @@ import SectionTitle from "./SectionTitle";
 import { listarConsultas, limparHistorico, ConsultaHistorico } from "../../storage/historico";
 import { resetarWelcome, resetarTutorial } from "../../storage/preferencias";
 import { obterNickname } from "../../storage/nickname";
+import { getUser, clearAuth, AuthUser } from "../../storage/auth";
+import LoginModal from "./LoginModal";
 
 const YOUTUBE_URL = "https://www.youtube.com/@TerraGentil";
 const SITE_URL = "https://terragentil.com.br";
@@ -62,12 +64,29 @@ export default function ProfileScreen() {
   const navigation = useNavigation<any>();
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
+  const [usuario, setUsuario] = useState<AuthUser | null>(null);
+  const [loginAberto, setLoginAberto] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       listarConsultas().then(setHistorico);
+      getUser().then(setUsuario);
     }, [])
   );
+
+  async function handleSair() {
+    Alert.alert("Sair da conta", "Deseja sair da sua conta?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Sair",
+        style: "destructive",
+        onPress: async () => {
+          await clearAuth();
+          setUsuario(null);
+        },
+      },
+    ]);
+  }
 
   const total = historico.length;
   const { nivel, nome, progresso, falta } = getNivelInfo(total);
@@ -188,11 +207,15 @@ export default function ProfileScreen() {
             <View style={styles.profileTop}>
               <View style={styles.avatarRing}>
                 <View style={styles.avatarWrap}>
-                  <Image source={MASCOT_POSES[0]} style={styles.avatar} />
+                  {usuario?.avatar_url ? (
+                    <Image source={{ uri: usuario.avatar_url }} style={styles.avatar} resizeMode="cover" />
+                  ) : (
+                    <Image source={MASCOT_POSES[0]} style={styles.avatar} />
+                  )}
                 </View>
               </View>
               <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>Meu Jardim</Text>
+                <Text style={styles.profileName}>{usuario?.display_name ?? "Meu Jardim"}</Text>
                 <Text style={styles.profileBio}>{especiesUnicas} especie{especiesUnicas !== 1 ? "s" : ""} diferentes</Text>
               </View>
             </View>
@@ -217,12 +240,25 @@ export default function ProfileScreen() {
 
             {/* Buttons */}
             <View style={styles.btnRow}>
-              <TouchableOpacity style={styles.btnPrimary} onPress={handleEditarPerfil} activeOpacity={0.8}>
-                <Text style={styles.btnPrimaryText}>Editar perfil</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.btnOutline} onPress={handleCompartilharPerfil} activeOpacity={0.8}>
-                <Text style={styles.btnOutlineText}>Compartilhar</Text>
-              </TouchableOpacity>
+              {usuario ? (
+                <>
+                  <TouchableOpacity style={styles.btnPrimary} onPress={handleEditarPerfil} activeOpacity={0.8}>
+                    <Text style={styles.btnPrimaryText}>Editar perfil</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.btnOutline, { borderColor: COLORS.coral }]} onPress={handleSair} activeOpacity={0.8}>
+                    <Text style={[styles.btnOutlineText, { color: COLORS.coral }]}>Sair</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity style={styles.btnPrimary} onPress={() => setLoginAberto(true)} activeOpacity={0.8}>
+                    <Text style={styles.btnPrimaryText}>Entrar na conta</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.btnOutline} onPress={handleCompartilharPerfil} activeOpacity={0.8}>
+                    <Text style={styles.btnOutlineText}>Compartilhar</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         </View>
@@ -323,6 +359,15 @@ export default function ProfileScreen() {
 
         <Text style={styles.versao}>Terra Gentil v1.0.0</Text>
       </ScrollView>
+
+      <LoginModal
+        visible={loginAberto}
+        onClose={() => setLoginAberto(false)}
+        onLogin={(user: AuthUser) => {
+          setUsuario(user);
+          setLoginAberto(false);
+        }}
+      />
     </View>
   );
 }

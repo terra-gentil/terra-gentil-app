@@ -169,6 +169,8 @@ export const POSTS_MOCK: PostBase[] = [
 
 export const EMOJIS_MEU = ["🌱", "🍀", "🌿", "🌳", "🌷", "🌻", "🌼", "🌺", "🌸"];
 
+const IMG_RE = /\[IMG\]([\s\S]*?)\[\/IMG\]/;
+
 export function topicToPost(topic: TopicOut, currentUserId?: string | null): PostBase {
   const seed = topic.user_id
     ? topic.user_id.replace(/-/g, "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
@@ -178,6 +180,12 @@ export function topicToPost(topic: TopicOut, currentUserId?: string | null): Pos
   const likeCount =
     (topic.reactions?.curtir ?? 0) +
     (topic.reactions?.tava_la ?? 0);
+
+  const body = topic.body ?? "";
+  const imgMatch = body.match(IMG_RE);
+  const imageUri = imgMatch ? imgMatch[1] : undefined;
+  const bodyText = body.replace(IMG_RE, "").trim();
+
   return {
     id: topic.id,
     cat: topic.category || "Geral",
@@ -195,15 +203,13 @@ export function topicToPost(topic: TopicOut, currentUserId?: string | null): Pos
     tags: [],
     isMine: currentUserId ? topic.user_id === currentUserId : false,
     isApiTopic: true,
+    imageUri,
     comment:
-      topic.body && topic.body.trim()
+      bodyText
         ? {
             avatar: EMOJIS_MEU[emojiIdx],
             name: topic.display_name || "Autor",
-            text:
-              topic.body.length > 120
-                ? topic.body.substring(0, 117) + "..."
-                : topic.body,
+            text: bodyText.length > 120 ? bodyText.substring(0, 117) + "..." : bodyText,
           }
         : undefined,
   };

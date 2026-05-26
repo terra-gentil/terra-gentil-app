@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class TopicCreate(BaseModel):
     title: str = Field(min_length=3, max_length=120)
-    body: str = Field(min_length=10, max_length=50000)
+    body: str = Field(min_length=10, max_length=120000)
     category: str = Field(default="geral", max_length=40)
 
 

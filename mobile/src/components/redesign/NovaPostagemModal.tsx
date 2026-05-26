@@ -17,10 +17,27 @@ import * as ImagePicker from "expo-image-picker";
 import { X, Check, Camera, Image as ImageIcon, Trash2 } from "lucide-react-native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as ImageManipulator from "expo-image-manipulator";
 import { CATEGORIAS, PALETAS, TAGS_DISPONIVEIS, paletaPorId } from "../../data/comunidade";
 import { adicionarMeuPost } from "../../storage/comunidade";
 import { getToken } from "../../storage/auth";
 import { criarTopic } from "../../api/forum";
+
+async function imagemParaBase64(uri: string): Promise<string | null> {
+  try {
+    const resultado = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 480 } }],
+      { compress: 0.35, format: ImageManipulator.SaveFormat.JPEG, base64: true },
+    );
+    if (!resultado.base64) return null;
+    const dataUri = `data:image/jpeg;base64,${resultado.base64}`;
+    if (dataUri.length > 110000) return null; // descarta se muito grande
+    return dataUri;
+  } catch {
+    return null;
+  }
+}
 
 interface Props {
   visible: boolean;
@@ -114,7 +131,12 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
     try {
       const token = await getToken();
       if (token) {
-        await criarTopic({ title: tituloLimpo, body: tituloLimpo, category: cat }, token);
+        let body = tituloLimpo;
+        if (imageUri) {
+          const base64 = await imagemParaBase64(imageUri);
+          if (base64) body = `${tituloLimpo}\n\n[IMG]${base64}[/IMG]`;
+        }
+        await criarTopic({ title: tituloLimpo, body, category: cat }, token);
         reset();
         onCriado(true);
       } else {

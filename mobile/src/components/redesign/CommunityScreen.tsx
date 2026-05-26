@@ -60,6 +60,7 @@ export default function CommunityScreen() {
   const [nickname, setNickname] = useState("JARDIM");
   const [userId, setUserId] = useState<string | null>(null);
   const [nomeUsuario, setNomeUsuario] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [novaAberta, setNovaAberta] = useState(false);
   const [loginAberto, setLoginAberto] = useState(false);
   const [notifsAberta, setNotifsAberta] = useState(false);
@@ -121,6 +122,7 @@ export default function CommunityScreen() {
         setNickname(nick);
         setUserId(user?.id ?? null);
         setNomeUsuario(user?.display_name ?? null);
+        setAvatarUrl(user?.avatar_url ?? null);
 
         const todosIds = [
           ...POSTS_MOCK.map((p) => p.id),
@@ -271,7 +273,7 @@ export default function CommunityScreen() {
     <View style={styles.screen}>
       {!buscaAberta ? (
         <TopBar
-          avatarSource={MASCOT_POSES[0]}
+          avatarSource={avatarUrl ? { uri: avatarUrl } : MASCOT_POSES[0]}
           badge={0}
           onAvatarPress={() => navigation.navigate("ProfileTab")}
           onBellPress={() => setNotifsAberta(true)}
@@ -465,6 +467,7 @@ export default function CommunityScreen() {
           setLoginAberto(false);
           setUserId(user.id);
           setNomeUsuario(user.display_name);
+          setAvatarUrl(user.avatar_url);
           setNovaAberta(true);
         }}
       />
