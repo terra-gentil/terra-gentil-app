@@ -11,6 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { Settings } from "lucide-react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -19,6 +20,7 @@ import { COLORS, FONTS, SIZES, RADIUS, SPACING, shadowChunky, shadowSoft } from 
 import { MASCOT_POSES } from "../../assets/mascot";
 import SectionTitle from "./SectionTitle";
 import { listarConsultas, limparHistorico, ConsultaHistorico } from "../../storage/historico";
+import { resetarWelcome, resetarTutorial } from "../../storage/preferencias";
 import { getUser, clearAuth, AuthUser, getProfileExtra } from "../../storage/auth";
 import {
   SELOS,
@@ -139,6 +141,24 @@ export default function ProfileScreen() {
     );
   }
 
+  function handleResetWelcome() {
+    Alert.alert(
+      "Ver boas-vindas",
+      "A tela de boas-vindas e o tutorial vao aparecer na proxima vez que voce abrir o app.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sim",
+          onPress: async () => {
+            await resetarWelcome();
+            await resetarTutorial();
+            Alert.alert("Pronto!", "Feche o app e abra de novo.");
+          },
+        },
+      ],
+    );
+  }
+
   function handleEditarPerfil() {
     setEditarAberto(true);
   }
@@ -187,6 +207,9 @@ export default function ProfileScreen() {
           <View style={styles.coverCircle1} />
           <View style={styles.coverCircle2} />
           <View style={styles.coverWave} />
+          <TouchableOpacity style={[styles.settingsBtn, { top: insets.top + 10 }]} onPress={handleResetWelcome} activeOpacity={0.8}>
+            <Settings size={20} color={COLORS.greenDark} />
+          </TouchableOpacity>
         </LinearGradient>
 
         {/* Profile card overlapping */}
@@ -435,6 +458,17 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 200,
     borderTopRightRadius: 100,
   },
+  settingsBtn: {
+    position: "absolute",
+    right: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   // Profile card
   profileCardWrap: {
     paddingHorizontal: SPACING.screenPadding,
