@@ -22,6 +22,7 @@ import { CATEGORIAS, PALETAS, TAGS_DISPONIVEIS, paletaPorId } from "../../data/c
 import { adicionarMeuPost } from "../../storage/comunidade";
 import { getToken } from "../../storage/auth";
 import { criarTopic } from "../../api/forum";
+import { incrementarStat } from "../../storage/conquistas";
 
 async function imagemParaBase64(uri: string): Promise<string | null> {
   try {
@@ -137,6 +138,7 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
           if (base64) body = `${tituloLimpo}\n\n[IMG]${base64}[/IMG]`;
         }
         await criarTopic({ title: tituloLimpo, body, category: cat }, token);
+        await incrementarStat("totalPosts");
         reset();
         onCriado(true);
       } else {

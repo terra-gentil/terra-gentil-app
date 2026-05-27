@@ -22,8 +22,15 @@ import SectionTitle from "./SectionTitle";
 import { listarConsultas, limparHistorico, ConsultaHistorico } from "../../storage/historico";
 import { resetarWelcome, resetarTutorial } from "../../storage/preferencias";
 import { getUser, clearAuth, AuthUser, getProfileExtra } from "../../storage/auth";
+import {
+  SELOS,
+  calcularHistoricoStats,
+  getComunidadeStats,
+  ConquistaStats,
+} from "../../storage/conquistas";
 import LoginModal from "./LoginModal";
 import EditarPerfilModal from "./EditarPerfilModal";
+import StatsModal, { StatsModalType } from "./StatsModal";
 
 const YOUTUBE_URL = "https://www.youtube.com/@TerraGentil";
 const SITE_URL = "https://terragentil.com.br";
@@ -32,53 +39,13 @@ const GARDEN_COLS = 3;
 const GARDEN_GAP = 8;
 const GARDEN_PAD = SPACING.screenPadding;
 
-type ConquistaStats = { total: number; diasUnicos: number; especiesUnicas: number };
+const CAT_COLORS: Record<string, string> = {
+  Botanico: COLORS.green,
+  Cuidador: COLORS.coral,
+  Dedicacao: COLORS.amber,
+  Comunidade: COLORS.lavender,
+};
 
-const CONQUISTAS: {
-  emoji: string;
-  name: string;
-  desc: string;
-  color: string;
-  check: (s: ConquistaStats) => boolean;
-}[] = [
-  {
-    emoji: "🌱",
-    name: "Primeira foto",
-    desc: "1 diagnostico",
-    color: COLORS.green,
-    check: (s) => s.total >= 1,
-  },
-  {
-    emoji: "🔥",
-    name: "7 dias",
-    desc: "7 dias diferentes de uso",
-    color: COLORS.coral,
-    check: (s) => s.diasUnicos >= 7,
-  },
-  {
-    emoji: "🌻",
-    name: "Mao Verde",
-    desc: "10 especies diferentes",
-    color: COLORS.amber,
-    check: (s) => s.especiesUnicas >= 10,
-  },
-  {
-    emoji: "💚",
-    name: "Colecionador",
-    desc: "20 diagnosticos",
-    color: COLORS.lavender,
-    check: (s) => s.total >= 20,
-  },
-  {
-    emoji: "🏆",
-    name: "50 plantas",
-    desc: "50 diagnosticos",
-    color: COLORS.inkMute,
-    check: (s) => s.total >= 50,
-  },
-];
-
-// Cores e emojis para cards do jardim (alinhado ao figma)
 const GARDEN_ITEMS = [
   { grad: ["#86efac", "#22c55e"] as [string, string], emoji: "🌿" },
   { grad: ["#bae6fd", "#0284c7"] as [string, string], emoji: "🌱" },
@@ -88,7 +55,6 @@ const GARDEN_ITEMS = [
   { grad: ["#86efac", "#15803d"] as [string, string], emoji: "🌿" },
 ];
 
-// Nivel baseado no total
 function getNivelInfo(total: number) {
   if (total >= 50) return { nivel: 5, nome: "Doutor das Plantas", progresso: 1, falta: 0 };
   if (total >= 25) return { nivel: 4, nome: "Mao Verde", progresso: (total - 25) / 25, falta: 50 - total };
@@ -97,27 +63,49 @@ function getNivelInfo(total: number) {
   return { nivel: 1, nome: "Semente", progresso: total / 3, falta: 3 - total };
 }
 
+const CONQUISTAS_ZERO: ConquistaStats = {
+  total: 0, especiesUnicas: 0, diasUnicos: 0, diasConsecutivos: 0,
+  criticalDiag: 0, allHealthStates: false, noturnoDiag: 0,
+  totalPosts: 0, totalRespostas: 0, totalReacoesEnviadas: 0,
+};
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { width: screenW } = useWindowDimensions();
   const gardenCardW = Math.floor((screenW - 2 * GARDEN_PAD - (GARDEN_COLS - 1) * GARDEN_GAP) / GARDEN_COLS);
-  const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
   const [usuario, setUsuario] = useState<AuthUser | null>(null);
   const [nomeExibido, setNomeExibido] = useState<string | null>(null);
   const [loginAberto, setLoginAberto] = useState(false);
   const [editarAberto, setEditarAberto] = useState(false);
+  const [statsModal, setStatsModal] = useState<StatsModalType | null>(null);
+  const [conquistaStats, setConquistaStats] = useState<ConquistaStats>(CONQUISTAS_ZERO);
 
   useFocusEffect(
     useCallback(() => {
-      listarConsultas().then(setHistorico);
-      Promise.all([getUser(), getProfileExtra()]).then(([u, extra]) => {
+      let alive = true;
+      (async () => {
+        const [hist, u, extra, cStats] = await Promise.all([
+          listarConsultas(),
+          getUser(),
+          getProfileExtra(),
+          getComunidadeStats(),
+        ]);
+        if (!alive) return;
+        setHistorico(hist);
+        setConquistaStats({ ...calcularHistoricoStats(hist), ...cStats });
         setUsuario(u);
         setNomeExibido(u ? (extra.nome || u.display_name) : null);
-      });
+      })();
+      return () => { alive = false; };
     }, [])
   );
+
+  const total = conquistaStats.total;
+  const especiesUnicas = conquistaStats.especiesUnicas;
+  const selosDesbloqueados = SELOS.filter((s) => s.check(conquistaStats)).length;
+  const { nivel, nome, progresso, falta } = getNivelInfo(total);
 
   async function handleSair() {
     Alert.alert("Sair da conta", "Deseja sair da sua conta?", [
@@ -133,13 +121,6 @@ export default function ProfileScreen() {
     ]);
   }
 
-  const total = historico.length;
-  const { nivel, nome, progresso, falta } = getNivelInfo(total);
-  const especiesUnicas = new Set(historico.map((h) => h.especie_identificada)).size;
-  const diasUnicos = new Set(historico.map((h) => new Date(h.timestamp).toDateString())).size;
-  const conquistaStats: ConquistaStats = { total, diasUnicos, especiesUnicas };
-  const selosDesbloqueados = CONQUISTAS.filter((c) => c.check(conquistaStats)).length;
-
   function handleLimparHistorico() {
     Alert.alert(
       "Limpar historico",
@@ -152,6 +133,8 @@ export default function ProfileScreen() {
           onPress: async () => {
             await limparHistorico();
             setHistorico([]);
+            const hStats = calcularHistoricoStats([]);
+            setConquistaStats((prev) => ({ ...prev, ...hStats }));
           },
         },
       ],
@@ -172,17 +155,6 @@ export default function ProfileScreen() {
             Alert.alert("Pronto!", "Feche o app e abra de novo.");
           },
         },
-      ],
-    );
-  }
-
-  function handleResetTutorial() {
-    Alert.alert(
-      "Ver tutorial",
-      "O tutorial vai aparecer na proxima vez que voce abrir o app.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Sim", onPress: () => resetarTutorial().then(() => Alert.alert("Pronto!", "Feche o app e abra de novo.")) },
       ],
     );
   }
@@ -208,13 +180,13 @@ export default function ProfileScreen() {
   }
 
   function handleVerTudoConquistas() {
-    const linhas = CONQUISTAS.map((c) => {
-      const got = c.check(conquistaStats);
-      return `${c.emoji}  ${c.name}  .  ${got ? "Desbloqueado ✓" : c.desc}`;
+    const linhas = SELOS.map((s) => {
+      const got = s.check(conquistaStats);
+      return `${s.emoji}  ${s.nome}  .  ${got ? "Desbloqueado ✓" : s.desc}`;
     }).join("\n");
     Alert.alert(
       "Todas as conquistas",
-      `${linhas}\n\nVoce tem ${selosDesbloqueados} de ${CONQUISTAS.length} selos.`,
+      `${linhas}\n\nVoce tem ${selosDesbloqueados} de ${SELOS.length} selos.`,
       [{ text: "Fechar", style: "default" }],
     );
   }
@@ -228,7 +200,7 @@ export default function ProfileScreen() {
       <StatusBar style="light" />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 12 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 90 }]}
       >
         {/* Hero cover */}
         <LinearGradient colors={["#86efac", "#22c55e", "#15803d"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.cover, { paddingTop: insets.top }]}>
@@ -263,17 +235,22 @@ export default function ProfileScreen() {
               🌱 Seu Doutor das Plantas de bolso. Cuide com carinho, a planta agradece 💚
             </Text>
 
-            {/* Stats row */}
+            {/* Stats row - clicavel */}
             <View style={styles.statsRow}>
               {[
-                { n: String(total), l: "Diagnosticos" },
-                { n: String(especiesUnicas), l: "Especies" },
-                { n: String(selosDesbloqueados), l: "Selos" },
+                { n: String(total), l: "Diagnósticos", tipo: "diagnosticos" as StatsModalType },
+                { n: String(especiesUnicas), l: "Espécies", tipo: "especies" as StatsModalType },
+                { n: String(selosDesbloqueados), l: "Selos", tipo: "selos" as StatsModalType },
               ].map((s, i) => (
-                <View key={i} style={styles.statCell}>
+                <TouchableOpacity
+                  key={i}
+                  style={styles.statCell}
+                  activeOpacity={0.7}
+                  onPress={() => setStatsModal(s.tipo)}
+                >
                   <Text style={styles.statNum}>{s.n}</Text>
                   <Text style={styles.statLabel}>{s.l}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
 
@@ -325,19 +302,25 @@ export default function ProfileScreen() {
           onAction={handleVerTudoConquistas}
         />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.conquistasRow}>
-          {CONQUISTAS.map((c, i) => {
-            const got = c.check(conquistaStats);
+          {SELOS.map((s) => {
+            const got = s.check(conquistaStats);
+            const cor = CAT_COLORS[s.categoria] ?? COLORS.green;
             return (
-              <View key={i} style={[styles.conquistaCard, !got && styles.conquistaLocked]}>
+              <TouchableOpacity
+                key={s.id}
+                activeOpacity={got ? 0.7 : 0.9}
+                onPress={() => setStatsModal("selos")}
+                style={[styles.conquistaCard, !got && styles.conquistaLocked]}
+              >
                 <View style={[
                   styles.conquistaCircle,
-                  { backgroundColor: got ? c.color + "20" : COLORS.divider },
-                  got && { borderBottomWidth: 3, borderBottomColor: c.color + "40", shadowColor: c.color + "40", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
+                  { backgroundColor: got ? cor + "20" : COLORS.divider },
+                  got && { borderBottomWidth: 3, borderBottomColor: cor + "40", shadowColor: cor + "40", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
                 ]}>
-                  <Text style={styles.conquistaEmoji}>{c.emoji}</Text>
+                  <Text style={styles.conquistaEmoji}>{got ? s.emoji : "🔒"}</Text>
                 </View>
-                <Text style={styles.conquistaName}>{c.name}</Text>
-              </View>
+                <Text style={styles.conquistaName}>{s.nome}</Text>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
@@ -353,7 +336,12 @@ export default function ProfileScreen() {
           {historico.slice(0, 5).map((h, i) => {
             const item = GARDEN_ITEMS[i % GARDEN_ITEMS.length];
             return (
-              <View key={h.id} style={[styles.gardenCard, { width: gardenCardW, height: gardenCardW * 1.1 }]}>
+              <TouchableOpacity
+                key={h.id}
+                activeOpacity={0.85}
+                onPress={() => setStatsModal("especies")}
+                style={[styles.gardenCard, { width: gardenCardW, height: gardenCardW * 1.1 }]}
+              >
                 {h.imageUri ? (
                   <Image source={{ uri: h.imageUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                 ) : (
@@ -362,7 +350,7 @@ export default function ProfileScreen() {
                 <View style={styles.gardenOverlay} />
                 <Text style={styles.gardenEmoji}>{item.emoji}</Text>
                 <Text style={styles.gardenName} numberOfLines={2}>{h.nome_popular}</Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
           <TouchableOpacity
@@ -417,6 +405,14 @@ export default function ProfileScreen() {
           setEditarAberto(false);
         }}
       />
+
+      <StatsModal
+        type={statsModal ?? "selos"}
+        visible={statsModal !== null}
+        onClose={() => setStatsModal(null)}
+        historico={historico}
+        conquistaStats={conquistaStats}
+      />
     </View>
   );
 }
@@ -426,9 +422,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.bg,
   },
-  scrollContent: {
-    // paddingBottom dinamico vem inline pra compensar TabBar + insets
-  },
+  scrollContent: {},
 
   // Cover
   cover: {
@@ -779,5 +773,6 @@ const styles = StyleSheet.create({
     color: COLORS.inkMute,
     textAlign: "center",
     marginTop: 8,
+    marginBottom: 4,
   },
 });

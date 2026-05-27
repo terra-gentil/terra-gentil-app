@@ -27,6 +27,7 @@ import {
 import { getToken, AuthUser } from "../../storage/auth";
 import { buscarTopicComPosts, criarResposta, PostOut } from "../../api/forum";
 import LoginModal from "./LoginModal";
+import { incrementarStat } from "../../storage/conquistas";
 
 interface Props {
   visible: boolean;
@@ -121,6 +122,7 @@ export default function ComentariosModal({ visible, post, nickname, onClose }: P
       setEnviando(true);
       try {
         const novo = await criarResposta(String(post.id), limpo, token);
+        await incrementarStat("totalRespostas");
         setComentarios((curr) => [...curr, postOutToComentario(novo)]);
         setTexto("");
       } catch (err) {
