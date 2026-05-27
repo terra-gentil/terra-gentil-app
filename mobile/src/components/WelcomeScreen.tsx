@@ -4,8 +4,8 @@ import {
   Alert,
   Animated,
   Image,
-  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,7 +15,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getRandomMascotPose } from "../assets/mascot";
-import { COLORS, FONTS, SIZES, shadowChunky } from "../constants/theme";
+import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../constants/theme";
 import { marcarWelcomeVisto } from "../storage/preferencias";
 import { setAuth } from "../storage/auth";
 import { FORUM_API_URL } from "../config/api";
@@ -23,6 +23,12 @@ import { FORUM_API_URL } from "../config/api";
 interface Props {
   onComecar: () => void;
 }
+
+const BENEFICIOS = [
+  { emoji: "🌿", texto: "Identifico a planta" },
+  { emoji: "⚠️", texto: "Aviso se é tóxica pra pets" },
+  { emoji: "📋", texto: "Monto plano de cuidados" },
+];
 
 const DURACAO_MS = 10000;
 
@@ -32,10 +38,7 @@ export function WelcomeScreen({ onComecar }: Props) {
   const disparado = useRef(false);
   const [carregando, setCarregando] = useState(false);
 
-  // Barra de progresso
   const progresso = useRef(new Animated.Value(0)).current;
-
-  // Pulso do botao Google — igual ao FAB da camera
   const pulso = useRef(new Animated.Value(1)).current;
 
   async function handleComecar() {
@@ -46,17 +49,14 @@ export function WelcomeScreen({ onComecar }: Props) {
   }
 
   useEffect(() => {
-    // Barra de progresso
     Animated.timing(progresso, {
       toValue: 1,
       duration: DURACAO_MS,
       useNativeDriver: false,
     }).start();
 
-    // Auto-avanco
     const timer = setTimeout(() => handleComecar(), DURACAO_MS);
 
-    // Pulso intermitente no botao Google
     function pulsarBotao() {
       Animated.sequence([
         Animated.timing(pulso, { toValue: 1.08, duration: 200, useNativeDriver: true }),
@@ -108,10 +108,7 @@ export function WelcomeScreen({ onComecar }: Props) {
   }
 
   return (
-    <Pressable
-      style={[styles.root, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 20) }]}
-      onPress={handleComecar}
-    >
+    <View style={[styles.safeWrap, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
       {/* Barra de progresso */}
       <View style={styles.progressBg}>
         <Animated.View
@@ -127,32 +124,39 @@ export function WelcomeScreen({ onComecar }: Props) {
         />
       </View>
 
-      {/* Topo: logo */}
-      <View style={styles.topSection}>
-        <Text style={styles.appName}>TERRA GENTIL</Text>
-        <Text style={styles.appSubtitle}>DOUTOR DAS PLANTAS</Text>
-      </View>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Pressable onPress={handleComecar} style={styles.tapArea}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.appName}>TERRA GENTIL</Text>
+            <Text style={styles.appSubtitle}>DOUTOR DAS PLANTAS</Text>
+          </View>
 
-      {/* Centro: mascote + saudacao */}
-      <View style={styles.centerSection}>
-        <View style={styles.mascotWrapper}>
-          <Image source={pose} style={styles.mascotImage} resizeMode="cover" />
-          <Text style={styles.sparkle}>✨</Text>
-          <Text style={styles.leaf}>🌱</Text>
-        </View>
+          {/* Mascote */}
+          <View style={styles.mascotWrapper}>
+            <Image source={pose} style={styles.mascotImage} resizeMode="cover" />
+            <Text style={styles.sparkle}>✨</Text>
+            <Text style={styles.leaf}>🌱</Text>
+          </View>
 
-        <Text style={styles.greeting}>
-          Oi! Sou o{" "}
-          <Text style={styles.greetingAccent}>Doutor Gentileza</Text>
-        </Text>
-        <Text style={styles.intro}>
-          Tire uma foto e eu identifico sua planta, aviso sobre toxicidade e monto o plano de cuidados.
-        </Text>
-      </View>
+          {/* Titulo */}
+          <View style={styles.titleWrap}>
+            <Text style={styles.greeting}>
+              Oi! Eu sou o{"\n"}
+              <Text style={styles.greetingAccent}>Doutor Gentileza</Text>
+            </Text>
+            <Text style={styles.intro}>
+              Tire uma foto da sua planta e eu te conto tudo: nome, cuidado, e se tem algum probleminha de saúde.
+            </Text>
+          </View>
+        </Pressable>
 
-      {/* Botao Google — centro/baixo da tela, sempre visivel */}
-      <View style={styles.btnSection}>
-        <Animated.View style={{ transform: [{ scale: pulso }] }}>
+        {/* Botao Google — no meio, em cima dos cards de beneficios */}
+        <Animated.View style={[styles.btnGoogleWrap, { transform: [{ scale: pulso }] }]}>
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleGoogle}
@@ -172,29 +176,42 @@ export function WelcomeScreen({ onComecar }: Props) {
           </TouchableOpacity>
         </Animated.View>
 
-        <Text style={styles.skipHint}>ou toque em qualquer lugar para pular</Text>
+        <Pressable onPress={handleComecar} style={styles.tapArea}>
+          {/* Beneficios */}
+          <View style={styles.beneficiosList}>
+            {BENEFICIOS.map((b, idx) => (
+              <View key={idx} style={styles.beneficioItem}>
+                <View style={styles.beneficioIconWrap}>
+                  <Text style={styles.beneficioEmoji}>{b.emoji}</Text>
+                </View>
+                <Text style={styles.beneficioTexto}>{b.texto}</Text>
+                <Text style={styles.checkmark}>✓</Text>
+              </View>
+            ))}
+          </View>
 
-        {/* Dots */}
-        <View style={styles.dotsRow}>
-          <Text style={styles.dotInactive}>▪</Text>
-          <Text style={styles.dotInactive}>▪</Text>
-          <Text style={styles.dotActive}>●</Text>
-          <Text style={styles.dotInactive}>▪</Text>
-          <Text style={styles.dotInactive}>▪</Text>
-        </View>
-      </View>
-    </Pressable>
+          <Text style={styles.tapHint}>ou toque para pular 👆</Text>
+
+          {/* Dots */}
+          <View style={styles.dotsRow}>
+            <Text style={styles.dotInactive}>▪</Text>
+            <Text style={styles.dotInactive}>▪</Text>
+            <Text style={styles.dotActive}>●</Text>
+            <Text style={styles.dotInactive}>▪</Text>
+            <Text style={styles.dotInactive}>▪</Text>
+          </View>
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
+  safeWrap: {
     flex: 1,
     backgroundColor: COLORS.greenSoft,
-    justifyContent: "space-between",
   },
 
-  // Progress bar
   progressBg: {
     height: 4,
     backgroundColor: "rgba(0,0,0,0.08)",
@@ -206,10 +223,22 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 
-  // Topo
-  topSection: {
+  container: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 24,
     alignItems: "center",
-    paddingTop: 16,
+  },
+  tapArea: {
+    width: "100%",
+    alignItems: "center",
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: 20,
   },
   appName: {
     fontFamily: FONTS.displayBlack,
@@ -224,24 +253,16 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginTop: 2,
   },
-
-  // Centro
-  centerSection: {
-    alignItems: "center",
-    paddingHorizontal: 28,
-    flex: 1,
-    justifyContent: "center",
-  },
   mascotWrapper: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 32,
     overflow: "hidden",
-    borderWidth: 5,
+    borderWidth: 6,
     borderColor: "#fff",
     backgroundColor: COLORS.greenLeaf,
     ...shadowChunky(COLORS.greenDeep + "40"),
-    marginBottom: 20,
+    marginBottom: 24,
   },
   mascotImage: {
     width: "100%",
@@ -249,23 +270,26 @@ const styles = StyleSheet.create({
   },
   sparkle: {
     position: "absolute",
-    top: 12,
-    right: 12,
-    fontSize: 20,
+    top: 16,
+    right: 16,
+    fontSize: 24,
   },
   leaf: {
     position: "absolute",
-    bottom: 12,
-    left: 12,
-    fontSize: 16,
+    bottom: 16,
+    left: 16,
+    fontSize: 20,
+  },
+  titleWrap: {
+    alignItems: "center",
+    marginBottom: 20,
   },
   greeting: {
     fontFamily: FONTS.displayBlack,
-    fontSize: SIZES.xl,
+    fontSize: SIZES.xxl,
     color: COLORS.greenDark,
     textAlign: "center",
-    lineHeight: 28,
-    marginBottom: 10,
+    lineHeight: 32,
   },
   greetingAccent: {
     color: COLORS.coralDeep,
@@ -276,14 +300,14 @@ const styles = StyleSheet.create({
     color: COLORS.inkSoft,
     textAlign: "center",
     lineHeight: 21,
-    paddingHorizontal: 8,
+    marginTop: 10,
+    paddingHorizontal: 12,
   },
 
-  // Botao + rodape
-  btnSection: {
-    paddingHorizontal: 24,
-    alignItems: "center",
-    paddingBottom: 8,
+  // Botao Google — entre o texto e os cards
+  btnGoogleWrap: {
+    width: "100%",
+    marginBottom: 20,
   },
   btnGoogle: {
     flexDirection: "row",
@@ -301,7 +325,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 6,
-    marginBottom: 14,
   },
   googleIconWrap: {
     width: 32,
@@ -324,17 +347,56 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  skipHint: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.xs,
-    color: COLORS.inkMute,
+  beneficiosList: {
+    width: "100%",
+    gap: 10,
+    marginBottom: 24,
+  },
+  beneficioItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    ...shadowSoft(),
+  },
+  beneficioIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: COLORS.greenSoft,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  beneficioEmoji: {
+    fontSize: 18,
+  },
+  beneficioTexto: {
+    flex: 1,
+    fontFamily: FONTS.bodyBold,
+    fontSize: SIZES.body,
+    color: COLORS.greenDark,
+  },
+  checkmark: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: 20,
+    color: COLORS.green,
+  },
+  tapHint: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.body,
+    color: COLORS.green,
     textAlign: "center",
-    marginBottom: 12,
+    marginTop: 4,
+    marginBottom: 8,
   },
   dotsRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    marginTop: 14,
   },
   dotInactive: {
     fontSize: 10,
