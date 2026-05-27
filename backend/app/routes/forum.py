@@ -416,18 +416,31 @@ async def _build_user_profile(user_id: str, site: str) -> dict:
     except ValueError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
     async with get_conn() as conn:
-        user = await conn.fetchrow(
-            """
-            SELECT id::text, display_name, avatar_url, created_at::text,
-                   COALESCE(bio, '') AS bio,
-                   COALESCE(email, '') AS email,
-                   birth_year,
-                   COALESCE(city, '') AS city,
-                   COALESCE(shows_attended, '{}'::text[]) AS shows_attended
-            FROM forum_users WHERE id = $1::uuid
-            """,
-            user_id,
-        )
+        # Tenta com as colunas novas (migration 003). Se ainda não foi rodada, faz fallback.
+        try:
+            user = await conn.fetchrow(
+                """
+                SELECT id::text, display_name, avatar_url, created_at::text,
+                       COALESCE(bio, '') AS bio,
+                       COALESCE(email, '') AS email,
+                       birth_year,
+                       COALESCE(city, '') AS city,
+                       COALESCE(shows_attended, '{}'::text[]) AS shows_attended
+                FROM forum_users WHERE id = $1::uuid
+                """,
+                user_id,
+            )
+        except Exception as exc:
+            logger.warning("Fallback _build_user_profile sem cols novas (rode migration 003): %s", exc)
+            base = await conn.fetchrow(
+                "SELECT id::text, display_name, avatar_url, created_at::text FROM forum_users WHERE id = $1::uuid",
+                user_id,
+            )
+            if not base:
+                user = None
+            else:
+                user = dict(base)
+                user.update({"bio": "", "email": "", "birth_year": None, "city": "", "shows_attended": []})
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
 
@@ -568,6 +581,10 @@ async def update_my_profile(
     values.append(user_id)
     sql = f"UPDATE forum_users SET {', '.join(fields)} WHERE id = ${idx}::uuid"
     async with get_conn() as conn:
-        await conn.execute(sql, *values)
+        try:
+            await conn.execute(sql, *values)
+        except Exception as exc:
+            logger.error("Erro ao atualizar perfil (rode migration 003?): %s", exc)
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Banco fora de sync. Rode migration 003.") from exc
     logger.info("Perfil atualizado user_id=%s fields=%s", user_id, [f.split(" = ")[0] for f in fields])
     return {"updated": True, "fields": len(fields)}
