@@ -398,7 +398,10 @@ async def create_report(
     site = _resolve_site(request)
     report_id = str(uuid.uuid4())
     async with get_conn() as conn:
-        table = "forum_topics" if payload.target_type == "topic" else "forum_posts"
+        _TABLE_MAP = {"topic": "forum_topics", "post": "forum_posts"}
+        table = _TABLE_MAP.get(payload.target_type)
+        if not table:
+            raise HTTPException(status_code=400, detail="target_type invalido")
         target_exists = await conn.fetchval(
             f"SELECT 1 FROM {table} WHERE id = $1::uuid AND site = $2",
             payload.target_id, site,

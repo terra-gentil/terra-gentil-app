@@ -31,24 +31,27 @@ app.state.limiter = limiter
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(settings.site_origin_map.keys()) + [
-        "http://localhost:3000",
-        "http://localhost:8000",
-        "http://localhost:5500",
-        "http://localhost:8080",
-    ],
+    allow_origins=list(settings.site_origin_map.keys()) + (
+        [
+            "http://localhost:3000",
+            "http://localhost:8000",
+            "http://localhost:5500",
+            "http://localhost:8080",
+        ] if settings.ENVIRONMENT != "production" else []
+    ),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
-app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET or "dev-session-secret")
+app.add_middleware(SessionMiddleware, secret_key=settings.JWT_SECRET)
 app.add_middleware(SlowAPIMiddleware)
 
-_ALLOWED_ORIGINS = set(list(settings.site_origin_map.keys()) + [
-    "http://localhost:3000", "http://localhost:8000",
-    "http://localhost:5500", "http://localhost:8080",
-])
+_ALLOWED_ORIGINS = set(list(settings.site_origin_map.keys()) + (
+    ["http://localhost:3000", "http://localhost:8000",
+     "http://localhost:5500", "http://localhost:8080"]
+    if settings.ENVIRONMENT != "production" else []
+))
 
 def _cors_headers_for(request: Request) -> dict[str, str]:
     """CORS headers pra anexar em respostas de erro (FastAPI não anexa por padrão)."""

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
+from app.core.config import settings
 from app.services.auth_service import verify_jwt
 from app.services.db import get_conn
 
@@ -22,6 +23,9 @@ def _exigir_token(credentials: HTTPAuthorizationCredentials) -> str:
 
 async def _exigir_admin(credentials: HTTPAuthorizationCredentials, conn) -> str:
     user_id = _exigir_token(credentials)
+    # Dupla verificacao: is_admin no banco E user_id na whitelist da env var ADMIN_USER_IDS
+    if settings.admin_user_ids and user_id not in settings.admin_user_ids:
+        raise HTTPException(status_code=403, detail="Acesso negado")
     row = await conn.fetchrow(
         "SELECT COALESCE(is_admin, FALSE) AS is_admin FROM forum_users WHERE id = $1::uuid",
         user_id,
