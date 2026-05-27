@@ -3,6 +3,7 @@ import logging
 import httpx
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
 
 from app.services.auth_service import verify_jwt
 from app.services.db import get_conn
@@ -234,10 +235,14 @@ async def listar_reports(
     }
 
 
+class ResolverReportIn(BaseModel):
+    deletar_conteudo: bool = False
+
+
 @router.post("/admin/reports/{report_id}/resolver", tags=["Admin"])
 async def resolver_report(
     report_id: str,
-    deletar_conteudo: bool = Body(default=False),
+    data: ResolverReportIn = Body(default=ResolverReportIn()),
     credentials: HTTPAuthorizationCredentials = Depends(_bearer),
 ):
     async with get_conn() as conn:
@@ -252,7 +257,7 @@ async def resolver_report(
 
         novo_status = "resolvido"
 
-        if deletar_conteudo:
+        if data.deletar_conteudo:
             if row["target_type"] == "topic":
                 await conn.execute("DELETE FROM forum_topics WHERE id = $1::uuid", row["target_id"])
             else:
@@ -263,7 +268,7 @@ async def resolver_report(
             novo_status, report_id,
         )
 
-    return {"ok": True, "status": novo_status, "conteudo_deletado": deletar_conteudo}
+    return {"ok": True, "status": novo_status, "conteudo_deletado": data.deletar_conteudo}
 
 
 @router.get("/admin/users/buscar", tags=["Admin"])
