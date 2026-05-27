@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 import * as LegacyFS from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
+import * as Clipboard from "expo-clipboard";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus, Search, X } from "lucide-react-native";
@@ -274,12 +276,24 @@ export default function CommunityScreen() {
           await LegacyFS.writeAsStringAsync(tempUri, b64Match[1], {
             encoding: LegacyFS.EncodingType.Base64,
           });
-          // Android precisa de content:// URI (FileProvider) para Share aceitar imagem + texto
-          const shareUri =
-            Platform.OS === "android"
-              ? await LegacyFS.getContentUriAsync(tempUri)
-              : tempUri;
-          await Share.share({ url: shareUri, message: msg, title: post.title });
+
+          if (Platform.OS === "ios") {
+            // iOS: Share.share suporta url (imagem) + message (texto) juntos
+            await Share.share({ url: tempUri, message: msg, title: post.title });
+          } else {
+            // Android: Share.share ignora url, so envia texto.
+            // Copia texto para clipboard e abre share nativo da imagem.
+            await Clipboard.setStringAsync(msg);
+            await Sharing.shareAsync(tempUri, {
+              mimeType: "image/jpeg",
+              dialogTitle: post.title,
+            });
+            Alert.alert(
+              "Texto copiado!",
+              "O texto com o convite foi copiado. Cole como legenda no app que voce escolheu.",
+              [{ text: "OK" }],
+            );
+          }
           return;
         }
       }
