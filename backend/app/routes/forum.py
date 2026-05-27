@@ -135,7 +135,7 @@ async def list_topics(
             f"""
             SELECT t.id::text, t.title, t.body, t.category, t.site,
                    t.user_id::text,
-                   u.display_name, u.avatar_url, t.pinned,
+                   u.display_name, u.avatar_url, COALESCE(u.is_admin, FALSE) AS is_admin, t.pinned,
                    t.created_at::text,
                    COALESCE(t.last_post_at, t.created_at)::text AS last_post_at,
                    t.anchor_show_id,
@@ -224,7 +224,7 @@ async def get_topic(
             """
             SELECT t.id::text, t.title, t.body, t.category, t.site,
                    t.user_id::text,
-                   u.display_name, u.avatar_url, t.pinned,
+                   u.display_name, u.avatar_url, COALESCE(u.is_admin, FALSE) AS is_admin, t.pinned,
                    t.created_at::text,
                    COALESCE(t.last_post_at, t.created_at)::text AS last_post_at,
                    t.anchor_show_id,
@@ -242,7 +242,7 @@ async def get_topic(
             """
             SELECT p.id::text, p.topic_id::text, p.body, p.site,
                    p.user_id::text,
-                   u.display_name, u.avatar_url, p.created_at::text
+                   u.display_name, u.avatar_url, COALESCE(u.is_admin, FALSE) AS is_admin, p.created_at::text
             FROM forum_posts p
             JOIN forum_users u ON u.id = p.user_id
             WHERE p.topic_id = $1::uuid
@@ -527,7 +527,6 @@ async def get_user_profile(user_id: str, request: Request):
 
 
 @router.get("/users/{user_id}/badges", tags=["Forum"])
-@limiter.limit("30/minute")
 async def get_user_badges(user_id: str, request: Request):
     site = _resolve_site(request)
     try:
