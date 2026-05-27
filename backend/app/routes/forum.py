@@ -538,20 +538,23 @@ async def get_user_badges(user_id: str, request: Request):
     try:
         uuid.UUID(user_id)
     except ValueError:
-        return {"veterano": False, "arquivista": False, "tava_la": 0}
+        return {"veterano": False, "arquivista": False, "tava_la": 0, "posts_count": 0, "topics_count": 0, "tava_la_count": 0}
+
+    async def safe_count(conn, sql, *args):
+        try:
+            return int(await conn.fetchval(sql, *args) or 0)
+        except Exception as exc:
+            logger.warning("Badge count failed (coluna ausente?): %s", exc)
+            return 0
+
     async with get_conn() as conn:
-        row = await conn.fetchrow(
-            """
-            SELECT
-              (SELECT COUNT(*) FROM forum_posts  WHERE user_id = $1::uuid AND site = $2)::int AS posts_count,
-              (SELECT COUNT(*) FROM forum_topics WHERE user_id = $1::uuid AND site = $2)::int AS topics_count,
-              (SELECT COUNT(*) FROM forum_reactions WHERE user_id = $1::uuid AND site = $2 AND type = 'tava_la')::int AS tava_la_count
-            """,
-            user_id, site,
-        )
-    if not row:
-        return {"veterano": False, "arquivista": False, "tava_la": 0}
-    p, t, tl = row["posts_count"], row["topics_count"], row["tava_la_count"]
+        p = await safe_count(conn, "SELECT COUNT(*) FROM forum_posts  WHERE user_id = $1::uuid AND site = $2", user_id, site)
+        t = await safe_count(conn, "SELECT COUNT(*) FROM forum_topics WHERE user_id = $1::uuid AND site = $2", user_id, site)
+        # Algumas instâncias ainda não têm forum_reactions.site; fallback sem o filtro.
+        tl = await safe_count(conn, "SELECT COUNT(*) FROM forum_reactions WHERE user_id = $1::uuid AND site = $2 AND type = 'tava_la'", user_id, site)
+        if tl == 0:
+            tl = await safe_count(conn, "SELECT COUNT(*) FROM forum_reactions WHERE user_id = $1::uuid AND type = 'tava_la'", user_id)
+
     return {
         "posts_count": p, "topics_count": t, "tava_la_count": tl,
         "veterano": p >= 100, "arquivista": t >= 8, "tava_la": tl,
