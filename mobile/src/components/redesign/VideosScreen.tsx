@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONTS, SIZES, RADIUS, SPACING, shadowChunky, shadowSoft } from "../../constants/theme";
 import TopBar from "./TopBar";
+import { useNotif } from "../../context/NotifContext";
 import Pills from "./Pills";
 import SectionTitle from "./SectionTitle";
 import NotificacoesModal from "./NotificacoesModal";
@@ -138,6 +139,7 @@ export default function VideosScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
+  const { badgeCount } = useNotif();
   const [filtro, setFiltro] = useState("Todos");
   const [notifAberto, setNotifAberto] = useState(false);
 
@@ -149,7 +151,7 @@ export default function VideosScreen() {
     <View style={styles.screen}>
       <TopBar
         avatarSource={MASCOT_POSES[0]}
-        badge={0}
+        badge={badgeCount}
         onAvatarPress={() => navigation.navigate("ProfileTab")}
         onBellPress={() => setNotifAberto(true)}
       />

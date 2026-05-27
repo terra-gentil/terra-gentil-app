@@ -73,8 +73,14 @@ export default function LoginModal({ visible, onClose, onLogin }: Props) {
         display_name: name ? decodeURIComponent(name) : "Usuário",
         avatar_url: avatar ? decodeURIComponent(avatar) : null,
       };
+      try {
+        const me = await fetch(`${FORUM_API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(r => r.json());
+        user.is_admin = me.is_admin ?? false;
+      } catch {}
       await setAuth(token, user);
-      console.log("[login] sucesso! usuario:", user.display_name);
+      console.log("[login] sucesso! usuario:", user.display_name, "admin:", user.is_admin);
       onLogin(user);
     } catch (err) {
       console.log("[login] google erro:", err);
@@ -128,6 +134,12 @@ export default function LoginModal({ visible, onClose, onLogin }: Props) {
         display_name: data.display_name,
         avatar_url: data.avatar_url,
       };
+      try {
+        const me = await fetch(`${FORUM_API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${data.token}` },
+        }).then(r => r.json());
+        user.is_admin = me.is_admin ?? false;
+      } catch {}
       await setAuth(data.token, user);
       onLogin(user);
     } catch (err: unknown) {

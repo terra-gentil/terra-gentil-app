@@ -7,6 +7,7 @@ export interface AuthUser {
   id: string;
   display_name: string;
   avatar_url: string | null;
+  is_admin?: boolean;
 }
 
 export async function getToken(): Promise<string | null> {

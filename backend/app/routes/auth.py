@@ -141,12 +141,18 @@ async def me(credentials: HTTPAuthorizationCredentials = Depends(_bearer)):
     user_id = payload["user_id"]
     async with get_conn() as conn:
         row = await conn.fetchrow(
-            "SELECT id, display_name, avatar_url FROM forum_users WHERE id = $1::uuid",
+            "SELECT id, display_name, avatar_url, COALESCE(is_admin, FALSE) AS is_admin "
+            "FROM forum_users WHERE id = $1::uuid",
             user_id,
         )
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
-    return {"id": str(row["id"]), "display_name": row["display_name"], "avatar_url": row["avatar_url"]}
+    return {
+        "id": str(row["id"]),
+        "display_name": row["display_name"],
+        "avatar_url": row["avatar_url"],
+        "is_admin": bool(row["is_admin"]),
+    }
 
 
 @router.patch("/me", tags=["Auth"])

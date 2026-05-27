@@ -15,7 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import settings
 from app.core.limiter import limiter
 from app.routes import diagnostico, health
-from app.routes import auth, feed, forum
+from app.routes import auth, feed, forum, notifications
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,7 +38,7 @@ app.add_middleware(
         "http://localhost:8080",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
@@ -68,6 +68,7 @@ app.include_router(diagnostico.router)
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(forum.router, prefix="/forum", tags=["Forum"])
 app.include_router(feed.router, prefix="/feed", tags=["Feed"])
+app.include_router(notifications.router, tags=["Notifications"])
 
 
 @app.get("/", tags=["Root"])

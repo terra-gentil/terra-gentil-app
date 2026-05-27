@@ -21,6 +21,7 @@ import { Plus, Search, X } from "lucide-react-native";
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
 import { MASCOT_POSES } from "../../assets/mascot";
 import TopBar from "./TopBar";
+import { useNotif } from "../../context/NotifContext";
 import Pills from "./Pills";
 import FloatCTA from "./FloatCTA";
 import PostCard from "./PostCard";
@@ -149,6 +150,7 @@ function gerarTextoCompartilhamento(post: PostBase, url: string): string {
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { badgeCount } = useNotif();
   const [filtro, setFiltro] = useState<string>("Recentes");
   const [meusPosts, setMeusPosts] = useState<MeuPost[]>([]);
   const [apiTopics, setApiTopics] = useState<TopicOut[]>([]);
@@ -167,7 +169,7 @@ export default function CommunityScreen() {
   const [postAtivo, setPostAtivo] = useState<PostBase | null>(null);
   const [buscaAberta, setBuscaAberta] = useState(false);
   const [buscaTexto, setBuscaTexto] = useState("");
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [temMais, setTemMais] = useState(true);
   const carregandoRef = useRef(false);
@@ -432,7 +434,7 @@ export default function CommunityScreen() {
       {!buscaAberta ? (
         <TopBar
           avatarSource={avatarUrl ? { uri: avatarUrl } : MASCOT_POSES[0]}
-          badge={0}
+          badge={badgeCount}
           onAvatarPress={() => navigation.navigate("ProfileTab")}
           onBellPress={() => setNotifsAberta(true)}
           onSearchPress={() => setBuscaAberta(true)}
@@ -561,7 +563,7 @@ export default function CommunityScreen() {
           )
         }
         ListFooterComponent={
-          carregando ? (
+          carregando && apiTopics.length > 0 ? (
             <ActivityIndicator
               size="small"
               color={COLORS.green}

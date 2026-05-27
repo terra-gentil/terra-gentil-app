@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Animated,
   Image,
@@ -12,30 +12,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_POSES } from "../../assets/mascot";
 import { Camera, Users, Tv, BookOpen, ShoppingBag, Gamepad2 } from "lucide-react-native";
-
-function useIntermitentePulse(delayInicial = 3500, intervalo = 5000) {
-  const anim = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-    function pulsar() {
-      Animated.sequence([
-        Animated.timing(anim, { toValue: 1.22, duration: 200, useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0.95, duration: 150, useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 1, duration: 180, useNativeDriver: true }),
-      ]).start(() => {
-        timeout = setTimeout(pulsar, intervalo);
-      });
-    }
-    timeout = setTimeout(pulsar, delayInicial);
-    return () => clearTimeout(timeout);
-  }, []);
-  return anim;
-}
+import { useIntermitentePulse } from "../../hooks/useIntermitentePulse";
 import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
 import { getUser, getProfileExtra } from "../../storage/auth";
 import { getComunidadeStats, calcularHistoricoStats, ConquistaStats, SELOS } from "../../storage/conquistas";
 import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
+import { useNotif } from "../../context/NotifContext";
 import SectionTitle from "./SectionTitle";
 import DoctorScanner from "./DoctorScanner";
 import EbooksScreen from "./EbooksScreen";
@@ -118,6 +101,7 @@ export default function HomeScreen({
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
+  const { badgeCount } = useNotif();
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
   const [nomeExibido, setNomeExibido] = useState<string | null>(null);
   const [conquistaStats, setConquistaStats] = useState<ConquistaStats>({
@@ -168,7 +152,7 @@ export default function HomeScreen({
     >
       <TopBar
         avatarSource={MASCOT_POSES[0]}
-        badge={0}
+        badge={badgeCount}
         onAvatarPress={onSettings}
         onBellPress={() => setNotifAberto(true)}
       />

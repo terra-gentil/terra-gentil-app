@@ -2,7 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -44,6 +46,10 @@ import { toAppError, logError } from "./src/errors/errorHandler";
 import { COLORS, FONTS } from "./src/constants/theme";
 import { MASCOT_POSES } from "./src/assets/mascot";
 import { Home, Users, Tv, User, Camera } from "lucide-react-native";
+import { useIntermitentePulse } from "./src/hooks/useIntermitentePulse";
+import { NotifProvider } from "./src/context/NotifContext";
+import ConfiguracoesModal from "./src/components/redesign/ConfiguracoesModal";
+import LoginModal from "./src/components/redesign/LoginModal";
 
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -71,11 +77,14 @@ const TAB_ORDER = ["HomeTab", "CommunityTab", "fab", "VideosTab", "ProfileTab"] 
 
 function CustomTabBar({ state, navigation, onFabPress }: any) {
   const insets = useSafeAreaInsets();
+  const fabPulse = useIntermitentePulse(4000, 6000);
   return (
     <View style={[tabStyles.container, { paddingBottom: Math.max(insets.bottom, 6) }]}>
       {/* FAB central */}
       <TouchableOpacity onPress={onFabPress} style={tabStyles.fab} activeOpacity={0.8}>
-        <Camera size={28} color="#fff" strokeWidth={2.2} />
+        <Animated.View style={{ transform: [{ scale: fabPulse }] }}>
+          <Camera size={28} color="#fff" strokeWidth={2.2} />
+        </Animated.View>
       </TouchableOpacity>
 
       <View style={tabStyles.tabRow}>
@@ -150,6 +159,8 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showGame, setShowGame] = useState(false);
+  const [configAberta, setConfigAberta] = useState(false);
+  const [loginAberto, setLoginAberto] = useState(false);
   const [gameNickname, setGameNickname] = useState<string | undefined>(undefined);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -249,7 +260,7 @@ export default function App() {
   }
 
   function handleSettings() {
-    // Navegado via navigation no futuro. Por ora placeholder
+    setConfigAberta(true);
   }
 
   async function handleJogar() {
@@ -371,11 +382,28 @@ export default function App() {
             onJogar={handleJogar}
           />
         </NavigationContainer>
+        <ConfiguracoesModal
+          visible={configAberta}
+          onClose={() => setConfigAberta(false)}
+          onLogout={() => setConfigAberta(false)}
+          onLogin={() => { setConfigAberta(false); setLoginAberto(true); }}
+        />
+        <LoginModal
+          visible={loginAberto}
+          onClose={() => setLoginAberto(false)}
+          onLogin={() => setLoginAberto(false)}
+        />
       </View>
     );
   }
 
-  return <SafeAreaProvider>{renderContent()}</SafeAreaProvider>;
+  return (
+    <SafeAreaProvider>
+      <NotifProvider>
+        {renderContent()}
+      </NotifProvider>
+    </SafeAreaProvider>
+  );
 }
 
 const tabStyles = StyleSheet.create({
