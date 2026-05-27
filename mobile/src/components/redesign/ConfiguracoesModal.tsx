@@ -52,8 +52,15 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
 
   useEffect(() => {
     if (!visible) return;
-    getUser().then(setUser);
     AsyncStorage.getItem(PUSH_ENABLED_KEY).then(v => setPushEnabled(v !== "false"));
+    getUser().then(u => {
+      setUser(u);
+      if (u?.is_admin) {
+        buscarReports(3, 0)
+          .then(r => { setReports(r.reports); setTotalReports(r.total); })
+          .catch(() => {});
+      }
+    });
   }, [visible]);
 
   async function togglePush(value: boolean) {
@@ -353,11 +360,7 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
                   <Text style={[styles.adminSubtitulo, { marginTop: 20 }]}>
                     🚩 Reports pendentes{totalReports > 0 ? ` (${totalReports})` : ""}
                   </Text>
-                  <TouchableOpacity style={styles.btnStatsLoad} onPress={handleCarregarReports} disabled={carregandoReports}>
-                    {carregandoReports
-                      ? <ActivityIndicator color={COLORS.coral} size="small" />
-                      : <><Flag size={16} color={COLORS.coral} /><Text style={[styles.btnStatsText, { color: COLORS.coral }]}>Carregar reports</Text></>}
-                  </TouchableOpacity>
+                  {carregandoReports && <ActivityIndicator color={COLORS.coral} size="small" style={{ marginVertical: 8 }} />}
                   {reports.map(r => (
                     <View key={r.id} style={styles.reportCard}>
                       <Text style={styles.reportTipo}>{r.target_type === "topic" ? "Tópico" : "Post"}</Text>
@@ -373,8 +376,16 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
                       </View>
                     </View>
                   ))}
-                  {reports.length === 0 && !carregandoReports && totalReports === 0 && (
+                  {reports.length === 0 && !carregandoReports && (
                     <Text style={styles.adminVazio}>Nenhum report pendente</Text>
+                  )}
+                  {totalReports > reports.length && (
+                    <TouchableOpacity style={styles.btnStatsLoad} onPress={handleCarregarReports} disabled={carregandoReports}>
+                      <Flag size={16} color={COLORS.coral} />
+                      <Text style={[styles.btnStatsText, { color: COLORS.coral }]}>
+                        Ver todos ({totalReports})
+                      </Text>
+                    </TouchableOpacity>
                   )}
 
                   {/* Gestao de usuarios */}

@@ -30,6 +30,14 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "updates": {
+      "url": "https://u.expo.dev/f5d75a08-a9e1-421a-ab64-c77097cb19a0",
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "extra": {
       "eas": {
         "projectId": "f5d75a08-a9e1-421a-ab64-c77097cb19a0"
@@ -38,6 +46,7 @@
     "owner": "terra-gentil-app",
     "scheme": "terragentil",
     "plugins": [
+      "expo-updates",
       "expo-web-browser",
       "expo-apple-authentication",
       [
