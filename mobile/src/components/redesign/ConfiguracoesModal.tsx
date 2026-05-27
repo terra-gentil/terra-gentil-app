@@ -36,7 +36,7 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
   const insets = useSafeAreaInsets();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [pushEnabled, setPushEnabled] = useState(true);
-  const [adminAberto, setAdminAberto] = useState(false);
+  const [adminAberto, setAdminAberto] = useState(true);
   const [broadTitulo, setBroadTitulo] = useState("");
   const [broadCorpo, setBroadCorpo] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -280,61 +280,6 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
             )}
           </Secao>
 
-          {/* NOTIFICACOES */}
-          <Secao titulo="Notificações">
-            <View style={styles.toggleRow}>
-              <View style={styles.toggleLeft}>
-                {pushEnabled
-                  ? <Bell size={18} color={COLORS.green} />
-                  : <BellOff size={18} color={COLORS.inkMute} />}
-                <Text style={styles.toggleTexto}>Notificações push</Text>
-              </View>
-              <Switch
-                value={pushEnabled}
-                onValueChange={togglePush}
-                trackColor={{ false: COLORS.divider, true: COLORS.green }}
-                thumbColor="#fff"
-              />
-            </View>
-          </Secao>
-
-          {/* APP */}
-          <Secao titulo="App">
-            <Item
-              icon={<Trash2 size={18} color={COLORS.inkSoft} />}
-              texto="Limpar histórico de diagnósticos"
-              onPress={handleLimparHistorico}
-            />
-            <Item
-              icon={<Info size={18} color={COLORS.inkSoft} />}
-              texto="Ver tutorial"
-              onPress={handleVerTutorial}
-            />
-          </Secao>
-
-          {/* SOBRE */}
-          <Secao titulo="Sobre">
-            <View style={styles.versaoRow}>
-              <Text style={styles.versaoLabel}>Versão</Text>
-              <Text style={styles.versaoValor}>1.0.0</Text>
-            </View>
-            <Item
-              icon={<Play size={18} color={COLORS.coral} />}
-              texto="Canal no YouTube"
-              onPress={() => Linking.openURL("https://www.youtube.com/@TerraGentil")}
-            />
-            <Item
-              icon={<Globe size={18} color={COLORS.green} />}
-              texto="Site terragentil.com.br"
-              onPress={() => Linking.openURL("https://terragentil.com.br")}
-            />
-            <Item
-              icon={<Shield size={18} color={COLORS.inkSoft} />}
-              texto="Política de privacidade"
-              onPress={() => Linking.openURL("https://terragentil.com.br/privacidade")}
-            />
-          </Secao>
-
           {/* ADMIN */}
           {user?.is_admin && (
             <Secao titulo="Admin" icone={<Settings size={16} color={COLORS.amber} />}>
@@ -487,6 +432,61 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
               )}
             </Secao>
           )}
+
+          {/* NOTIFICACOES */}
+          <Secao titulo="Notificações">
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleLeft}>
+                {pushEnabled
+                  ? <Bell size={18} color={COLORS.green} />
+                  : <BellOff size={18} color={COLORS.inkMute} />}
+                <Text style={styles.toggleTexto}>Notificações push</Text>
+              </View>
+              <Switch
+                value={pushEnabled}
+                onValueChange={togglePush}
+                trackColor={{ false: COLORS.divider, true: COLORS.green }}
+                thumbColor="#fff"
+              />
+            </View>
+          </Secao>
+
+          {/* APP */}
+          <Secao titulo="App">
+            <Item
+              icon={<Trash2 size={18} color={COLORS.inkSoft} />}
+              texto="Limpar histórico de diagnósticos"
+              onPress={handleLimparHistorico}
+            />
+            <Item
+              icon={<Info size={18} color={COLORS.inkSoft} />}
+              texto="Ver tutorial"
+              onPress={handleVerTutorial}
+            />
+          </Secao>
+
+          {/* SOBRE */}
+          <Secao titulo="Sobre">
+            <View style={styles.versaoRow}>
+              <Text style={styles.versaoLabel}>Versão</Text>
+              <Text style={styles.versaoValor}>1.0.0</Text>
+            </View>
+            <Item
+              icon={<Play size={18} color={COLORS.coral} />}
+              texto="Canal no YouTube"
+              onPress={() => Linking.openURL("https://www.youtube.com/@TerraGentil")}
+            />
+            <Item
+              icon={<Globe size={18} color={COLORS.green} />}
+              texto="Site terragentil.com.br"
+              onPress={() => Linking.openURL("https://terragentil.com.br")}
+            />
+            <Item
+              icon={<Shield size={18} color={COLORS.inkSoft} />}
+              texto="Política de privacidade"
+              onPress={() => Linking.openURL("https://terragentil.com.br/privacidade")}
+            />
+          </Secao>
 
         </ScrollView>
       </View>
