@@ -52,12 +52,18 @@ def _require_auth(authorization: Optional[str] = Header(default=None)) -> str:
 
 async def _require_auth_active(authorization: Optional[str] = Header(default=None)) -> str:
     user_id = _require_auth(authorization)
-    async with get_conn() as conn:
-        row = await conn.fetchrow(
-            "SELECT bloqueado FROM forum_users WHERE id = $1::uuid", user_id
-        )
-    if row and row["bloqueado"]:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Conta bloqueada")
+    try:
+        async with get_conn() as conn:
+            row = await conn.fetchrow(
+                "SELECT bloqueado FROM forum_users WHERE id = $1::uuid", user_id
+            )
+        if row and row["bloqueado"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Conta bloqueada")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        # Coluna 'bloqueado' pode não existir ainda; trata como não bloqueado.
+        logger.warning("Skip check 'bloqueado' (coluna ausente?): %s", exc)
     return user_id
 
 

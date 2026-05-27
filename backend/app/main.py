@@ -50,18 +50,36 @@ _ALLOWED_ORIGINS = set(list(settings.site_origin_map.keys()) + [
     "http://localhost:5500", "http://localhost:8080",
 ])
 
-async def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+def _cors_headers_for(request: Request) -> dict[str, str]:
+    """CORS headers pra anexar em respostas de erro (FastAPI não anexa por padrão)."""
     origin = request.headers.get("origin", "")
     headers = {"Access-Control-Allow-Credentials": "true"}
     if origin in _ALLOWED_ORIGINS:
         headers["Access-Control-Allow-Origin"] = origin
+    return headers
+
+
+async def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     return JSONResponse(
         status_code=429,
         content={"detail": "Muitas tentativas seguidas. Aguarde um momento antes de tentar novamente."},
-        headers=headers,
+        headers=_cors_headers_for(request),
     )
 
+
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Garante que erros 500 saiam com CORS. Sem isso, o browser bloqueia a leitura
+    da response e o frontend recebe 'CORS' em vez do erro real."""
+    logging.getLogger(__name__).exception("Unhandled exception em %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Erro interno: {type(exc).__name__}"},
+        headers=_cors_headers_for(request),
+    )
+
+
 app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+app.add_exception_handler(Exception, _unhandled_exception_handler)
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(diagnostico.router)
