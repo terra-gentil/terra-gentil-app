@@ -515,8 +515,9 @@ export default function CommunityScreen() {
         onCriado={async (viaApi) => {
           setNovaAberta(false);
           if (viaApi) {
-            console.log("[comunidade] post criado via API, recarregando com sort=newest");
+            carregandoRef.current = false;
             setFiltro("Recentes");
+            await new Promise((r) => setTimeout(r, 400));
             await carregarTopics(1, true, "newest");
           } else {
             const atualizada = await listarMeusPosts();
