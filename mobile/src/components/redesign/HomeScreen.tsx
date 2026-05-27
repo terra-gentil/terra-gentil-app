@@ -12,7 +12,28 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_POSES } from "../../assets/mascot";
 import { Camera, Users, Tv, BookOpen, ShoppingBag, Gamepad2 } from "lucide-react-native";
+
+function useIntermitentePulse(delayInicial = 3500, intervalo = 5000) {
+  const anim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    function pulsar() {
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1.22, duration: 200, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0.95, duration: 150, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 180, useNativeDriver: true }),
+      ]).start(() => {
+        timeout = setTimeout(pulsar, intervalo);
+      });
+    }
+    timeout = setTimeout(pulsar, delayInicial);
+    return () => clearTimeout(timeout);
+  }, []);
+  return anim;
+}
 import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
+import { getUser, getProfileExtra } from "../../storage/auth";
+import { getComunidadeStats, calcularHistoricoStats, ConquistaStats, SELOS } from "../../storage/conquistas";
 import TopBar from "./TopBar";
 import StreakStrip from "./StreakStrip";
 import SectionTitle from "./SectionTitle";
@@ -58,21 +79,7 @@ interface HomeScreenProps {
 }
 
 function JogoCardWide({ atalho, onPress }: { atalho: Atalho; onPress: () => void }) {
-  const bobAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(bobAnim, { toValue: 1, duration: 650, useNativeDriver: true }),
-        Animated.timing(bobAnim, { toValue: 0, duration: 650, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [bobAnim]);
-
-  const translateY = bobAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -7] });
-  const rotate = bobAnim.interpolate({ inputRange: [0, 1], outputRange: ["-5deg", "5deg"] });
+  const jogarPulse = useIntermitentePulse(2000, 4500);
 
   return (
     <TouchableOpacity
@@ -81,21 +88,22 @@ function JogoCardWide({ atalho, onPress }: { atalho: Atalho; onPress: () => void
       onPress={onPress}
       accessibilityLabel={`Abrir ${atalho.label}`}
     >
-      <Animated.View
-        style={[
-          styles.atalhoWideMascotWrap,
-          { transform: [{ translateY }, { rotate }] },
-        ]}
-      >
+      <View style={styles.atalhoWideMascotWrap}>
         <Image source={MASCOT_POSES[5]} style={styles.atalhoWideMascotImg} />
-      </Animated.View>
+      </View>
       <View style={styles.atalhoWideTextWrap}>
         <Text style={styles.atalhoWideLabel}>{atalho.label}</Text>
         <Text style={styles.atalhoWideDesc}>{atalho.desc}</Text>
       </View>
-      <View style={[styles.atalhoWidePill, { backgroundColor: COLORS.coral, shadowColor: COLORS.coralDeep }]}>
+      <Animated.View
+        style={[
+          styles.atalhoWidePill,
+          { backgroundColor: COLORS.coral, shadowColor: COLORS.coralDeep },
+          { transform: [{ scale: jogarPulse }] },
+        ]}
+      >
         <Text style={styles.atalhoWidePillText}>Jogar</Text>
-      </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 }
@@ -111,13 +119,33 @@ export default function HomeScreen({
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
+  const [nomeExibido, setNomeExibido] = useState<string | null>(null);
+  const [conquistaStats, setConquistaStats] = useState<ConquistaStats>({
+    total: 0, especiesUnicas: 0, diasUnicos: 0, diasConsecutivos: 0,
+    criticalDiag: 0, allHealthStates: false, noturnoDiag: 0,
+    totalPosts: 0, totalRespostas: 0, totalReacoesEnviadas: 0,
+  });
   const [ebooksAberto, setEbooksAberto] = useState(false);
   const [promosAberto, setPromosAberto] = useState(false);
   const [notifAberto, setNotifAberto] = useState(false);
+  const cameraPulse = useIntermitentePulse(4000, 6000);
 
   useFocusEffect(
     useCallback(() => {
-      listarConsultas(5).then(setHistorico);
+      let alive = true;
+      (async () => {
+        const [hist, u, extra, cStats] = await Promise.all([
+          listarConsultas(5),
+          getUser(),
+          getProfileExtra(),
+          getComunidadeStats(),
+        ]);
+        if (!alive) return;
+        setHistorico(hist);
+        setConquistaStats({ ...calcularHistoricoStats(hist), ...cStats });
+        setNomeExibido(u ? (extra.nome || u.display_name) : null);
+      })();
+      return () => { alive = false; };
     }, [])
   );
 
@@ -147,16 +175,28 @@ export default function HomeScreen({
 
       {/* Greeting */}
       <View style={styles.greeting}>
-        <Text style={styles.greetingTitle}>Ola! 🌱</Text>
+        <Text style={styles.greetingTitle}>
+          {nomeExibido
+            ? `Ola, ${nomeExibido.split(" ")[0].slice(0, 14)}! 🌱`
+            : "Ola! 🌱"}
+        </Text>
         <Text style={styles.greetingSubtitle}>Como estao suas plantinhas hoje?</Text>
       </View>
 
       {/* Streak */}
-      <StreakStrip
-        days={historico.length}
-        badge={historico.length >= 5 ? "Mao Verde" : undefined}
-        onPress={() => navigation.navigate("ProfileTab")}
-      />
+      {(() => {
+        const selosDesbloqueados = SELOS.filter((s) => s.check(conquistaStats)).length;
+        const proximoSelo = SELOS.find((s) => !s.check(conquistaStats));
+        return (
+          <StreakStrip
+            diasUnicos={conquistaStats.diasUnicos}
+            proximoSelo={proximoSelo ?? null}
+            selosDesbloqueados={selosDesbloqueados}
+            totalSelos={SELOS.length}
+            onPress={() => navigation.navigate("ProfileTab")}
+          />
+        );
+      })()}
 
       {/* Scanner card grande - clicavel inteiro */}
       <TouchableOpacity
@@ -183,9 +223,9 @@ export default function HomeScreen({
             </Text>
           </View>
           <View style={styles.scannerCameraWrap}>
-            <View style={styles.scannerCameraBadge}>
+            <Animated.View style={[styles.scannerCameraBadge, { transform: [{ scale: cameraPulse }] }]}>
               <Camera size={20} color="#fff" strokeWidth={2.4} />
-            </View>
+            </Animated.View>
             <Text style={styles.scannerCameraLabel}>Tire uma foto</Text>
           </View>
         </View>
