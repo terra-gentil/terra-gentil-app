@@ -9,7 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
+  useWindowDimensions,
 } from "react-native";
 import { Settings } from "lucide-react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -28,16 +28,54 @@ import EditarPerfilModal from "./EditarPerfilModal";
 const YOUTUBE_URL = "https://www.youtube.com/@TerraGentil";
 const SITE_URL = "https://terragentil.com.br";
 
-const SCREEN_W = Dimensions.get("window").width;
-const GARDEN_CARD_W = (SCREEN_W - SPACING.screenPadding * 2 - 20) / 3;
+const GARDEN_COLS = 3;
+const GARDEN_GAP = 8;
+const GARDEN_PAD = SPACING.screenPadding;
 
-// Conquistas (alinhado ao figma)
-const CONQUISTAS = [
-  { emoji: "🌱", name: "Primeira foto", min: 1, color: COLORS.green },
-  { emoji: "🔥", name: "7 dias", min: 7, color: COLORS.coral },
-  { emoji: "🌻", name: "Mao Verde", min: 15, color: COLORS.amber },
-  { emoji: "💚", name: "Comunitaria", min: 30, color: COLORS.lavender },
-  { emoji: "🏆", name: "50 plantas", min: 50, color: COLORS.inkMute },
+type ConquistaStats = { total: number; diasUnicos: number; especiesUnicas: number };
+
+const CONQUISTAS: {
+  emoji: string;
+  name: string;
+  desc: string;
+  color: string;
+  check: (s: ConquistaStats) => boolean;
+}[] = [
+  {
+    emoji: "🌱",
+    name: "Primeira foto",
+    desc: "1 diagnostico",
+    color: COLORS.green,
+    check: (s) => s.total >= 1,
+  },
+  {
+    emoji: "🔥",
+    name: "7 dias",
+    desc: "7 dias diferentes de uso",
+    color: COLORS.coral,
+    check: (s) => s.diasUnicos >= 7,
+  },
+  {
+    emoji: "🌻",
+    name: "Mao Verde",
+    desc: "10 especies diferentes",
+    color: COLORS.amber,
+    check: (s) => s.especiesUnicas >= 10,
+  },
+  {
+    emoji: "💚",
+    name: "Colecionador",
+    desc: "20 diagnosticos",
+    color: COLORS.lavender,
+    check: (s) => s.total >= 20,
+  },
+  {
+    emoji: "🏆",
+    name: "50 plantas",
+    desc: "50 diagnosticos",
+    color: COLORS.inkMute,
+    check: (s) => s.total >= 50,
+  },
 ];
 
 // Cores e emojis para cards do jardim (alinhado ao figma)
@@ -62,6 +100,8 @@ function getNivelInfo(total: number) {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { width: screenW } = useWindowDimensions();
+  const gardenCardW = Math.floor((screenW - 2 * GARDEN_PAD - (GARDEN_COLS - 1) * GARDEN_GAP) / GARDEN_COLS);
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const [historico, setHistorico] = useState<ConsultaHistorico[]>([]);
   const [usuario, setUsuario] = useState<AuthUser | null>(null);
@@ -96,7 +136,9 @@ export default function ProfileScreen() {
   const total = historico.length;
   const { nivel, nome, progresso, falta } = getNivelInfo(total);
   const especiesUnicas = new Set(historico.map((h) => h.especie_identificada)).size;
-  const selosDesbloqueados = CONQUISTAS.filter((c) => total >= c.min).length;
+  const diasUnicos = new Set(historico.map((h) => new Date(h.timestamp).toDateString())).size;
+  const conquistaStats: ConquistaStats = { total, diasUnicos, especiesUnicas };
+  const selosDesbloqueados = CONQUISTAS.filter((c) => c.check(conquistaStats)).length;
 
   function handleLimparHistorico() {
     Alert.alert(
@@ -167,13 +209,12 @@ export default function ProfileScreen() {
 
   function handleVerTudoConquistas() {
     const linhas = CONQUISTAS.map((c) => {
-      const got = total >= c.min;
-      const status = got ? "✓" : `${c.min} cuidados`;
-      return `${c.emoji}  ${c.name} . ${status}`;
+      const got = c.check(conquistaStats);
+      return `${c.emoji}  ${c.name}  .  ${got ? "Desbloqueado ✓" : c.desc}`;
     }).join("\n");
     Alert.alert(
       "Todas as conquistas",
-      `${linhas}\n\nVocê tem ${selosDesbloqueados} de ${CONQUISTAS.length} selos.`,
+      `${linhas}\n\nVoce tem ${selosDesbloqueados} de ${CONQUISTAS.length} selos.`,
       [{ text: "Fechar", style: "default" }],
     );
   }
@@ -285,7 +326,7 @@ export default function ProfileScreen() {
         />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.conquistasRow}>
           {CONQUISTAS.map((c, i) => {
-            const got = total >= c.min;
+            const got = c.check(conquistaStats);
             return (
               <View key={i} style={[styles.conquistaCard, !got && styles.conquistaLocked]}>
                 <View style={[
@@ -312,7 +353,7 @@ export default function ProfileScreen() {
           {historico.slice(0, 5).map((h, i) => {
             const item = GARDEN_ITEMS[i % GARDEN_ITEMS.length];
             return (
-              <View key={h.id} style={[styles.gardenCard, { width: GARDEN_CARD_W }]}>
+              <View key={h.id} style={[styles.gardenCard, { width: gardenCardW, height: gardenCardW * 1.1 }]}>
                 {h.imageUri ? (
                   <Image source={{ uri: h.imageUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                 ) : (
@@ -320,15 +361,14 @@ export default function ProfileScreen() {
                 )}
                 <View style={styles.gardenOverlay} />
                 <Text style={styles.gardenEmoji}>{item.emoji}</Text>
-                <Text style={styles.gardenName}>{h.nome_popular}</Text>
+                <Text style={styles.gardenName} numberOfLines={2}>{h.nome_popular}</Text>
               </View>
             );
           })}
-          {/* Card "+ Nova" */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={handleNovoDiagnostico}
-            style={[styles.gardenCardEmpty, { width: GARDEN_CARD_W }]}
+            style={[styles.gardenCardEmpty, { width: gardenCardW, height: gardenCardW * 1.1 }]}
             accessibilityLabel="Adicionar nova planta ao meu jardim"
           >
             <Text style={styles.gardenEmptyPlus}>➕</Text>
@@ -651,12 +691,12 @@ const styles = StyleSheet.create({
   gardenGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
-    paddingHorizontal: SPACING.screenPadding,
+    columnGap: GARDEN_GAP,
+    rowGap: GARDEN_GAP,
+    paddingHorizontal: GARDEN_PAD,
     paddingBottom: 18,
   },
   gardenCard: {
-    aspectRatio: 1 / 1.1,
     borderRadius: 14,
     overflow: "hidden",
     position: "relative",
@@ -683,7 +723,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   gardenCardEmpty: {
-    aspectRatio: 1 / 1.1,
     borderRadius: 14,
     borderWidth: 2,
     borderColor: COLORS.inkMute,
