@@ -40,12 +40,16 @@ export async function marcarLida(id: string): Promise<void> {
   await fetch(`${FORUM_API_URL}/notifications/${id}/read`, { method: "POST", headers: h });
 }
 
-export async function enviarBroadcast(titulo: string, corpo: string): Promise<{ enviados: number }> {
+export async function enviarBroadcast(
+  titulo: string,
+  corpo: string,
+  plataforma: "todos" | "ios" | "android" = "todos",
+): Promise<{ enviados: number }> {
   const h = await headers();
   const r = await fetch(`${FORUM_API_URL}/admin/notifications/broadcast`, {
     method: "POST",
     headers: h,
-    body: JSON.stringify({ titulo, corpo }),
+    body: JSON.stringify({ titulo, corpo, plataforma }),
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();

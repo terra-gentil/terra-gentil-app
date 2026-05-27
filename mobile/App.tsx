@@ -89,7 +89,6 @@ const Tab = createBottomTabNavigator();
 
 function CommunityTabScreen() { return <CommunityScreen />; }
 function VideosTab() { return <VideosScreen />; }
-function ProfileTab() { return <ProfileScreen />; }
 
 // TabBar customizado com FAB central
 const TAB_ICONS = {
@@ -171,7 +170,9 @@ function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
       </Tab.Screen>
       <Tab.Screen name="CommunityTab" component={CommunityTabScreen} />
       <Tab.Screen name="VideosTab" component={VideosTab} />
-      <Tab.Screen name="ProfileTab" component={ProfileTab} />
+      <Tab.Screen name="ProfileTab">
+        {() => <ProfileScreen onSettings={onSettings} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
@@ -428,6 +429,7 @@ export default function App() {
           onClose={() => setConfigAberta(false)}
           onLogout={() => setConfigAberta(false)}
           onLogin={() => { setConfigAberta(false); setLoginAberto(true); }}
+          onVerTutorial={() => { setConfigAberta(false); setShowTutorial(true); }}
         />
         <LoginModal
           visible={loginAberto}

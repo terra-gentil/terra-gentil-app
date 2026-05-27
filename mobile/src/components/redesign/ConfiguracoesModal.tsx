@@ -10,12 +10,16 @@ import {
   Alert,
   ActivityIndicator,
   Switch,
+  Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { X, LogOut, LogIn, Bell, BellOff, Trash2, Info, Play, Globe, Shield, Send, ChartBar, Settings } from "lucide-react-native";
+import { X, LogOut, LogIn, Bell, BellOff, Trash2, Info, Play, Globe, Shield, Send, ChartBar, Settings, RotateCcw, Flag, Users, Eye } from "lucide-react-native";
 import { COLORS, FONTS, SIZES, shadowSoft } from "../../constants/theme";
 import { getUser, clearAuth, AuthUser } from "../../storage/auth";
 import { enviarBroadcast, buscarStats } from "../../api/notificacoes";
+import { buscarReports, resolverReport, buscarUsuarios, bloquearUsuario, desbloquearUsuario, Report, UsuarioAdmin } from "../../api/admin";
+import { limparHistorico } from "../../storage/historico";
+import { resetarWelcome, resetarTutorial } from "../../storage/preferencias";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PUSH_ENABLED_KEY = "@terragentil:push_enabled";
@@ -25,9 +29,10 @@ interface Props {
   onClose: () => void;
   onLogout?: () => void;
   onLogin?: () => void;
+  onVerTutorial?: () => void;
 }
 
-export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin }: Props) {
+export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin, onVerTutorial }: Props) {
   const insets = useSafeAreaInsets();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -37,6 +42,13 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
   const [enviando, setEnviando] = useState(false);
   const [stats, setStats] = useState<{ usuarios: number; posts: number; respostas: number; usuarios_com_push: number } | null>(null);
   const [carregandoStats, setCarregandoStats] = useState(false);
+  const [broadPlataforma, setBroadPlataforma] = useState<"todos" | "ios" | "android">("todos");
+  const [reports, setReports] = useState<Report[]>([]);
+  const [totalReports, setTotalReports] = useState(0);
+  const [carregandoReports, setCarregandoReports] = useState(false);
+  const [buscaUsuario, setBuscaUsuario] = useState("");
+  const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([]);
+  const [buscandoUsuario, setBuscandoUsuario] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -70,17 +82,101 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
       Alert.alert("Preencha título e mensagem");
       return;
     }
-    setEnviando(true);
+    const label = broadPlataforma === "todos" ? "todos os dispositivos" : `dispositivos ${broadPlataforma.toUpperCase()}`;
+    Alert.alert(
+      "Confirmar envio",
+      `Enviar para ${label}?\n\n"${broadTitulo.trim()}" — ${broadCorpo.trim()}`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Enviar",
+          onPress: async () => {
+            setEnviando(true);
+            try {
+              const r = await enviarBroadcast(broadTitulo.trim(), broadCorpo.trim(), broadPlataforma);
+              Alert.alert("Enviado!", `Notificação chegou em ${r.enviados} dispositivo(s).`);
+              setBroadTitulo("");
+              setBroadCorpo("");
+            } catch (e: unknown) {
+              Alert.alert("Erro", String(e));
+            } finally {
+              setEnviando(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  async function handleCarregarReports() {
+    setCarregandoReports(true);
     try {
-      const r = await enviarBroadcast(broadTitulo.trim(), broadCorpo.trim());
-      Alert.alert("Enviado!", `Notificação chegou em ${r.enviados} dispositivo(s).`);
-      setBroadTitulo("");
-      setBroadCorpo("");
+      const r = await buscarReports(20, 0);
+      setReports(r.reports);
+      setTotalReports(r.total);
     } catch (e: unknown) {
       Alert.alert("Erro", String(e));
     } finally {
-      setEnviando(false);
+      setCarregandoReports(false);
     }
+  }
+
+  async function handleResolverReport(report: Report, deletar: boolean) {
+    const acao = deletar ? "Remover conteúdo e resolver" : "Ignorar report";
+    Alert.alert(acao, `"${report.conteudo_preview.slice(0, 80)}..."`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: deletar ? "Remover" : "Ignorar",
+        style: deletar ? "destructive" : "default",
+        onPress: async () => {
+          try {
+            await resolverReport(report.id, deletar);
+            setReports(prev => prev.filter(r => r.id !== report.id));
+            setTotalReports(prev => prev - 1);
+          } catch (e: unknown) {
+            Alert.alert("Erro", String(e));
+          }
+        },
+      },
+    ]);
+  }
+
+  async function handleBuscarUsuario() {
+    if (buscaUsuario.trim().length < 2) return;
+    setBuscandoUsuario(true);
+    try {
+      const lista = await buscarUsuarios(buscaUsuario.trim());
+      setUsuarios(lista);
+    } catch (e: unknown) {
+      Alert.alert("Erro", String(e));
+    } finally {
+      setBuscandoUsuario(false);
+    }
+  }
+
+  async function handleToggleBloqueio(u: UsuarioAdmin) {
+    const acao = u.bloqueado ? "Desbloquear" : "Bloquear";
+    Alert.alert(`${acao} ${u.display_name}?`, undefined, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: acao,
+        style: u.bloqueado ? "default" : "destructive",
+        onPress: async () => {
+          try {
+            if (u.bloqueado) {
+              await desbloquearUsuario(u.id);
+            } else {
+              await bloquearUsuario(u.id);
+            }
+            setUsuarios(prev =>
+              prev.map(x => x.id === u.id ? { ...x, bloqueado: !x.bloqueado } : x)
+            );
+          } catch (e: unknown) {
+            Alert.alert("Erro", String(e));
+          }
+        },
+      },
+    ]);
   }
 
   async function handleCarregarStats() {
@@ -93,6 +189,60 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
     } finally {
       setCarregandoStats(false);
     }
+  }
+
+  function handleLimparHistorico() {
+    Alert.alert(
+      "Limpar histórico",
+      "Vou apagar todas as consultas guardadas neste celular. Essa ação não tem volta. Tem certeza?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Apagar tudo",
+          style: "destructive",
+          onPress: async () => {
+            await limparHistorico();
+            Alert.alert("Pronto!", "Histórico apagado.");
+          },
+        },
+      ],
+    );
+  }
+
+  function handleVerTutorial() {
+    Alert.alert(
+      "Ver tutorial",
+      "O tutorial vai aparecer ao fechar as configurações.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Ver",
+          onPress: async () => {
+            await resetarTutorial();
+            onClose();
+            onVerTutorial?.();
+          },
+        },
+      ],
+    );
+  }
+
+  function handleVerBoasVindas() {
+    Alert.alert(
+      "Ver boas-vindas",
+      "A tela de boas-vindas e o tutorial vão aparecer na próxima vez que você abrir o app.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sim",
+          onPress: async () => {
+            await resetarWelcome();
+            await resetarTutorial();
+            Alert.alert("Pronto!", "Feche o app e abra de novo.");
+          },
+        },
+      ],
+    );
   }
 
   return (
@@ -153,12 +303,12 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
             <Item
               icon={<Trash2 size={18} color={COLORS.inkSoft} />}
               texto="Limpar histórico de diagnósticos"
-              onPress={() => Alert.alert("Histórico", "Função em breve.")}
+              onPress={handleLimparHistorico}
             />
             <Item
               icon={<Info size={18} color={COLORS.inkSoft} />}
               texto="Ver tutorial"
-              onPress={() => Alert.alert("Tutorial", "Função em breve.")}
+              onPress={handleVerTutorial}
             />
           </Secao>
 
@@ -171,23 +321,28 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
             <Item
               icon={<Play size={18} color={COLORS.coral} />}
               texto="Canal no YouTube"
-              onPress={() => Alert.alert("YouTube", "youtube.com/@terragentil")}
+              onPress={() => Linking.openURL("https://www.youtube.com/@TerraGentil")}
             />
             <Item
               icon={<Globe size={18} color={COLORS.green} />}
               texto="Site terragentil.com.br"
-              onPress={() => Alert.alert("Site", "terragentil.com.br")}
+              onPress={() => Linking.openURL("https://terragentil.com.br")}
             />
             <Item
               icon={<Shield size={18} color={COLORS.inkSoft} />}
               texto="Política de privacidade"
-              onPress={() => Alert.alert("Privacidade", "Função em breve.")}
+              onPress={() => Linking.openURL("https://terragentil.com.br/privacidade")}
             />
           </Secao>
 
           {/* ADMIN */}
           {user?.is_admin && (
             <Secao titulo="Admin" icone={<Settings size={16} color={COLORS.amber} />}>
+              <Item
+                icon={<RotateCcw size={18} color={COLORS.inkSoft} />}
+                texto="Ver tela de boas-vindas"
+                onPress={handleVerBoasVindas}
+              />
               <TouchableOpacity style={styles.adminToggle} onPress={() => setAdminAberto(v => !v)}>
                 <Text style={styles.adminToggleText}>{adminAberto ? "Fechar painel" : "Abrir painel admin"}</Text>
               </TouchableOpacity>
@@ -195,7 +350,7 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
               {adminAberto && (
                 <>
                   {/* Broadcast */}
-                  <Text style={styles.adminSubtitulo}>Enviar notificação push</Text>
+                  <Text style={styles.adminSubtitulo}>📢 Notificação push</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="Título (max 60)"
@@ -213,6 +368,32 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
                     multiline
                     maxLength={200}
                   />
+                  {/* Preview da notificacao */}
+                  {(broadTitulo.trim() || broadCorpo.trim()) && (
+                    <View style={styles.previewNotif}>
+                      <View style={styles.previewIconWrap}>
+                        <Text style={styles.previewIcon}>🌱</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.previewTitulo} numberOfLines={1}>{broadTitulo.trim() || "Título"}</Text>
+                        <Text style={styles.previewCorpo} numberOfLines={2}>{broadCorpo.trim() || "Mensagem..."}</Text>
+                      </View>
+                    </View>
+                  )}
+                  {/* Plataforma */}
+                  <View style={styles.plataformaRow}>
+                    {(["todos", "ios", "android"] as const).map(p => (
+                      <TouchableOpacity
+                        key={p}
+                        style={[styles.plataformaBtn, broadPlataforma === p && styles.plataformaBtnAtivo]}
+                        onPress={() => setBroadPlataforma(p)}
+                      >
+                        <Text style={[styles.plataformaBtnText, broadPlataforma === p && styles.plataformaBtnTextAtivo]}>
+                          {p === "todos" ? "Todos" : p.toUpperCase()}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                   <TouchableOpacity
                     style={[styles.btnAdmin, enviando && styles.btnAdminDisabled]}
                     onPress={handleEnviarBroadcast}
@@ -220,11 +401,75 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
                   >
                     {enviando
                       ? <ActivityIndicator color="#fff" size="small" />
-                      : <><Send size={16} color="#fff" /><Text style={styles.btnAdminText}>Enviar para todos</Text></>}
+                      : <><Send size={16} color="#fff" /><Text style={styles.btnAdminText}>Enviar notificação</Text></>}
                   </TouchableOpacity>
 
+                  {/* Reports */}
+                  <Text style={[styles.adminSubtitulo, { marginTop: 20 }]}>
+                    🚩 Reports pendentes{totalReports > 0 ? ` (${totalReports})` : ""}
+                  </Text>
+                  <TouchableOpacity style={styles.btnStatsLoad} onPress={handleCarregarReports} disabled={carregandoReports}>
+                    {carregandoReports
+                      ? <ActivityIndicator color={COLORS.coral} size="small" />
+                      : <><Flag size={16} color={COLORS.coral} /><Text style={[styles.btnStatsText, { color: COLORS.coral }]}>Carregar reports</Text></>}
+                  </TouchableOpacity>
+                  {reports.map(r => (
+                    <View key={r.id} style={styles.reportCard}>
+                      <Text style={styles.reportTipo}>{r.target_type === "topic" ? "Tópico" : "Post"}</Text>
+                      <Text style={styles.reportPreview} numberOfLines={3}>{r.conteudo_preview || "(sem conteúdo)"}</Text>
+                      {r.reason ? <Text style={styles.reportMotivo}>Motivo: {r.reason}</Text> : null}
+                      <View style={styles.reportAcoes}>
+                        <TouchableOpacity style={styles.reportBtnIgnorar} onPress={() => handleResolverReport(r, false)}>
+                          <Text style={styles.reportBtnIgnorarText}>Ignorar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.reportBtnRemover} onPress={() => handleResolverReport(r, true)}>
+                          <Text style={styles.reportBtnRemoverText}>Remover</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                  {reports.length === 0 && !carregandoReports && totalReports === 0 && (
+                    <Text style={styles.adminVazio}>Nenhum report pendente</Text>
+                  )}
+
+                  {/* Gestao de usuarios */}
+                  <Text style={[styles.adminSubtitulo, { marginTop: 20 }]}>👤 Gestão de usuários</Text>
+                  <View style={styles.buscaRow}>
+                    <TextInput
+                      style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                      placeholder="Buscar por nome..."
+                      placeholderTextColor={COLORS.inkMute}
+                      value={buscaUsuario}
+                      onChangeText={setBuscaUsuario}
+                      onSubmitEditing={handleBuscarUsuario}
+                      returnKeyType="search"
+                    />
+                    <TouchableOpacity style={styles.btnBuscar} onPress={handleBuscarUsuario} disabled={buscandoUsuario}>
+                      {buscandoUsuario
+                        ? <ActivityIndicator color="#fff" size="small" />
+                        : <Users size={16} color="#fff" />}
+                    </TouchableOpacity>
+                  </View>
+                  {usuarios.map(u => (
+                    <View key={u.id} style={styles.usuarioCard}>
+                      <View style={styles.usuarioAvatar}>
+                        <Text style={styles.usuarioLetra}>{u.display_name.charAt(0).toUpperCase()}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.usuarioNome}>{u.display_name}</Text>
+                        <Text style={styles.usuarioSub}>{u.total_posts} posts{u.bloqueado ? " · BLOQUEADO" : ""}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.btnBloqueio, u.bloqueado && styles.btnDesbloqueio]}
+                        onPress={() => handleToggleBloqueio(u)}
+                      >
+                        <Text style={styles.btnBloqueioText}>{u.bloqueado ? "Desbloquear" : "Bloquear"}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+
                   {/* Stats */}
-                  <Text style={[styles.adminSubtitulo, { marginTop: 20 }]}>Estatísticas do app</Text>
+                  <Text style={[styles.adminSubtitulo, { marginTop: 20 }]}>📊 Estatísticas do app</Text>
                   <TouchableOpacity style={styles.btnStatsLoad} onPress={handleCarregarStats} disabled={carregandoStats}>
                     {carregandoStats
                       ? <ActivityIndicator color={COLORS.green} size="small" />
@@ -426,4 +671,167 @@ const styles = StyleSheet.create({
   },
   statValor: { fontFamily: FONTS.displayBlack, fontSize: SIZES.xl, color: COLORS.greenDark },
   statLabel: { fontFamily: FONTS.body, fontSize: SIZES.sm, color: COLORS.inkSoft, marginTop: 2 },
+
+  // Preview notificacao
+  previewNotif: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 14,
+    marginBottom: 8,
+    backgroundColor: COLORS.bg,
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  previewIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: COLORS.greenSoft,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  previewIcon: { fontSize: 20 },
+  previewTitulo: { fontFamily: FONTS.bodyExtraBold, fontSize: SIZES.sm, color: COLORS.ink },
+  previewCorpo: { fontFamily: FONTS.body, fontSize: SIZES.xs, color: COLORS.inkSoft, marginTop: 1 },
+
+  // Plataforma picker
+  plataformaRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginHorizontal: 14,
+    marginBottom: 10,
+  },
+  plataformaBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.divider,
+    alignItems: "center",
+  },
+  plataformaBtnAtivo: {
+    borderColor: COLORS.amber,
+    backgroundColor: COLORS.amber + "15",
+  },
+  plataformaBtnText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: SIZES.sm,
+    color: COLORS.inkSoft,
+  },
+  plataformaBtnTextAtivo: { color: COLORS.amber },
+
+  // Reports
+  reportCard: {
+    marginHorizontal: 14,
+    marginBottom: 10,
+    backgroundColor: COLORS.bg,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  reportTipo: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: SIZES.xs,
+    color: COLORS.coral,
+    marginBottom: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  reportPreview: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.sm,
+    color: COLORS.ink,
+    lineHeight: 18,
+  },
+  reportMotivo: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.xs,
+    color: COLORS.inkSoft,
+    marginTop: 4,
+    fontStyle: "italic",
+  },
+  reportAcoes: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+  },
+  reportBtnIgnorar: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    alignItems: "center",
+  },
+  reportBtnIgnorarText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.sm, color: COLORS.inkSoft },
+  reportBtnRemover: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: COLORS.coral,
+    alignItems: "center",
+  },
+  reportBtnRemoverText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.sm, color: "#fff" },
+  adminVazio: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.sm,
+    color: COLORS.inkMute,
+    paddingHorizontal: 14,
+    paddingBottom: 8,
+    fontStyle: "italic",
+  },
+
+  // Gestao de usuarios
+  buscaRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginHorizontal: 14,
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  btnBuscar: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: COLORS.green,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  usuarioCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 14,
+    marginBottom: 8,
+    backgroundColor: COLORS.bg,
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  usuarioAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: COLORS.greenSoft,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  usuarioLetra: { fontFamily: FONTS.bodyExtraBold, fontSize: 16, color: COLORS.greenDark },
+  usuarioNome: { fontFamily: FONTS.bodyExtraBold, fontSize: SIZES.sm, color: COLORS.ink },
+  usuarioSub: { fontFamily: FONTS.body, fontSize: SIZES.xs, color: COLORS.inkSoft },
+  btnBloqueio: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: COLORS.coral,
+  },
+  btnDesbloqueio: {
+    backgroundColor: COLORS.green,
+  },
+  btnBloqueioText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.xs, color: "#fff" },
 });

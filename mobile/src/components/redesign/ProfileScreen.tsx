@@ -20,7 +20,6 @@ import { COLORS, FONTS, SIZES, RADIUS, SPACING, shadowChunky, shadowSoft } from 
 import { MASCOT_POSES } from "../../assets/mascot";
 import SectionTitle from "./SectionTitle";
 import { listarConsultas, limparHistorico, ConsultaHistorico } from "../../storage/historico";
-import { resetarWelcome, resetarTutorial } from "../../storage/preferencias";
 import { getUser, clearAuth, AuthUser, getProfileExtra } from "../../storage/auth";
 import {
   SELOS,
@@ -69,7 +68,11 @@ const CONQUISTAS_ZERO: ConquistaStats = {
   totalPosts: 0, totalRespostas: 0, totalReacoesEnviadas: 0,
 };
 
-export default function ProfileScreen() {
+interface Props {
+  onSettings?: () => void;
+}
+
+export default function ProfileScreen({ onSettings }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { width: screenW } = useWindowDimensions();
@@ -141,24 +144,6 @@ export default function ProfileScreen() {
     );
   }
 
-  function handleResetWelcome() {
-    Alert.alert(
-      "Ver boas-vindas",
-      "A tela de boas-vindas e o tutorial vao aparecer na proxima vez que voce abrir o app.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Sim",
-          onPress: async () => {
-            await resetarWelcome();
-            await resetarTutorial();
-            Alert.alert("Pronto!", "Feche o app e abra de novo.");
-          },
-        },
-      ],
-    );
-  }
-
   function handleEditarPerfil() {
     setEditarAberto(true);
   }
@@ -207,7 +192,7 @@ export default function ProfileScreen() {
           <View style={styles.coverCircle1} />
           <View style={styles.coverCircle2} />
           <View style={styles.coverWave} />
-          <TouchableOpacity style={[styles.settingsBtn, { top: insets.top + 10 }]} onPress={handleResetWelcome} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.settingsBtn, { top: insets.top + 10 }]} onPress={onSettings} activeOpacity={0.8}>
             <Settings size={20} color={COLORS.greenDark} />
           </TouchableOpacity>
         </LinearGradient>

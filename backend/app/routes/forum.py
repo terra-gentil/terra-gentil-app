@@ -50,6 +50,17 @@ def _require_auth(authorization: Optional[str] = Header(default=None)) -> str:
     return verify_jwt(authorization.removeprefix("Bearer ").strip())["user_id"]
 
 
+async def _require_auth_active(authorization: Optional[str] = Header(default=None)) -> str:
+    user_id = _require_auth(authorization)
+    async with get_conn() as conn:
+        row = await conn.fetchrow(
+            "SELECT bloqueado FROM forum_users WHERE id = $1::uuid", user_id
+        )
+    if row and row["bloqueado"]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Conta bloqueada")
+    return user_id
+
+
 def _optional_auth(authorization: Optional[str] = Header(default=None)) -> Optional[str]:
     if not authorization or not authorization.startswith("Bearer "):
         return None
@@ -176,7 +187,7 @@ async def list_topics(
 async def create_topic(
     request: Request,
     payload: TopicCreate,
-    user_id: str = Depends(_require_auth),
+    user_id: str = Depends(_require_auth_active),
 ):
     site = _resolve_site(request)
     topic_id = str(uuid.uuid4())
@@ -309,7 +320,7 @@ async def create_post(
     request: Request,
     topic_id: str,
     payload: PostCreate,
-    user_id: str = Depends(_require_auth),
+    user_id: str = Depends(_require_auth_active),
 ):
     site = _resolve_site(request)
     async with get_conn() as conn:
@@ -345,7 +356,7 @@ async def create_post(
 async def toggle_reaction(
     request: Request,
     payload: ReactionCreate,
-    user_id: str = Depends(_require_auth),
+    user_id: str = Depends(_require_auth_active),
 ):
     async with get_conn() as conn:
         async with conn.transaction():
@@ -376,7 +387,7 @@ async def toggle_reaction(
 async def create_report(
     request: Request,
     payload: ReportCreate,
-    user_id: str = Depends(_require_auth),
+    user_id: str = Depends(_require_auth_active),
 ):
     site = _resolve_site(request)
     report_id = str(uuid.uuid4())
