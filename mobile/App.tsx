@@ -12,7 +12,9 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -50,6 +52,37 @@ import { useIntermitentePulse } from "./src/hooks/useIntermitentePulse";
 import { NotifProvider } from "./src/context/NotifContext";
 import ConfiguracoesModal from "./src/components/redesign/ConfiguracoesModal";
 import LoginModal from "./src/components/redesign/LoginModal";
+import { registrarPushToken as registrarTokenNaApi } from "./src/api/notificacoes";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+const navigationRef = createNavigationContainerRef<any>();
+
+async function pedirPermissaoERegistrarPush() {
+  try {
+    if (!Device.isDevice) return;
+    const { status: atual } = await Notifications.getPermissionsAsync();
+    const status =
+      atual !== "granted"
+        ? (await Notifications.requestPermissionsAsync()).status
+        : atual;
+    if (status !== "granted") return;
+    const { data: token } = await Notifications.getExpoPushTokenAsync({
+      projectId: "f5d75a08-a9e1-421a-ab64-c77097cb19a0",
+    });
+    await registrarTokenNaApi(token, Platform.OS as "ios" | "android");
+  } catch {
+    // silencioso — simuladores nao tem push token fisico
+  }
+}
 
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -180,7 +213,15 @@ export default function App() {
         setShowTutorial(true);
       }
       setBootDone(true);
+      pedirPermissaoERegistrarPush();
     })();
+
+    const sub = Notifications.addNotificationResponseReceivedListener(() => {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate("HomeTab");
+      }
+    });
+    return () => sub.remove();
   }, []);
 
   async function handleWelcomeDone() {
@@ -374,7 +415,7 @@ export default function App() {
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <MainTabs
             onTirarFoto={handleTirarFoto}
             onEscolherGaleria={handleEscolherGaleria}
@@ -391,7 +432,7 @@ export default function App() {
         <LoginModal
           visible={loginAberto}
           onClose={() => setLoginAberto(false)}
-          onLogin={() => setLoginAberto(false)}
+          onLogin={() => { setLoginAberto(false); pedirPermissaoERegistrarPush(); }}
         />
       </View>
     );
