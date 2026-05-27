@@ -1,78 +1,96 @@
 # PROGRESSO - Terra Gentil
 
-## Atualizado: 2026-05-26
+## Atualizado: 2026-05-27
 
 ---
 
 ## O que foi feito hoje
 
-### Comunidade: integração com backend do forum
+### Build de producao, moderacao admin, seguranca e Play Store
 
-**Mobile (tudo pronto, TypeScript limpo):**
-- `mobile/src/api/forum.ts` — cliente tipado da API (listarTopics, buscarTopicComPosts, criarTopic, criarResposta, toggleReacao). Envia `X-Site: terra-gentil` em todos os requests.
-- `mobile/src/storage/auth.ts` — armazenamento do JWT no AsyncStorage (getToken, setAuth, getUser, clearAuth).
-- `mobile/src/data/comunidade.ts` — adicionado `isApiTopic` ao PostBase, novo mapper `topicToPost(topic, currentUserId)`.
-- `mobile/src/components/redesign/CommunityScreen.tsx` — substituído ScrollView por FlatList com paginação (20 topics/página), carrega topics reais da API, fallback para POSTS_MOCK se offline/erro.
-- `mobile/src/components/redesign/ComentariosModal.tsx` — detecta `isApiTopic`, carrega replies reais via `buscarTopicComPosts`, envia comentários via API (requer token) ou local (posts locais).
-- `mobile/src/components/redesign/NovaPostagemModal.tsx` — posta na API se tiver JWT, salva local se não tiver (com prompt de login).
+**Mobile:**
+- `PostCard`: badge coroa ADMIN para posts de admins, icone flag para denunciar
+- `CommunityScreen`: handleReport com 3 categorias, chama API real de reports
+- `ProfileScreen`: badge ADMIN dourado para usuarios is_admin
+- `ConfiguracoesModal`: painel admin abre por padrao entre Conta e Notificacoes, reports carregam automaticamente (max 3) ao abrir
+- `api/admin.ts`: buscarReports, resolverReport, buscarUsuarios, bloquear/desbloquear
+- `WelcomeScreen`: barra de progresso 10s, botao Google com pulso no centro
+- EAS Update configurado: expo-updates instalado, app.json com OTA, eas.json com canal production
 
-**Backend (código pronto, aguarda deploy):**
-- `backend/app/routes/forum.py` — `_resolve_site()` agora aceita header `X-Site` como fallback para apps mobile que não enviam `Origin`. Sites válidos: `terra-gentil` e `pj` (hardcoded + valores do site_origin_map).
+**Backend:**
+- `_exigir_admin`: dupla verificacao is_admin DB + ADMIN_USER_IDS whitelist (env)
+- `main.py`: remove fallback dev-session-secret, CORS localhost so em dev
+- `forum.py`: whitelist explicita topic/post para nome de tabela (previne SQL injection)
+- `notifications.py`: corrige Body Pydantic para resolver_report, 6 endpoints admin novos
+- Migration 004: coluna status em forum_reports, coluna bloqueado em forum_users
+
+**Play Store:**
+- Build de producao gerado (versionCode 2, canal production, com OTA)
+- App submetido e aprovado para Teste fechado Alpha
+- 177 paises habilitados, Google Group testers-community@googlegroups.com adicionado
+- Testers Community contratado (25 testadores, 16 dias)
+- Contador: Day 0/16 em andamento
+
+**Supabase:**
+- Migration 004 rodada com sucesso
+- Andre Zimermann (2 contas) setados como is_admin=true
+- Terra Gentil bloqueado como teste de moderacao
+
+**Railway:**
+- ADMIN_USER_IDS configurado com os 2 UUIDs do Andre
+- ENVIRONMENT=production ativo
 
 ---
 
 ## Estado atual
 
-**App mobile:** funcionando com fallback nos 3 posts mock. Assim que o backend for deployado, vai carregar os topics reais automaticamente.
+App em Teste fechado Alpha no Google Play. 25 testadores do Testers Community sendo convocados. Contador de 14 dias inicia quando aceitarem.
 
-**Bloqueador:** Railway não faz auto-deploy deste repo. O código do backend está no GitHub mas precisa de deploy manual.
-
----
-
-## Próximo passo EXATO
-
-### 1. Fazer deploy do backend no Railway (URGENTE)
-```bash
-railway login        # se não estiver logado
-railway up           # na pasta backend/, ou especificar --service
-```
-Ou: entrar em railway.app, abrir o projeto, clicar em "Deploy" / "Redeploy".
-
-### 2. Testar a API com o novo header
-```bash
-curl "https://terra-gentil-app-production.up.railway.app/forum/topics?per_page=3" \
-  -H "X-Site: terra-gentil"
-# Deve retornar HTTP 200 com lista de topics
-```
-
-### 3. Abrir o app no celular e verificar
-- Aba Comunidade deve mostrar topics reais do forum
-- Tap em qualquer post abre o ComentariosModal com replies reais
-- Botão "Nova postagem" deve mostrar prompt de login (sem JWT ainda)
-
-### 4. Implementar login com Google (próxima sessão)
-Para o usuário poder criar posts e comentar na API, precisa de JWT. Fluxo:
-- `expo-web-browser` abre `https://terra-gentil-app-production.up.railway.app/auth/google/login`
-- Backend redireciona com `?token=JWT&name=...&avatar=...`
-- App captura via deep link e chama `setAuth(token, user)`
-- A partir daí todas as ações (post, comentar, reagir) funcionam autenticadas
+Backend em producao com seguranca hardening completo. OTA update configurado.
 
 ---
 
-## Commits desta sessão
+## Proximo passo EXATO
+
+### Quando o Testers Community concluir os 14 dias:
+1. Play Console > Producao > Solicitar acesso de producao
+2. Responder as perguntas sobre o teste fechado
+3. Aguardar aprovacao do Google (1-3 dias)
+4. Publicar para todos
+
+### Para atualizacoes de codigo (sem novo build):
+```bash
+cd mobile
+eas update --branch production --message "descricao da mudanca"
 ```
-13180c2 backend: force redeploy Railway
-7940f31 comunidade: usa ref para evitar double-load no carregarTopics
-6941d15 comunidade: conecta ao backend do forum via API real
+
+### Chave de servico Google Play (para submit automatico futuro):
+- play.google.com/console > Setup > API access
+- Criar conta de servico, baixar JSON, configurar no EAS
+
+---
+
+## Commits desta sessao
+```
+e615d58 security: hardening — whitelist admin, sem fallback JWT, CORS so dev, fix SQL
+cf3eb14 admin: painel abre por padrao e aparece entre Conta e Notificacoes
+9d30d30 ota: configura EAS Update + expo-updates + auto-load 3 reports ao abrir admin
+f3b7c58 build: bump versionCode para 2 (novo build com expo-updates nativo)
+76fd882 admin: corrige resolver_report — Body com Pydantic model para aceitar JSON object
+5888a69 forum: badge admin, botao report nos posts e wiring CommunityScreen
 ```
 
 ---
 
 ## Arquivos-chave envolvidos
-- `mobile/src/api/forum.ts`
-- `mobile/src/storage/auth.ts`
-- `mobile/src/data/comunidade.ts`
+- `mobile/src/components/redesign/ConfiguracoesModal.tsx`
 - `mobile/src/components/redesign/CommunityScreen.tsx`
-- `mobile/src/components/redesign/ComentariosModal.tsx`
-- `mobile/src/components/redesign/NovaPostagemModal.tsx`
-- `backend/app/routes/forum.py` (aguarda deploy)
+- `mobile/src/components/redesign/PostCard.tsx`
+- `mobile/src/components/redesign/ProfileScreen.tsx`
+- `mobile/src/api/admin.ts`
+- `mobile/app.json`
+- `mobile/eas.json`
+- `backend/app/main.py`
+- `backend/app/routes/forum.py`
+- `backend/app/routes/notifications.py`
+- `backend/migrations/004_admin_moderation.sql`
