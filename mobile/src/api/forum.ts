@@ -14,6 +14,7 @@ export interface TopicOut {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
+  is_admin: boolean;
   pinned: boolean;
   created_at: string;
   last_post_at: string | null;
@@ -38,6 +39,7 @@ export interface PostOut {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
+  is_admin: boolean;
   created_at: string;
   reactions: Record<string, number>;
   my_reactions: string[];
@@ -123,6 +125,13 @@ export async function deletarTopic(topicId: string, token: string): Promise<void
     const texto = await resp.text().catch(() => String(resp.status));
     throw new Error(`${resp.status}: ${texto}`);
   }
+}
+
+export async function reportarConteudo(
+  data: { target_id: string; target_type: "topic" | "post"; reason?: string },
+  token: string,
+): Promise<void> {
+  await requisicao("/forum/reports", { method: "POST", body: data, token });
 }
 
 export async function toggleReacao(

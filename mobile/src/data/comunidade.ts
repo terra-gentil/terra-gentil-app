@@ -20,6 +20,7 @@ export interface PostBase {
   accentDeep: string;
   tags: string[];
   isMine?: boolean;
+  isAdmin?: boolean;
   isApiTopic?: boolean;
   imageUri?: string;
   comment?: {
@@ -202,6 +203,7 @@ export function topicToPost(topic: TopicOut, currentUserId?: string | null): Pos
     accentDeep: paleta.accentDeep,
     tags: [],
     isMine: currentUserId ? topic.user_id === currentUserId : false,
+    isAdmin: topic.is_admin ?? false,
     isApiTopic: true,
     imageUri,
     comment:

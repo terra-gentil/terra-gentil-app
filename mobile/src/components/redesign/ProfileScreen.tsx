@@ -11,7 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { Settings } from "lucide-react-native";
+import { Settings, Crown } from "lucide-react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -211,7 +211,15 @@ export default function ProfileScreen({ onSettings }: Props) {
                 </View>
               </View>
               <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>{nomeExibido ?? "Meu Jardim"}</Text>
+                <View style={styles.profileNameRow}>
+                  <Text style={styles.profileName}>{nomeExibido ?? "Meu Jardim"}</Text>
+                  {usuario?.is_admin && (
+                    <View style={styles.adminBadge}>
+                      <Crown size={10} color="#92400e" fill="#fbbf24" />
+                      <Text style={styles.adminBadgeText}>ADMIN</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.profileBio}>{especiesUnicas} especie{especiesUnicas !== 1 ? "s" : ""} diferentes</Text>
               </View>
             </View>
@@ -498,10 +506,33 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 4,
   },
+  profileNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexWrap: "wrap",
+  },
   profileName: {
     fontFamily: FONTS.displayBlack,
     fontSize: 22,
     color: COLORS.ink,
+  },
+  adminBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+    borderRadius: 8,
+    backgroundColor: "#fef3c7",
+    borderWidth: 1,
+    borderColor: "#fbbf24",
+  },
+  adminBadgeText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: 9,
+    color: "#92400e",
+    letterSpacing: 0.4,
   },
   profileBio: {
     fontFamily: FONTS.body,

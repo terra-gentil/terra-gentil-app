@@ -47,7 +47,7 @@ import {
 } from "../../storage/comunidade";
 import { obterOuCriarNickname } from "../../storage/nickname";
 import { getToken, getUser, AuthUser } from "../../storage/auth";
-import { listarTopics, deletarTopic, TopicOut } from "../../api/forum";
+import { listarTopics, deletarTopic, TopicOut, reportarConteudo } from "../../api/forum";
 import LoginModal from "./LoginModal";
 import { incrementarStat } from "../../storage/conquistas";
 
@@ -403,10 +403,48 @@ export default function CommunityScreen() {
       {
         text: "Reportar",
         style: "destructive",
-        onPress: () =>
-          Alert.alert("Recebido", "Vamos analisar e tomar as providências."),
+        onPress: () => handleReport(post),
       },
     ]);
+  }
+
+  async function handleReport(post: PostBase) {
+    Alert.alert(
+      "Reportar post",
+      "Por que você está reportando este conteúdo?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Conteúdo inapropriado",
+          onPress: () => enviarReport(post, "Conteúdo inapropriado"),
+        },
+        {
+          text: "Spam ou propaganda",
+          onPress: () => enviarReport(post, "Spam ou propaganda"),
+        },
+        {
+          text: "Informação falsa",
+          onPress: () => enviarReport(post, "Informação falsa"),
+        },
+      ],
+    );
+  }
+
+  async function enviarReport(post: PostBase, motivo: string) {
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Faça login", "Você precisa estar logado para reportar.");
+      return;
+    }
+    try {
+      await reportarConteudo(
+        { target_id: String(post.id), target_type: "topic", reason: motivo },
+        token,
+      );
+      Alert.alert("Obrigado!", "Recebemos seu report. Vamos analisar em breve.");
+    } catch (err) {
+      Alert.alert("Erro", "Não foi possível enviar o report. Tente de novo.");
+    }
   }
 
   function handleSubmitBusca() {
@@ -506,6 +544,7 @@ export default function CommunityScreen() {
             onShare={() => handleShare(p)}
             onVerComentarios={() => handleAbrirComentarios(p)}
             onContinuarLendo={() => handleAbrirComentarios(p)}
+            onReport={!p.isMine ? () => handleReport(p) : undefined}
           />
         )}
         ListHeaderComponent={

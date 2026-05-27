@@ -14,6 +14,7 @@ import {
   Bookmark,
   MoreHorizontal,
   Pin,
+  Flag,
 } from "lucide-react-native";
 import { COLORS, FONTS, SIZES } from "../../constants/theme";
 import { PostBase } from "../../data/comunidade";
@@ -40,6 +41,7 @@ interface PostCardProps {
   onShare?: () => void;
   onVerComentarios?: () => void;
   onContinuarLendo?: () => void;
+  onReport?: () => void;
 }
 
 export default function PostCard({
@@ -56,6 +58,7 @@ export default function PostCard({
   onShare,
   onVerComentarios,
   onContinuarLendo,
+  onReport,
 }: PostCardProps) {
   const likesAtual = post.likesBase + (liked ? 1 : 0);
   const comentariosAtual = post.comentariosBase + comentariosLocais;
@@ -102,6 +105,11 @@ export default function PostCard({
               <View style={styles.pinnedBadge}>
                 <Pin size={10} color={COLORS.greenDark} fill={COLORS.greenDark} />
                 <Text style={styles.pinnedBadgeText}>OFICIAL</Text>
+              </View>
+            )}
+            {post.isAdmin && !post.isMine && (
+              <View style={styles.adminBadge}>
+                <Text style={styles.adminBadgeText}>👑 ADMIN</Text>
               </View>
             )}
             {post.isMine && (
@@ -199,6 +207,12 @@ export default function PostCard({
             strokeWidth={2.2}
           />
         </TouchableOpacity>
+
+        {!post.isMine && onReport && (
+          <TouchableOpacity onPress={onReport} activeOpacity={0.7} hitSlop={8}>
+            <Flag size={18} color={COLORS.inkMute} strokeWidth={2} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Top comment preview */}
@@ -300,6 +314,20 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodyExtraBold,
     fontSize: 9,
     color: COLORS.greenDark,
+    letterSpacing: 0.4,
+  },
+  adminBadge: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    backgroundColor: "#fef3c7",
+    borderWidth: 1,
+    borderColor: "#fbbf24",
+  },
+  adminBadgeText: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: 9,
+    color: "#92400e",
     letterSpacing: 0.4,
   },
   myBadge: {

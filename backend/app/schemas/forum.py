@@ -42,6 +42,7 @@ class TopicOut(BaseModel):
     user_id: str = ""
     display_name: str
     avatar_url: str | None
+    is_admin: bool = False
     pinned: bool
     created_at: str
     last_post_at: str
@@ -59,6 +60,7 @@ class PostOut(BaseModel):
     user_id: str = ""
     display_name: str
     avatar_url: str | None
+    is_admin: bool = False
     created_at: str
     reactions: dict = {}
     my_reactions: list[str] = []
