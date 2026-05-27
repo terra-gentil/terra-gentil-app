@@ -13,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { File as FSFile, Paths as FSPaths } from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus, Search, X } from "lucide-react-native";
@@ -273,11 +272,10 @@ export default function CommunityScreen() {
           const safeId = String(post.id).replace(/[^a-z0-9]/gi, "");
           const tempFile = new FSFile(FSPaths.cache, `share_${safeId}.jpg`);
           tempFile.write(b64Match[1], { encoding: "base64" });
-          if (Platform.OS === "ios") {
-            await Share.share({ url: tempFile.uri, message: msg, title: post.title });
-          } else {
-            await Sharing.shareAsync(tempFile.uri, { mimeType: "image/jpeg", dialogTitle: post.title });
-          }
+          // iOS: file:// URI funciona direto com Share
+          // Android: precisa de content:// URI para Share aceitar imagem + texto juntos
+          const shareUri = Platform.OS === "ios" ? tempFile.uri : (tempFile.contentUri || tempFile.uri);
+          await Share.share({ url: shareUri, message: msg, title: post.title });
           return;
         }
       }
