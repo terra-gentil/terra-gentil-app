@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
   Pressable,
   Share,
   StyleSheet,
@@ -11,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { File as FSFile, Paths as FSPaths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus, Search, X } from "lucide-react-native";
@@ -75,34 +78,33 @@ function gerarTextoCompartilhamento(post: PostBase, url: string): string {
   const totalEngajamento = likes + comments;
 
   const stats: string[] = [];
-  if (likes > 0) stats.push(`💚 ${formatarNumero(likes)} curtidas`);
-  if (comments > 0) stats.push(`💬 ${formatarNumero(comments)} comentários`);
-  const statsLinha = stats.join("  ·  ");
+  if (likes > 0) stats.push(`💚 ${formatarNumero(likes)}`);
+  if (comments > 0) stats.push(`💬 ${formatarNumero(comments)}`);
+  const statsLinha = stats.length > 0 ? stats.join("  ") : null;
 
-  let cabecalho: string;
-  let rodape: string;
+  let chamada: string;
+  let cta: string;
 
   if (post.pinned) {
-    cabecalho = `📌 Fixado pelo Doutor Gentileza`;
-    rodape = `Baixa o app Terra Gentil e descubra como cuidar das suas plantas 🌱`;
+    chamada = `📌 Post fixado no Terra Gentil`;
+    cta = `Baixa o app e cuida melhor das suas plantas 🌱\n${url}`;
   } else if (totalEngajamento >= 1000) {
-    cabecalho = `🔥 Bombando na comunidade Terra Gentil`;
-    rodape = `Mais de ${formatarNumero(totalEngajamento)} pessoas já participaram desta conversa. Vem você também 👇`;
+    chamada = `🔥 Viral no Terra Gentil`;
+    cta = `${formatarNumero(totalEngajamento)} pessoas ja interagiram. Vem participar 👇\n${url}`;
   } else if (totalEngajamento >= 100) {
-    cabecalho = `${catEmoji} Em alta — Terra Gentil`;
-    rodape = `A galera está debatendo isso na maior comunidade de plantas do Brasil 🌿`;
+    chamada = `${catEmoji} Em alta no Terra Gentil`;
+    cta = `A comunidade ta debatendo isso. Vem ver 👇\n${url}`;
   } else {
-    cabecalho = `${catEmoji} ${post.cat} — Terra Gentil`;
-    rodape = `Compartilha o que você sabe. Toda planta importa 🌱`;
+    chamada = `${catEmoji} Terra Gentil`;
+    cta = `Compartilha o que voce sabe. Toda planta importa 🌱\n${url}`;
   }
 
   const partes = [
-    cabecalho,
+    chamada,
     `"${post.title}"`,
-    statsLinha || `por ${post.author}`,
-    rodape,
-    url,
-  ].filter(Boolean);
+    statsLinha ? `${statsLinha}  ·  por ${post.author}` : `por ${post.author}`,
+    cta,
+  ];
 
   return partes.join("\n\n");
 }
@@ -132,6 +134,7 @@ export default function CommunityScreen() {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [temMais, setTemMais] = useState(true);
   const carregandoRef = useRef(false);
+  const flatListRef = useRef<FlatList<PostBase>>(null);
 
   const recarregarComentarios = useCallback(async (ids: (string | number)[]) => {
     const entries = await Promise.all(
@@ -210,7 +213,7 @@ export default function CommunityScreen() {
         : POSTS_MOCK;
     const pinados = fonte.filter((p) => p.pinned);
     const naoPinados = fonte.filter((p) => !p.pinned);
-    return [...pinados, ...meus, ...naoPinados];
+    return [...pinados, ...naoPinados, ...meus];
   }, [meusPosts, nickname, apiTopics, userId]);
 
   const postsFiltrados: PostBase[] = useMemo(() => {
@@ -259,6 +262,22 @@ export default function CommunityScreen() {
     try {
       const url = "https://terragentil.com.br";
       const msg = gerarTextoCompartilhamento(post, url);
+
+      if (post.imageUri) {
+        const b64Match = post.imageUri.match(/^data:image\/\w+;base64,(.+)$/s);
+        if (b64Match) {
+          const safeId = String(post.id).replace(/[^a-z0-9]/gi, "");
+          const tempFile = new FSFile(FSPaths.cache, `share_${safeId}.jpg`);
+          tempFile.write(b64Match[1], { encoding: "base64" });
+          if (Platform.OS === "ios") {
+            await Share.share({ url: tempFile.uri, message: msg, title: post.title });
+          } else {
+            await Sharing.shareAsync(tempFile.uri, { mimeType: "image/jpeg", dialogTitle: post.title });
+          }
+          return;
+        }
+      }
+
       await Share.share({ message: msg, url, title: post.title });
     } catch (err) {
       console.log("[comunidade] erro ao compartilhar:", err);
@@ -388,6 +407,7 @@ export default function CommunityScreen() {
       )}
 
       <FlatList
+        ref={flatListRef}
         data={postsFiltrados}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item: p }) => (
@@ -519,6 +539,7 @@ export default function CommunityScreen() {
             setFiltro("Recentes");
             await new Promise((r) => setTimeout(r, 400));
             await carregarTopics(1, true, "newest");
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
           } else {
             const atualizada = await listarMeusPosts();
             setMeusPosts(atualizada);
