@@ -149,9 +149,10 @@ async def me(credentials: HTTPAuthorizationCredentials = Depends(_bearer)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
     return {
         "id": str(row["id"]),
+        "user_id": str(row["id"]),
         "display_name": row["display_name"],
         "avatar_url": row["avatar_url"],
-        "is_admin": bool(row["is_admin"]),
+        "is_admin": bool(row["is_admin"]) or settings.is_admin(str(row["id"])),
     }
 
 

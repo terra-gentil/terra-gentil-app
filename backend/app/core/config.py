@@ -45,6 +45,17 @@ class Settings(BaseSettings):
         default="https://setlists-pj-ev.pages.dev=pj",
         description="Mapeamento origem→site: 'https://a.com=pj,https://b.com=terra-gentil'",
     )
+    ADMIN_USER_IDS: str = Field(
+        default="",
+        description="UUIDs/Google sub dos admins do fórum, separados por vírgula",
+    )
+
+    @property
+    def admin_user_ids(self) -> set[str]:
+        return {x.strip() for x in self.ADMIN_USER_IDS.split(",") if x.strip()}
+
+    def is_admin(self, user_id: str | None) -> bool:
+        return bool(user_id and user_id in self.admin_user_ids)
 
     @model_validator(mode="after")
     def validate_production_secrets(self) -> "Settings":

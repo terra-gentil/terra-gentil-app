@@ -3,8 +3,18 @@ from pydantic import BaseModel, Field
 
 class TopicCreate(BaseModel):
     title: str = Field(min_length=3, max_length=120)
-    body: str = Field(min_length=10, max_length=120000)
+    body: str = Field(min_length=10, max_length=200000)
     category: str = Field(default="geral", max_length=40)
+    anchor_show_id: str | None = Field(default=None, max_length=80)
+
+
+class UserProfileUpdate(BaseModel):
+    display_name: str | None = Field(default=None, min_length=2, max_length=80)
+    bio: str | None = Field(default=None, max_length=500)
+    email: str | None = Field(default=None, max_length=200)
+    birth_year: int | None = Field(default=None, ge=1900, le=2100)
+    city: str | None = Field(default=None, max_length=80)
+    shows_attended: list[str] | None = Field(default=None, max_length=200)
 
 
 class PostCreate(BaseModel):
@@ -38,6 +48,7 @@ class TopicOut(BaseModel):
     reply_count: int
     reactions: dict = {}
     my_reactions: list[str] = []
+    anchor_show_id: str | None = None
 
 
 class PostOut(BaseModel):
@@ -56,6 +67,9 @@ class PostOut(BaseModel):
 class TopicDetailOut(BaseModel):
     topic: TopicOut
     posts: list[PostOut]
+    total_posts: int = 0
+    page: int = 1
+    per_page: int = 30
 
 
 class TopicsPageOut(BaseModel):
