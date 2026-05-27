@@ -206,15 +206,19 @@ export default function CommunityScreen() {
   );
 
   const todosPosts: PostBase[] = useMemo(() => {
-    const meus = meusPosts.map((m) => postBaseFromMeu(m, nickname));
     const fonte: PostBase[] =
       apiTopics.length > 0
         ? apiTopics.map((t) => topicToPost(t, userId))
         : POSTS_MOCK;
     const pinados = fonte.filter((p) => p.pinned);
     const naoPinados = fonte.filter((p) => !p.pinned);
-    return [...pinados, ...naoPinados, ...meus];
-  }, [meusPosts, nickname, apiTopics, userId]);
+    // Posts locais (offline/legacy) so aparecem no filtro "Meus posts"
+    if (filtro === "Meus posts") {
+      const meus = meusPosts.map((m) => postBaseFromMeu(m, nickname));
+      return [...pinados, ...naoPinados, ...meus];
+    }
+    return [...pinados, ...naoPinados];
+  }, [meusPosts, nickname, apiTopics, userId, filtro]);
 
   const postsFiltrados: PostBase[] = useMemo(() => {
     let lista = todosPosts;
