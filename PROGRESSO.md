@@ -1,6 +1,24 @@
 # PROGRESSO - Terra Gentil
 
-## Atualizado: 2026-05-27
+## Atualizado: 2026-06-20
+
+---
+
+## Marco 2026-06-20: Solicitacao de acesso de producao ENVIADA
+
+- Teste fechado concluido: Testers Community marcou 16/16 dias, 2/2 reports prontos
+- Google Play Console reconheceu os requisitos (12 testadores + 14 dias), botao "Solicitar acesso de producao" ficou ativo
+- Questionario de producao respondido (3 etapas: teste fechado, sobre o app, prontidao para producao)
+  - Recrutamento: provedor de testes pago (Testers Community)
+  - Publico-alvo: cultivadores/jardinagem no Brasil, faixa 0-10.000 instalacoes/ano
+  - Mudancas no teste: hardening backend, painel moderacao, OTA, ajuste navegacao
+- **Solicitacao enviada hoje 13:41**, em analise humana do Google (ate 7 dias, normalmente 1-3)
+- Aguardando e-mail do Google na conta do proprietario
+
+### Proximo passo quando aprovar
+1. Conferir checklist que trava publicacao: Seguranca de dados, Classificacao IARC, ficha da loja, politica de privacidade, publico-alvo
+2. Criar release de Producao reaproveitando o mesmo AAB do teste fechado (nao rebuildar)
+3. Publicar com rollout gradual (20% > 50% > 100%)
 
 ---
 
