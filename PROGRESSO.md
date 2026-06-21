@@ -12,7 +12,10 @@
 - Lancamento completo (100% dos usuarios), 177 paises (resto do mundo)
 - Mapeamento Data Safety levantado no codigo (ver secao Data Safety abaixo)
 - **Enviado para revisao em 21/06**, status "Alteracoes em analise" (verificacoes rapidas + revisao Google)
-- Aguardando aprovacao final do Google (algumas horas a 1-2 dias) > app fica publico
+- **PUBLICADO em 21/06**: app no ar na Google Play, 100% rollout, revisao passou na hora
+- Link publico: https://play.google.com/store/apps/details?id=br.com.terragentil.app
+- Primeiros numeros: 7 instalacoes, MAU 22 (migrados do teste)
+- hub-hz atualizado: status 'producao' + url da Play Store
 
 ### Data Safety declarado
 - Coleta: Nome (obrig), E-mail (opcional, perfil/ebook), User ID (obrig), Fotos (opcional), Conteudo do usuario (forum/feed, opcional), Token push Expo (opcional)
