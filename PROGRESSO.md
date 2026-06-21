@@ -1,5 +1,31 @@
 # PROGRESSO - Terra Gentil
 
+## Atualizado: 2026-06-21
+
+---
+
+## Marco 2026-06-21: App ENVIADO para producao no Google Play
+
+- Acesso de producao CONCEDIDO pelo Google (e-mail recebido 21/06)
+- Versao de producao criada: bundle 2 (1.0.0), minSdk 24, target 36, tamanho 22.5 MB
+- Notas de versao em pt-BR preenchidas
+- Lancamento completo (100% dos usuarios), 177 paises (resto do mundo)
+- Mapeamento Data Safety levantado no codigo (ver secao Data Safety abaixo)
+- **Enviado para revisao em 21/06**, status "Alteracoes em analise" (verificacoes rapidas + revisao Google)
+- Aguardando aprovacao final do Google (algumas horas a 1-2 dias) > app fica publico
+
+### Data Safety declarado
+- Coleta: Nome (obrig), E-mail (opcional, perfil/ebook), User ID (obrig), Fotos (opcional), Conteudo do usuario (forum/feed, opcional), Token push Expo (opcional)
+- Compartilhado com terceiro: Foto da planta enviada ao Google Gemini (diagnostico). E-mail do ebook vai ao FormSubmit.co
+- NAO coleta: localizacao, dados financeiros, analytics, crash reporting, senha (login so Google/Apple OAuth)
+- Supabase/Railway/Expo = processadores de infra (nao contam como compartilhamento)
+
+### Aprendizado do processo
+- Cuidado: o fluxo "Criar nova versao" abre por padrao em faixas erradas (Teste aberto). SEMPRE conferir o titulo "Criar versao de producao" antes de salvar
+- Configurar paises sozinho NAO publica o app, precisa criar a VERSAO com o bundle
+
+---
+
 ## Atualizado: 2026-06-20
 
 ---
