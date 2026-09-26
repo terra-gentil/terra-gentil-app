@@ -91,6 +91,15 @@ app.include_router(forum.router, prefix="/forum", tags=["Forum"])
 app.include_router(feed.router, prefix="/feed", tags=["Feed"])
 app.include_router(notifications.router, tags=["Notifications"])
 
+# Colaboradores do SMUFDPJ: módulo apartado (backend/app/contrib), fora do ar sem a flag.
+# Cópia do repo setlists-pj-ev (scripts/contrib/sync-terra-gentil.sh); não editar aqui.
+from app.contrib.config import contrib_settings  # noqa: E402
+
+if contrib_settings.ENABLED:
+    from app.contrib.routes import router as contrib_router  # noqa: E402
+
+    app.include_router(contrib_router, prefix="/contrib", tags=["Colaboradores"])
+
 
 @app.get("/", tags=["Root"])
 async def root() -> dict[str, str]:
