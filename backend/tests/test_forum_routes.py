@@ -45,6 +45,9 @@ TOPIC_ROW = {
 
 USER_ROW = {"display_name": "Test User", "avatar_url": None}
 
+# 1a consulta de toda rota com _require_auth_active (conta bloqueada?)
+ATIVO_ROW = {"bloqueado": False}
+
 
 class TestCreateTopic:
     def test_sem_auth_retorna_401(self, community_client: TestClient):
@@ -73,7 +76,7 @@ class TestCreateTopic:
 
     def test_payload_valido_cria_topico(self, community_client: TestClient):
         db_conn = AsyncMock()
-        db_conn.fetchrow.side_effect = [TOPIC_ROW, USER_ROW]
+        db_conn.fetchrow.side_effect = [ATIVO_ROW, TOPIC_ROW, USER_ROW]
         with _make_client(db_conn):
             resp = community_client.post(
                 "/forum/topics",
@@ -149,6 +152,7 @@ class TestCreatePost:
 
     def test_topico_inexistente_retorna_404(self, community_client: TestClient):
         db_conn = AsyncMock()
+        db_conn.fetchrow.return_value = ATIVO_ROW
         db_conn.fetchval.return_value = None  # topico nao existe
         with _make_client(db_conn):
             resp = community_client.post(
