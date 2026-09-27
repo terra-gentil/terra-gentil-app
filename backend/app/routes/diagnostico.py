@@ -6,8 +6,9 @@ Recebe imagem via multipart/form-data e retorna diagnóstico estruturado.
 """
 import logging
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 
+from app.core.limiter import limiter
 from app.schemas.diagnostico import DiagnosticoErrorResponse, DiagnosticoResponse
 from app.services.gemini_service import (
     GeminiInvalidResponseError,
@@ -33,7 +34,9 @@ ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
         502: {"model": DiagnosticoErrorResponse, "description": "Erro no Gemini"},
     },
 )
+@limiter.limit("10/minute")
 async def diagnosticar(
+    request: Request,
     file: UploadFile = File(..., description="Foto da planta, JPEG, PNG ou WebP, até 10MB"),
 ) -> DiagnosticoResponse:
     """
@@ -53,7 +56,8 @@ async def diagnosticar(
             },
         )
 
-    image_bytes = await file.read()
+    # +1 byte basta pra saber se passou do limite, sem carregar upload gigante
+    image_bytes = await file.read(MAX_FILE_SIZE_BYTES + 1)
 
     if len(image_bytes) > MAX_FILE_SIZE_BYTES:
         raise HTTPException(

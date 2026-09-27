@@ -1,5 +1,5 @@
 import logging
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlsplit
 
 import httpx
 from authlib.integrations.starlette_client import OAuth
@@ -36,8 +36,19 @@ async def google_login(request: Request):
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
+def _redirect_mobile_permitido(uri: str) -> bool:
+    """O token vai na URL de retorno: só o esquema do app (e o do Expo Go fora de produção).
+    Sem isso, um link com redirect_uri=https://site-malicioso roubaria o login de quem clicasse."""
+    esquema = urlsplit(uri).scheme.lower()
+    if esquema == "terragentil":
+        return True
+    return esquema == "exp" and settings.ENVIRONMENT != "production"
+
+
 @router.get("/google/login/mobile", tags=["Auth"])
 async def google_login_mobile(request: Request, redirect_uri: str = "terragentil://auth"):
+    if not _redirect_mobile_permitido(redirect_uri):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="redirect_uri não permitido")
     request.session["is_mobile"] = True
     request.session["mobile_redirect_uri"] = redirect_uri
     callback_uri = f"{settings.BACKEND_URL}/auth/google/callback"

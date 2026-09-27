@@ -523,16 +523,24 @@ async def _build_user_profile(user_id: str, site: str) -> dict:
     }
 
 
+def _sem_dados_privados(perfil: dict, viewer_id: Optional[str]) -> dict:
+    """Email e ano de nascimento só aparecem pro próprio dono do perfil."""
+    if viewer_id != perfil["id"]:
+        perfil["email"] = ""
+        perfil["birth_year"] = None
+    return perfil
+
+
 @router.get("/users/{user_id}", tags=["Forum"])
 @limiter.limit("20/minute")
-async def get_user(user_id: str, request: Request):
-    return await _build_user_profile(user_id, _resolve_site(request))
+async def get_user(user_id: str, request: Request, viewer_id: Optional[str] = Depends(_optional_auth)):
+    return _sem_dados_privados(await _build_user_profile(user_id, _resolve_site(request)), viewer_id)
 
 
 @router.get("/users/{user_id}/profile", tags=["Forum"])
 @limiter.limit("20/minute")
-async def get_user_profile(user_id: str, request: Request):
-    return await _build_user_profile(user_id, _resolve_site(request))
+async def get_user_profile(user_id: str, request: Request, viewer_id: Optional[str] = Depends(_optional_auth)):
+    return _sem_dados_privados(await _build_user_profile(user_id, _resolve_site(request)), viewer_id)
 
 
 @router.get("/users/{user_id}/badges", tags=["Forum"])

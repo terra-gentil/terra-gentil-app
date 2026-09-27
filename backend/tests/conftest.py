@@ -128,3 +128,11 @@ def mock_gemini_response(json_data: dict) -> MagicMock:
     mock_response = MagicMock()
     mock_response.text = json.dumps(json_data)
     return mock_response
+
+
+@pytest.fixture(autouse=True)
+def _zera_rate_limit():
+    """Cada teste começa com o contador do rate limit zerado."""
+    from app.core.limiter import limiter
+    limiter.reset()
+    yield
