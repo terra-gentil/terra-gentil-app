@@ -9,12 +9,14 @@ from app.core.limiter import limiter
 from app.schemas.forum import (
     PostCreate,
     PostOut,
+    PostUpdate,
     ReactionCreate,
     ReportCreate,
     TopicCreate,
     TopicDetailOut,
     TopicOut,
     TopicsPageOut,
+    TopicUpdate,
     UserProfileUpdate,
 )
 from app.services.auth_service import verify_jwt
@@ -313,6 +315,61 @@ async def deletar_post(
         await conn.execute("DELETE FROM forum_posts WHERE id = $1::uuid", post_id)
     logger.info("Post deletado id=%s por user=%s admin=%s", post_id, user_id, settings.is_admin(user_id))
     return Response(status_code=204)
+
+
+# tabela vem só das rotas abaixo (nunca do usuário)
+_EDITAVEIS = {
+    "forum_topics": ("Tópico não encontrado", "Sem permissão para editar este tópico"),
+    "forum_posts": ("Resposta não encontrada", "Sem permissão para editar esta resposta"),
+}
+
+
+async def _exigir_dono_ou_admin(conn, tabela: str, alvo_id: str, site: str, user_id: str) -> None:
+    nao_achou, sem_permissao = _EDITAVEIS[tabela]
+    row = await conn.fetchrow(
+        f"SELECT user_id::text FROM {tabela} WHERE id = $1::uuid AND site = $2", alvo_id, site,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail=nao_achou)
+    if row["user_id"] != user_id and not settings.is_admin(user_id):
+        raise HTTPException(status_code=403, detail=sem_permissao)
+
+
+@router.patch("/topics/{topic_id}", tags=["Forum"])
+@limiter.limit("10/minute")
+async def editar_topic(
+    topic_id: str,
+    request: Request,
+    payload: TopicUpdate,
+    user_id: str = Depends(_require_auth_active),
+):
+    if payload.title is None and payload.body is None:
+        raise HTTPException(status_code=422, detail="Nada pra editar")
+    site = _resolve_site(request)
+    async with get_conn() as conn:
+        await _exigir_dono_ou_admin(conn, "forum_topics", topic_id, site, user_id)
+        await conn.execute(
+            "UPDATE forum_topics SET title = COALESCE($2, title), body = COALESCE($3, body) WHERE id = $1::uuid",
+            topic_id, payload.title, payload.body,
+        )
+    logger.info("Tópico editado id=%s por user=%s admin=%s", topic_id, user_id, settings.is_admin(user_id))
+    return {"id": topic_id, "updated": True}
+
+
+@router.patch("/posts/{post_id}", tags=["Forum"])
+@limiter.limit("10/minute")
+async def editar_post(
+    post_id: str,
+    request: Request,
+    payload: PostUpdate,
+    user_id: str = Depends(_require_auth_active),
+):
+    site = _resolve_site(request)
+    async with get_conn() as conn:
+        await _exigir_dono_ou_admin(conn, "forum_posts", post_id, site, user_id)
+        await conn.execute("UPDATE forum_posts SET body = $2 WHERE id = $1::uuid", post_id, payload.body)
+    logger.info("Post editado id=%s por user=%s admin=%s", post_id, user_id, settings.is_admin(user_id))
+    return {"id": post_id, "updated": True}
 
 
 @router.post(

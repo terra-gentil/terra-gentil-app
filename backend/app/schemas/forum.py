@@ -21,6 +21,16 @@ class PostCreate(BaseModel):
     body: str = Field(min_length=2, max_length=50000)
 
 
+class TopicUpdate(BaseModel):
+    """Edição de tópico: manda só o que mudou (mesmos limites da criação)."""
+    title: str | None = Field(default=None, min_length=3, max_length=120)
+    body: str | None = Field(default=None, min_length=10, max_length=200000)
+
+
+class PostUpdate(BaseModel):
+    body: str = Field(min_length=2, max_length=50000)
+
+
 class ReportCreate(BaseModel):
     target_id: str
     target_type: str = Field(pattern="^(topic|post)$")
