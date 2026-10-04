@@ -5,7 +5,7 @@ Sem dependencia de banco ou HTTP — funcoes puras de JWT.
 import pytest
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
-from jose import jwt as jose_jwt
+import jwt as jose_jwt
 
 from app.core.config import settings
 from app.services.auth_service import create_jwt, verify_jwt

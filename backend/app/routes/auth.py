@@ -6,7 +6,7 @@ from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import jwt as jose_jwt
+import jwt as jose_jwt  # PyJWT (o python-jose tinha CVEs)
 from starlette.config import Config
 
 from app.core.config import settings
@@ -99,7 +99,7 @@ async def apple_login_mobile(
 
         claims = jose_jwt.decode(
             identity_token,
-            matching[0],
+            jose_jwt.PyJWK.from_dict(matching[0]).key,
             algorithms=["RS256"],
             audience="br.com.terragentil.app",
             issuer="https://appleid.apple.com",
