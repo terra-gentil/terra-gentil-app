@@ -160,3 +160,5 @@ f3b7c58 build: bump versionCode para 2 (novo build com expo-updates nativo)
 - Dados da colecao em `mobile/src/data/colecao.ts`, GERADO por `mobile/scripts/gerar-colecao.py` a partir do repo do site (data/guias + lib/temas.ts). Rodar de novo quando o site ganhar livros (ex: Leva 10, TG115 a TG128).
 - Capas: terragentil.com.br/guias/<slug>/capa.webp. PDFs: terra-gentil-pdfs.canalterragentil.workers.dev/TGxxx.pdf. Os 105 conferidos (200).
 - `npx tsc` estoura a pilha neste PC (ja sem as mudancas). Usar: node --stack-size=8000 node_modules/typescript/bin/tsc --noEmit
+- BLOQUEIO (QA Opus, 11/11): 104 de 105 PDFs da colecao estao com texto ILEGIVEL no ar (so o TG010 esta bom). Causa provavel: `doc.save(garbage=4)` em `terra-gentil/scripts/guias/pdf-web.py` (fontes Type3 deduplicadas errado). Originais `Documents\Terra Gentil\ebooks\TGNNN-previa.pdf` estao ok. Afeta tambem o botao "PDF gratis" do site.
+- Mitigacao no app: aba Colecao escondida (`MOSTRAR_COLECAO = false` em EbooksScreen.tsx). Religar so depois de regerar e subir os PDFs (testar extraindo "Andre" das 2 primeiras paginas).

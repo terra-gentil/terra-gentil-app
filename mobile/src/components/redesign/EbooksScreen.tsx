@@ -26,6 +26,10 @@ interface Props {
 
 type Aba = "colecao" | "classicos";
 
+// A colecao fica escondida enquanto os PDFs dela estiverem com o texto ilegivel no ar
+// (defeito da compressao em scripts/guias/pdf-web.py do site). Religar quando regerados.
+const MOSTRAR_COLECAO = false;
+
 interface Prateleira {
   id: string;
   nome: string;
@@ -64,7 +68,7 @@ export default function EbooksScreen({ visible, onClose }: Props) {
   const navigation = useNavigation<any>();
   const [ebookAtivo, setEbookAtivo] = useState<Ebook | null>(null);
   const [viewerAberto, setViewerAberto] = useState(false);
-  const [aba, setAba] = useState<Aba>("colecao");
+  const [aba, setAba] = useState<Aba>(MOSTRAR_COLECAO ? "colecao" : "classicos");
   const scrollRef = useRef<ScrollView>(null);
   const posicoes = useRef<Record<string, number>>({});
 
@@ -123,7 +127,7 @@ export default function EbooksScreen({ visible, onClose }: Props) {
             <View style={styles.heroBody}>
               <View style={styles.giftPill}>
                 <Gift size={12} color="#7c2d12" strokeWidth={2.6} />
-                <Text style={styles.giftPillText}>{LIVROS_COLECAO.length + TODOS_EBOOKS.length} GUIAS · DE GRAÇA</Text>
+                <Text style={styles.giftPillText}>{(MOSTRAR_COLECAO ? LIVROS_COLECAO.length : 0) + TODOS_EBOOKS.length} GUIAS · DE GRAÇA</Text>
               </View>
               <Text style={styles.heroTitle}>
                 Os guias do{"\n"}Doutor Gentileza
@@ -137,30 +141,32 @@ export default function EbooksScreen({ visible, onClose }: Props) {
           </View>
 
           {/* ABAS */}
-          <View style={styles.abas}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => trocarAba("colecao")}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: aba === "colecao" }}
-              style={[styles.aba, aba === "colecao" && styles.abaAtiva]}
-            >
-              <Text style={[styles.abaText, aba === "colecao" && styles.abaTextAtiva]}>
-                📚 Coleção ({LIVROS_COLECAO.length})
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => trocarAba("classicos")}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: aba === "classicos" }}
-              style={[styles.aba, aba === "classicos" && styles.abaAtiva]}
-            >
-              <Text style={[styles.abaText, aba === "classicos" && styles.abaTextAtiva]}>
-                ⭐ Clássicos ({TODOS_EBOOKS.length})
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {MOSTRAR_COLECAO && (
+            <View style={styles.abas}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => trocarAba("colecao")}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: aba === "colecao" }}
+                style={[styles.aba, aba === "colecao" && styles.abaAtiva]}
+              >
+                <Text style={[styles.abaText, aba === "colecao" && styles.abaTextAtiva]}>
+                  📚 Coleção ({LIVROS_COLECAO.length})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => trocarAba("classicos")}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: aba === "classicos" }}
+                style={[styles.aba, aba === "classicos" && styles.abaAtiva]}
+              >
+                <Text style={[styles.abaText, aba === "classicos" && styles.abaTextAtiva]}>
+                  ⭐ Clássicos ({TODOS_EBOOKS.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* CHIPS DE CATEGORIA */}
           <ScrollView
