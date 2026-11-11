@@ -155,7 +155,7 @@ export default function VideosScreen() {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{CATEGORIAS.length - 1}</Text>
-            <Text style={styles.statLabel}>categorias</Text>
+            <Text style={styles.statLabel}>{CATEGORIAS.length - 1 === 1 ? "categoria" : "categorias"}</Text>
           </View>
         </View>
 

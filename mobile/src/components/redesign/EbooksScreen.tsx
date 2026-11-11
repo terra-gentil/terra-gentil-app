@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import {
+  FlatList,
   Image,
   Modal,
   ScrollView,
@@ -68,7 +69,6 @@ export default function EbooksScreen({ visible, onClose }: Props) {
   const posicoes = useRef<Record<string, number>>({});
 
   const prateleiras = aba === "colecao" ? PRATELEIRAS_COLECAO : PRATELEIRAS_CLASSICOS;
-  const colunas = aba === "colecao" ? 3 : 2;
 
   function trocarAba(nova: Aba) {
     posicoes.current = {};
@@ -130,7 +130,7 @@ export default function EbooksScreen({ visible, onClose }: Props) {
               </Text>
               <Text style={styles.heroSub}>
                 PDFs feitos pra você ler no celular, no computador ou imprimir.
-                Sem cadastro, sem pagar — leve quantos quiser.
+                Sem cadastro, sem pagar. Leve quantos quiser.
               </Text>
             </View>
             <Image source={MASCOT_GIFT} style={styles.heroMascot} />
@@ -141,6 +141,8 @@ export default function EbooksScreen({ visible, onClose }: Props) {
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => trocarAba("colecao")}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: aba === "colecao" }}
               style={[styles.aba, aba === "colecao" && styles.abaAtiva]}
             >
               <Text style={[styles.abaText, aba === "colecao" && styles.abaTextAtiva]}>
@@ -150,6 +152,8 @@ export default function EbooksScreen({ visible, onClose }: Props) {
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => trocarAba("classicos")}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: aba === "classicos" }}
               style={[styles.aba, aba === "classicos" && styles.abaAtiva]}
             >
               <Text style={[styles.abaText, aba === "classicos" && styles.abaTextAtiva]}>
@@ -169,6 +173,8 @@ export default function EbooksScreen({ visible, onClose }: Props) {
                 key={pr.id}
                 activeOpacity={0.8}
                 onPress={() => irParaCategoria(pr.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`Ir para ${pr.nome}, ${pr.livros.length} guias`}
                 style={[styles.chip, { borderColor: pr.cor }]}
               >
                 <Text style={styles.chipText}>
@@ -230,38 +236,48 @@ export default function EbooksScreen({ visible, onClose }: Props) {
                 </TouchableOpacity>
               )}
 
-              <View style={styles.grid}>
-                {pr.livros
-                  .filter((e) => e.id !== EBOOK_DESTAQUE.id)
-                  .map((e) => (
-                    <TouchableOpacity
-                      key={e.id}
-                      activeOpacity={0.85}
-                      onPress={() => abrirEbook(e)}
-                      style={[styles.gridCard, { width: colunas === 3 ? "33.333%" : "50%" }]}
+              <FlatList
+                horizontal
+                data={pr.livros.filter((e) => e.id !== EBOOK_DESTAQUE.id)}
+                keyExtractor={(e) => e.id}
+                showsHorizontalScrollIndicator={false}
+                style={styles.carrossel}
+                contentContainerStyle={styles.carrosselConteudo}
+                initialNumToRender={3}
+                maxToRenderPerBatch={3}
+                windowSize={3}
+                renderItem={({ item: e }) => (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => abrirEbook(e)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Abrir guia ${e.titulo}`}
+                    style={[styles.gridCard, { width: aba === "colecao" ? 118 : 146 }]}
+                  >
+                    <View
+                      style={[
+                        styles.gridCapaWrap,
+                        { backgroundColor: pr.cor + "20", aspectRatio: aba === "colecao" ? 9 / 16 : 3 / 4 },
+                      ]}
                     >
-                      <View
-                        style={[
-                          styles.gridCapaWrap,
-                          { backgroundColor: pr.cor + "20", aspectRatio: colunas === 3 ? 9 / 16 : 3 / 4 },
-                        ]}
-                      >
-                        <Image source={{ uri: e.capa }} style={styles.gridCapa} />
+                      <Image source={{ uri: e.capa }} style={styles.gridCapa} />
+                      {aba === "classicos" && (
                         <View style={[styles.gridNum, { backgroundColor: pr.cor }]}>
                           <Text style={styles.gridNumText}>{e.numero}</Text>
                         </View>
-                      </View>
-                      <Text style={styles.gridTitulo} numberOfLines={2}>
-                        {colunas === 3 ? e.titulo : `${e.emoji} ${e.titulo}`}
+                      )}
+                    </View>
+                    <Text style={styles.gridTitulo} numberOfLines={2}>
+                      {aba === "colecao" ? e.titulo : `${e.emoji} ${e.titulo}`}
+                    </Text>
+                    {aba === "classicos" && e.subtitulo ? (
+                      <Text style={styles.gridSub} numberOfLines={2}>
+                        {e.subtitulo}
                       </Text>
-                      {colunas === 2 && e.subtitulo ? (
-                        <Text style={styles.gridSub} numberOfLines={2}>
-                          {e.subtitulo}
-                        </Text>
-                      ) : null}
-                    </TouchableOpacity>
-                  ))}
-              </View>
+                    ) : null}
+                  </TouchableOpacity>
+                )}
+              />
             </View>
           ))}
 
@@ -582,11 +598,11 @@ const styles = StyleSheet.create({
   },
 
   // GRID
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -4,
-    rowGap: 14,
+  carrossel: {
+    marginHorizontal: -16,
+  },
+  carrosselConteudo: {
+    paddingHorizontal: 12,
   },
   gridCard: {
     paddingHorizontal: 4,
