@@ -495,7 +495,7 @@ export default function ConfiguracoesModal({ visible, onClose, onLogout, onLogin
             <Item
               icon={<Shield size={18} color={COLORS.inkSoft} />}
               texto="Política de privacidade"
-              onPress={() => Linking.openURL("https://terragentil.com.br/privacidade")}
+              onPress={() => Linking.openURL("https://terra-gentil.github.io/terra-gentil-app/privacy-policy.html")}
             />
           </Secao>
 

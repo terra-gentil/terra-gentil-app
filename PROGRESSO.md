@@ -141,3 +141,14 @@ f3b7c58 build: bump versionCode para 2 (novo build com expo-updates nativo)
 - `backend/app/routes/forum.py`
 - `backend/app/routes/notifications.py`
 - `backend/migrations/004_admin_moderation.sql`
+
+---
+
+## Revisao app x site (2026-11-11)
+- Ebooks: 19 PDFs e 19 capas do app conferem com o site, todos respondem 200.
+- Corrigido: capa do ebook 1 vinha do host antigo da Hostinger, agora usa terragentil.com.br/ebooks/covers.
+- Corrigido: link "Politica de privacidade" apontava para terragentil.com.br/privacidade (404), agora usa a pagina do GitHub Pages (200).
+- Pendente: miniaturas dos videos na aba Videos retornam 404 no YouTube (15 IDs, inclusive os da home do site). Conferir os IDs reais no canal.
+- Pendente: forum /v1/forum/badges retorna 404 sem auth, verificar se a rota mudou.
+- Site tem secoes que o app nao tem: noticias, transformacoes, jogo, manifesto, blog.
+- Mudancas de codigo exigem eas update --branch production.
