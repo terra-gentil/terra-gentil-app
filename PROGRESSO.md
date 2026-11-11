@@ -154,3 +154,9 @@ f3b7c58 build: bump versionCode para 2 (novo build com expo-updates nativo)
 - Pendente: forum /v1/forum/badges retorna 404 sem auth, verificar se a rota mudou.
 - Site tem secoes que o app nao tem: noticias, transformacoes, jogo, manifesto, blog.
 - Mudancas de codigo exigem eas update --branch production.
+
+## Ebooks no app por categoria + colecao completa (2026-11-11)
+- EbooksScreen: duas abas, "Colecao" (105 livros do site, 7 temas) e "Classicos" (19 PDFs, 6 categorias), com chips de navegacao e prateleiras.
+- Dados da colecao em `mobile/src/data/colecao.ts`, GERADO por `mobile/scripts/gerar-colecao.py` a partir do repo do site (data/guias + lib/temas.ts). Rodar de novo quando o site ganhar livros (ex: Leva 10, TG115 a TG128).
+- Capas: terragentil.com.br/guias/<slug>/capa.webp. PDFs: terra-gentil-pdfs.canalterragentil.workers.dev/TGxxx.pdf. Os 105 conferidos (200).
+- `npx tsc` estoura a pilha neste PC (ja sem as mudancas). Usar: node --stack-size=8000 node_modules/typescript/bin/tsc --noEmit

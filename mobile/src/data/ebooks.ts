@@ -1,3 +1,36 @@
+export type CategoriaId = "comece" | "horta" | "espaco" | "suculentas" | "casa" | "bolso";
+
+export interface CategoriaEbook {
+  id: CategoriaId;
+  nome: string;
+  emoji: string;
+  chamada: string;
+  cor: string;
+}
+
+// Mesmas categorias da pagina /guias do site, na ordem de exibicao.
+export const CATEGORIAS_EBOOK: CategoriaEbook[] = [
+  { id: "comece", nome: "Comece por aqui", emoji: "🌱", chamada: "O básico que todo mundo devia saber antes de comprar a primeira muda.", cor: "#4A8C4F" },
+  { id: "horta", nome: "Horta e temperos", emoji: "🥬", chamada: "Cebolinha, tomate, alface e hortelã crescendo do vaso pra mesa.", cor: "#D8552B" },
+  { id: "espaco", nome: "Pouco espaço, muito verde", emoji: "🏢", chamada: "Apartamento, varanda e parede também viram jardim.", cor: "#E8A33D" },
+  { id: "suculentas", nome: "Suculentas e raridades", emoji: "🌵", chamada: "Plantas que pedem pouca água e muito conhecimento.", cor: "#3FA77A" },
+  { id: "casa", nome: "Casa, pets e bem-estar", emoji: "🐾", chamada: "Plantas seguras pros bichos, que acalmam e protegem o lar.", cor: "#9B7BC8" },
+  { id: "bolso", nome: "Jardim que cabe no bolso", emoji: "💰", chamada: "Adubo caseiro, reaproveitamento e gramado bonito sem gastar muito.", cor: "#C48226" },
+];
+
+const CATEGORIA_POR_NUMERO: Record<number, CategoriaId> = {
+  1: "comece", 2: "comece", 16: "comece",
+  8: "horta", 13: "horta", 14: "horta", 15: "horta", 17: "horta", 19: "horta",
+  5: "espaco", 7: "espaco", 9: "espaco",
+  11: "suculentas", 12: "suculentas",
+  3: "casa", 6: "casa", 10: "casa",
+  4: "bolso", 18: "bolso",
+};
+
+export function categoriaDoEbook(e: Ebook): CategoriaId {
+  return CATEGORIA_POR_NUMERO[e.numero] ?? "comece";
+}
+
 export interface Ebook {
   id: string;
   numero: number;
