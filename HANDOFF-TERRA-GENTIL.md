@@ -48,7 +48,7 @@ Quando ele pede algo, espera receber prompts prontos pra colar no Claude Code.
 . Backend producao: https://terra-gentil-app-production.up.railway.app
 . Swagger: https://terra-gentil-app-production.up.railway.app/docs
 . Politica de privacidade: https://terra-gentil.github.io/terra-gentil-app/privacy-policy.html
-. Canal YouTube (ID: UCX3xUnHpQrhSUJUGjqMAN2A): https://www.youtube.com/@TerraGentil
+. Canal YouTube (ID: UCfZn0uytIhsk30SMQtoKeLA): https://www.youtube.com/@TerraGentil
 . Site: https://terragentil.com.br
 
 ### Comandos uteis
@@ -346,7 +346,7 @@ Custom TabBar: 4 tabs visiveis (Inicio, Comunidade, Videos, Eu) + FAB central 64
 . Google Fonts (Nunito + Plus Jakarta Sans)
 
 ### Pixel Garden Fase 2 parcial (abril/maio 2026)
-. VideosScreen com 15 videos reais do YouTube (channel ID: UCX3xUnHpQrhSUJUGjqMAN2A)
+. VideosScreen com 4 videos reais do YouTube (channel ID: UCfZn0uytIhsk30SMQtoKeLA)
 . Thumbnails reais via img.youtube.com, links individuais por video
 . 3 categorias: Transformacoes (2), Shorts (10), Lives (3)
 . Filtros funcionais por Pills (Todos/Transformacoes/Shorts/Lives)

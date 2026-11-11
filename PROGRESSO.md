@@ -148,7 +148,9 @@ f3b7c58 build: bump versionCode para 2 (novo build com expo-updates nativo)
 - Ebooks: 19 PDFs e 19 capas do app conferem com o site, todos respondem 200.
 - Corrigido: capa do ebook 1 vinha do host antigo da Hostinger, agora usa terragentil.com.br/ebooks/covers.
 - Corrigido: link "Politica de privacidade" apontava para terragentil.com.br/privacidade (404), agora usa a pagina do GitHub Pages (200).
-- Pendente: miniaturas dos videos na aba Videos retornam 404 no YouTube (15 IDs, inclusive os da home do site). Conferir os IDs reais no canal.
+- Corrigido: aba Videos tinha 15 IDs inexistentes e o ID de canal errado. Agora usa os 4 videos reais do canal @TerraGentil (UCfZn0uytIhsk30SMQtoKeLA). Shorts e Lives ficam ocultos ate haver conteudo. Update OTA publicado.
+- Pendente: o site tambem usa IDs de video invalidos na home (ex: K1J5I9IcGIw). Corrigir no repo do site.
+- Futuro: buscar a lista de videos ao vivo via endpoint no backend (feed RSS do canal).
 - Pendente: forum /v1/forum/badges retorna 404 sem auth, verificar se a rota mudou.
 - Site tem secoes que o app nao tem: noticias, transformacoes, jogo, manifesto, blog.
 - Mudancas de codigo exigem eas update --branch production.

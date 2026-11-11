@@ -29,106 +29,45 @@ function thumbUrlHQ(videoId: string) {
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }
 
-const CATEGORIAS = ["Todos", "Transformações", "Shorts", "Lives"];
+// Videos reais do canal @TerraGentil (UCfZn0uytIhsk30SMQtoKeLA), conferidos no feed oficial.
+type Video = { id: string; titulo: string; url: string; data: string };
 
-// Videos reais do canal Terra Gentil (UCX3xUnHpQrhSUJUGjqMAN2A)
-const TRANSFORMACOES = [
+const TRANSFORMACOES: Video[] = [
   {
-    id: "K1J5I9IcGIw",
-    titulo: "Transformei De Graca O Jardim De Um Senhor Deficiente aos 87 anos e Ele se Emocionou",
-    url: "https://www.youtube.com/watch?v=K1J5I9IcGIw",
-    data: "8 fev 2026",
+    id: "Q9FzrwE7nBA",
+    titulo: "JARDIM ABANDONADO da Senhora de 90 anos Invadiu a Calçada: Limpei Tudo de GRAÇA!",
+    url: "https://www.youtube.com/watch?v=Q9FzrwE7nBA",
+    data: "7 nov 2026",
   },
   {
-    id: "pbQkbLbApw0",
-    titulo: "VIZINHOS NAO AGUENTAVAM MAIS ESSE JARDIM ABANDONADO... TRANSFORMEI DE GRACA!",
-    url: "https://www.youtube.com/watch?v=pbQkbLbApw0",
-    data: "14 jan 2026",
+    id: "ykCh1KKHcvg",
+    titulo: "17 HORAS Limpando de GRAÇA o JARDIM ABANDONADO dessa Senhora!",
+    url: "https://www.youtube.com/watch?v=ykCh1KKHcvg",
+    data: "31 out 2026",
+  },
+  {
+    id: "5xIySYrszC4",
+    titulo: "Viúvo aos 87, não dá mais conta do JARDIM ABANDONADO. Limpei tudo de GRAÇA!",
+    url: "https://www.youtube.com/watch?v=5xIySYrszC4",
+    data: "24 out 2026",
+  },
+  {
+    id: "BuM4y6FvX10",
+    titulo: "Aos 78 anos, ela me ABENÇOOU por limpar o Jardim Abandonado de GRAÇA!",
+    url: "https://www.youtube.com/watch?v=BuM4y6FvX10",
+    data: "17 out 2026",
   },
 ];
 
-const SHORTS = [
-  {
-    id: "u9RX7tKKe3I",
-    titulo: "Limpeza do Rio para Seu Antonio: Ajude-nos a Realizar!",
-    url: "https://www.youtube.com/shorts/u9RX7tKKe3I",
-    data: "12 fev 2026",
-  },
-  {
-    id: "9b0XJaNrMXk",
-    titulo: "Ela Me Agradeceu Por Limpar Jardim De Graca!",
-    url: "https://www.youtube.com/shorts/9b0XJaNrMXk",
-    data: "10 fev 2026",
-  },
-  {
-    id: "B_7Qr9JuQHs",
-    titulo: "Transformacao Surpreendente: Limpeza Radical e Desafios Inesperados!",
-    url: "https://www.youtube.com/shorts/B_7Qr9JuQHs",
-    data: "4 fev 2026",
-  },
-  {
-    id: "_kkIIBOzXTc",
-    titulo: "Transformacao Incrivel: Casa Escondida Ganha Nova Vida!",
-    url: "https://www.youtube.com/shorts/_kkIIBOzXTc",
-    data: "2 fev 2026",
-  },
-  {
-    id: "H-wKkHo6UIs",
-    titulo: "Vizinha Livre de Insetos: Jardim Secreto Revelado Gratis!",
-    url: "https://www.youtube.com/shorts/H-wKkHo6UIs",
-    data: "29 jan 2026",
-  },
-  {
-    id: "7QYYWQtRV3Y",
-    titulo: "Transformacao Incrivel: Antes e Depois que Apaixonam!",
-    url: "https://www.youtube.com/shorts/7QYYWQtRV3Y",
-    data: "27 jan 2026",
-  },
-  {
-    id: "77tCXk7Kd0Q",
-    titulo: "Ajudando Mae, Quebrei o Vidro do Vizinho! Transformacao Surpreendente",
-    url: "https://www.youtube.com/shorts/77tCXk7Kd0Q",
-    data: "23 jan 2026",
-  },
-  {
-    id: "mfO54HT4Ukk",
-    titulo: "Transformacao de Jardim: Antes e Depois Incrivel!",
-    url: "https://www.youtube.com/shorts/mfO54HT4Ukk",
-    data: "21 jan 2026",
-  },
-  {
-    id: "QJ6TzLss09w",
-    titulo: "Ela Agradeceu Por Limpar Jardim Abandonado",
-    url: "https://www.youtube.com/shorts/QJ6TzLss09w",
-    data: "20 jan 2026",
-  },
-  {
-    id: "E_CHxjjUw8w",
-    titulo: "Ele nao consegue mais fazer o jardim abandonado",
-    url: "https://www.youtube.com/shorts/E_CHxjjUw8w",
-    data: "16 jan 2026",
-  },
-];
+// Sem shorts nem lives publicos no canal por enquanto. Preencher aqui quando houver.
+const SHORTS: Video[] = [];
+const LIVES: Video[] = [];
 
-const LIVES = [
-  {
-    id: "w-L6Bk8i9zQ",
-    titulo: "Transformacao Completa do Jardim Abandonado de um SENHOR! Vou cortar a grama dele DE GRACA!",
-    url: "https://www.youtube.com/watch?v=w-L6Bk8i9zQ",
-    data: "2 fev 2026",
-  },
-  {
-    id: "Hg1d4-h-Jks",
-    titulo: "Transformamos Esse Terreno ABANDONADO De Graca. Vizinhos Nao Acreditaram No Resultado",
-    url: "https://www.youtube.com/watch?v=Hg1d4-h-Jks",
-    data: "26 jan 2026",
-  },
-  {
-    id: "WHShTXaWp_0",
-    titulo: "AO VIVO: Limpeza Extrema de Jardim Abandonado. Transformacao Completa e GRATUITA",
-    url: "https://www.youtube.com/watch?v=WHShTXaWp_0",
-    data: "19 jan 2026",
-  },
+const CATEGORIAS = [
+  "Todos",
+  ...(TRANSFORMACOES.length ? ["Transformações"] : []),
+  ...(SHORTS.length ? ["Shorts"] : []),
+  ...(LIVES.length ? ["Lives"] : []),
 ];
 
 function abrirVideo(url: string) {
@@ -143,9 +82,9 @@ export default function VideosScreen() {
   const [filtro, setFiltro] = useState("Todos");
   const [notifAberto, setNotifAberto] = useState(false);
 
-  const mostrarTransformacoes = filtro === "Todos" || filtro === "Transformações";
-  const mostrarShorts = filtro === "Todos" || filtro === "Shorts";
-  const mostrarLives = filtro === "Todos" || filtro === "Lives";
+  const mostrarTransformacoes = TRANSFORMACOES.length > 0 && (filtro === "Todos" || filtro === "Transformações");
+  const mostrarShorts = SHORTS.length > 0 && (filtro === "Todos" || filtro === "Shorts");
+  const mostrarLives = LIVES.length > 0 && (filtro === "Todos" || filtro === "Lives");
 
   return (
     <View style={styles.screen}>
@@ -188,7 +127,7 @@ export default function VideosScreen() {
 
               {/* Badge */}
               <View style={styles.heroBadge}>
-                <Text style={styles.heroBadgeText}>MAIS ASSISTIDO</Text>
+                <Text style={styles.heroBadgeText}>MAIS RECENTE</Text>
               </View>
 
               {/* Play button */}
@@ -215,13 +154,8 @@ export default function VideosScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNum}>3</Text>
+            <Text style={styles.statNum}>{CATEGORIAS.length - 1}</Text>
             <Text style={styles.statLabel}>categorias</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNum}>{LIVES.length}</Text>
-            <Text style={styles.statLabel}>lives</Text>
           </View>
         </View>
 
