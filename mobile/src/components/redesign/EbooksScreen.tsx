@@ -1,9 +1,14 @@
-import React, { useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Image,
+  ImageStyle,
+  LayoutChangeEvent,
+  ListRenderItemInfo,
   Modal,
+  PixelRatio,
   ScrollView,
+  StyleProp,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,7 +20,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_GIFT } from "../../assets/mascot";
-import { Ebook, EBOOK_DESTAQUE, TODOS_EBOOKS, CATEGORIAS_EBOOK, categoriaDoEbook, NUMEROS_NA_COLECAO } from "../../data/ebooks";
+import {
+  Ebook,
+  EBOOK_DESTAQUE,
+  TODOS_EBOOKS,
+  CATEGORIAS_EBOOK,
+  categoriaDoEbook,
+  NUMEROS_NA_COLECAO,
+  capaOtimizada,
+} from "../../data/ebooks";
 import { COLECAO, TEMAS_COLECAO, capaDoLivro, pdfDoLivro } from "../../data/colecao";
 import EbookViewerModal from "./EbookViewerModal";
 
@@ -39,7 +52,11 @@ interface Prateleira {
   chamada: string;
   cor: string;
   livros: Ebook[];
+  // Livros do carrossel (sem o destaque, que tem cartao proprio). Calculado uma vez so.
+  carrossel: Ebook[];
 }
+
+const EMOJI_DO_TEMA = new Map(TEMAS_COLECAO.map((t) => [t.id, t.emoji]));
 
 // Livros da colecao do site viram Ebook para reaproveitar o leitor de PDF.
 const LIVROS_COLECAO: (Ebook & { tema: string })[] = COLECAO.map((l) => ({
@@ -50,20 +67,298 @@ const LIVROS_COLECAO: (Ebook & { tema: string })[] = COLECAO.map((l) => ({
   capa: capaDoLivro(l),
   pdf: pdfDoLivro(l),
   paletaId: "verde",
-  emoji: TEMAS_COLECAO.find((t) => t.id === l.tema)?.emoji ?? "📗",
+  emoji: EMOJI_DO_TEMA.get(l.tema) ?? "📗",
   keywords: [],
   tema: l.tema,
 }));
 
-const PRATELEIRAS_COLECAO: Prateleira[] = TEMAS_COLECAO.map((t) => ({
-  ...t,
-  livros: LIVROS_COLECAO.filter((l) => l.tema === t.id),
-})).filter((p) => p.livros.length > 0);
+function montarPrateleira<T extends Omit<Prateleira, "livros" | "carrossel">>(base: T, livros: Ebook[]): Prateleira {
+  return { ...base, livros, carrossel: livros.filter((e) => e.id !== EBOOK_DESTAQUE.id) };
+}
 
-const PRATELEIRAS_CLASSICOS: Prateleira[] = CATEGORIAS_EBOOK.map((c) => ({
-  ...c,
-  livros: CLASSICOS.filter((e) => categoriaDoEbook(e) === c.id),
-})).filter((p) => p.livros.length > 0);
+const PRATELEIRAS_COLECAO: Prateleira[] = TEMAS_COLECAO.map((t) =>
+  montarPrateleira(t, LIVROS_COLECAO.filter((l) => l.tema === t.id)),
+).filter((p) => p.livros.length > 0);
+
+const PRATELEIRAS_CLASSICOS: Prateleira[] = CATEGORIAS_EBOOK.map((c) =>
+  montarPrateleira(c, CLASSICOS.filter((e) => categoriaDoEbook(e) === c.id)),
+).filter((p) => p.livros.length > 0);
+
+const TOTAL_GUIAS = (MOSTRAR_COLECAO ? LIVROS_COLECAO.length : 0) + CLASSICOS.length;
+
+// Medidas fixas dos cartoes, usadas no estilo e no getItemLayout do carrossel.
+const LARGURA_CARD: Record<Aba, number> = { colecao: 118, classicos: 146 };
+const RESPIRO_CARD = 4; // paddingHorizontal de styles.gridCard
+const RESPIRO_CARROSSEL = 12; // paddingHorizontal de styles.carrosselConteudo
+const LARGURA_CAPA_DESTAQUE = 110;
+// Distancia entre o topo da celula e a borda da prateleira (marginTop 22), menos a folga de 8.
+const AJUSTE_SCROLL_PRATELEIRA = -14;
+
+function layoutDoCard(aba: Aba) {
+  const largura = LARGURA_CARD[aba];
+  return (_dados: ArrayLike<Ebook> | null | undefined, index: number) => ({
+    length: largura,
+    offset: RESPIRO_CARROSSEL + largura * index,
+    index,
+  });
+}
+const LAYOUT_CARD: Record<Aba, ReturnType<typeof layoutDoCard>> = {
+  colecao: layoutDoCard("colecao"),
+  classicos: layoutDoCard("classicos"),
+};
+
+const chaveDoLivro = (e: Ebook) => e.id;
+
+const ACEITA_WEBP = { Accept: "image/webp,image/*,*/*;q=0.8" };
+
+// Capa remota em miniatura. Se a miniatura falhar, cai na capa original.
+const CapaRemota = memo(function CapaRemota({
+  capa,
+  larguraDp,
+  style,
+}: {
+  capa: string;
+  larguraDp: number;
+  style: StyleProp<ImageStyle>;
+}) {
+  const [falhou, setFalhou] = useState(false);
+  const source = useMemo(() => {
+    const mini = falhou ? capa : capaOtimizada(capa, larguraDp * PixelRatio.get());
+    return mini === capa ? { uri: capa } : { uri: mini, headers: ACEITA_WEBP };
+  }, [capa, larguraDp, falhou]);
+  const aoFalhar = useCallback(() => setFalhou(true), []);
+  return <Image source={source} style={style} onError={falhou ? undefined : aoFalhar} />;
+});
+
+const CartaoLivro = memo(function CartaoLivro({
+  livro,
+  cor,
+  aba,
+  onAbrir,
+}: {
+  livro: Ebook;
+  cor: string;
+  aba: Aba;
+  onAbrir: (e: Ebook) => void;
+}) {
+  const classico = aba === "classicos";
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => onAbrir(livro)}
+      accessibilityRole="button"
+      accessibilityLabel={`Abrir guia ${livro.titulo}`}
+      style={classico ? styles.gridCardClassico : styles.gridCardColecao}
+    >
+      <View
+        style={[
+          styles.gridCapaWrap,
+          classico ? styles.capaClassico : styles.capaColecao,
+          { backgroundColor: cor + "20" },
+        ]}
+      >
+        <CapaRemota capa={livro.capa} larguraDp={LARGURA_CARD[aba] - RESPIRO_CARD * 2} style={styles.gridCapa} />
+        {classico && (
+          <View style={[styles.gridNum, { backgroundColor: cor }]}>
+            <Text style={styles.gridNumText}>{livro.numero}</Text>
+          </View>
+        )}
+      </View>
+      <Text style={styles.gridTitulo} numberOfLines={2}>
+        {classico ? `${livro.emoji} ${livro.titulo}` : livro.titulo}
+      </Text>
+      {classico && livro.subtitulo ? (
+        <Text style={styles.gridSub} numberOfLines={2}>
+          {livro.subtitulo}
+        </Text>
+      ) : null}
+    </TouchableOpacity>
+  );
+});
+
+const PrateleiraLinha = memo(function PrateleiraLinha({
+  pr,
+  aba,
+  onAbrir,
+}: {
+  pr: Prateleira;
+  aba: Aba;
+  onAbrir: (e: Ebook) => void;
+}) {
+  const renderLivro = useCallback(
+    ({ item }: ListRenderItemInfo<Ebook>) => <CartaoLivro livro={item} cor={pr.cor} aba={aba} onAbrir={onAbrir} />,
+    [pr.cor, aba, onAbrir],
+  );
+
+  return (
+    <View style={[styles.shelf, { borderTopColor: pr.cor }]}>
+      <View style={styles.shelfHead}>
+        <View style={[styles.shelfEmoji, { backgroundColor: pr.cor }]}>
+          <Text style={styles.shelfEmojiText}>{pr.emoji}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={styles.shelfTitleRow}>
+            <Text style={styles.shelfTitle}>{pr.nome}</Text>
+            <View style={[styles.shelfCount, { backgroundColor: pr.cor }]}>
+              <Text style={styles.shelfCountText}>{pr.livros.length}</Text>
+            </View>
+          </View>
+          <Text style={styles.shelfSub}>{pr.chamada}</Text>
+        </View>
+      </View>
+
+      {aba === "classicos" && pr.id === "comece" && (
+        <TouchableOpacity activeOpacity={0.85} onPress={() => onAbrir(EBOOK_DESTAQUE)} style={styles.destaqueCard}>
+          <View style={styles.destaqueImagemWrap}>
+            <CapaRemota capa={EBOOK_DESTAQUE.capa} larguraDp={LARGURA_CAPA_DESTAQUE} style={styles.destaqueImg} />
+            <View style={styles.destaquePill}>
+              <Text style={styles.destaquePillText}>+ POPULAR</Text>
+            </View>
+          </View>
+          <View style={styles.destaqueInfo}>
+            <Text style={styles.destaqueTitulo} numberOfLines={2}>
+              {EBOOK_DESTAQUE.titulo}
+            </Text>
+            <Text style={styles.destaqueSub} numberOfLines={3}>
+              {EBOOK_DESTAQUE.subtitulo}
+            </Text>
+            <View style={styles.destaqueCta}>
+              <Download size={16} color="#fff" strokeWidth={2.6} />
+              <Text style={styles.destaqueCtaText}>Abrir guia</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
+
+      <FlatList
+        horizontal
+        data={pr.carrossel}
+        keyExtractor={chaveDoLivro}
+        renderItem={renderLivro}
+        getItemLayout={LAYOUT_CARD[aba]}
+        showsHorizontalScrollIndicator={false}
+        style={styles.carrossel}
+        contentContainerStyle={styles.carrosselConteudo}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={3}
+      />
+    </View>
+  );
+});
+
+const Cabecalho = memo(function Cabecalho({
+  aba,
+  prateleiras,
+  onTrocarAba,
+  onIrPara,
+  onLayout,
+}: {
+  aba: Aba;
+  prateleiras: Prateleira[];
+  onTrocarAba: (a: Aba) => void;
+  onIrPara: (index: number) => void;
+  onLayout: (ev: LayoutChangeEvent) => void;
+}) {
+  return (
+    <View onLayout={onLayout}>
+      {/* HERO com mascote presente */}
+      <View style={styles.hero}>
+        <LinearGradient
+          colors={["#fde68a", "#f59e0b", "#b45309"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.heroCircleA} />
+        <View style={styles.heroCircleB} />
+        <View style={styles.heroBody}>
+          <View style={styles.giftPill}>
+            <Gift size={12} color="#7c2d12" strokeWidth={2.6} />
+            <Text style={styles.giftPillText}>{TOTAL_GUIAS} GUIAS · DE GRAÇA</Text>
+          </View>
+          <Text style={styles.heroTitle}>
+            Os guias do{"\n"}Doutor Gentileza
+          </Text>
+          <Text style={styles.heroSub}>
+            PDFs feitos pra você ler no celular, no computador ou imprimir.
+            Sem cadastro, sem pagar. Leve quantos quiser.
+          </Text>
+        </View>
+        <Image source={MASCOT_GIFT} style={styles.heroMascot} />
+      </View>
+
+      {/* ABAS */}
+      {MOSTRAR_COLECAO && (
+        <View style={styles.abas}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => onTrocarAba("colecao")}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: aba === "colecao" }}
+            style={[styles.aba, aba === "colecao" && styles.abaAtiva]}
+          >
+            <Text style={[styles.abaText, aba === "colecao" && styles.abaTextAtiva]}>
+              📚 Coleção ({LIVROS_COLECAO.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => onTrocarAba("classicos")}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: aba === "classicos" }}
+            style={[styles.aba, aba === "classicos" && styles.abaAtiva]}
+          >
+            <Text style={[styles.abaText, aba === "classicos" && styles.abaTextAtiva]}>
+              ⭐ Clássicos ({CLASSICOS.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* CHIPS DE CATEGORIA */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+        {prateleiras.map((pr, index) => (
+          <TouchableOpacity
+            key={pr.id}
+            activeOpacity={0.8}
+            onPress={() => onIrPara(index)}
+            accessibilityRole="button"
+            accessibilityLabel={`Ir para ${pr.nome}, ${pr.livros.length} guias`}
+            style={[styles.chip, { borderColor: pr.cor }]}
+          >
+            <Text style={styles.chipText}>
+              {pr.emoji} {pr.nome}
+            </Text>
+            <Text style={styles.chipCount}>{pr.livros.length}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+});
+
+const Rodape = memo(function Rodape({ onPedir }: { onPedir: () => void }) {
+  return (
+    <View>
+      <TouchableOpacity activeOpacity={0.85} onPress={onPedir} style={styles.rodape}>
+        <Text style={styles.rodapeTitulo}>Não achou um guia da sua planta?</Text>
+        <Text style={styles.rodapeTexto}>
+          Manda mensagem pelo formulário pós-diagnóstico. O Doutor escreve
+          um guia exclusivo pra você e envia de graça.
+        </Text>
+        <View style={styles.rodapeCta}>
+          <Camera size={14} color={COLORS.greenDark} strokeWidth={2.6} />
+          <Text style={styles.rodapeCtaText}>Tirar foto agora</Text>
+        </View>
+      </TouchableOpacity>
+      <View style={{ height: 32 }} />
+    </View>
+  );
+});
+
+// Quantas vezes insistir no scroll ate a prateleira, enquanto ela ainda nao foi medida.
+const MAX_TENTATIVAS_SCROLL = 6;
 
 export default function EbooksScreen({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
@@ -71,33 +366,90 @@ export default function EbooksScreen({ visible, onClose }: Props) {
   const [ebookAtivo, setEbookAtivo] = useState<Ebook | null>(null);
   const [viewerAberto, setViewerAberto] = useState(false);
   const [aba, setAba] = useState<Aba>(MOSTRAR_COLECAO ? "colecao" : "classicos");
-  const scrollRef = useRef<ScrollView>(null);
-  const posicoes = useRef<Record<string, number>>({});
+  const listaRef = useRef<FlatList<Prateleira>>(null);
+  const alturaCabecalho = useRef(0);
+  const scrollPendente = useRef<{ timer: ReturnType<typeof setTimeout> | null; tentativas: number }>({
+    timer: null,
+    tentativas: 0,
+  });
 
   const prateleiras = aba === "colecao" ? PRATELEIRAS_COLECAO : PRATELEIRAS_CLASSICOS;
 
-  function trocarAba(nova: Aba) {
-    posicoes.current = {};
-    setAba(nova);
-    scrollRef.current?.scrollTo({ y: 0, animated: false });
-  }
+  const cancelarScrollPendente = useCallback(() => {
+    if (scrollPendente.current.timer) clearTimeout(scrollPendente.current.timer);
+    scrollPendente.current = { timer: null, tentativas: 0 };
+  }, []);
 
-  function irParaCategoria(id: string) {
-    const y = posicoes.current[id];
-    if (y !== undefined) scrollRef.current?.scrollTo({ y: Math.max(y - 8, 0), animated: true });
-  }
+  useEffect(() => cancelarScrollPendente, [cancelarScrollPendente]);
 
-  function abrirEbook(ebook: Ebook) {
+  const trocarAba = useCallback(
+    (nova: Aba) => {
+      cancelarScrollPendente();
+      setAba(nova);
+      listaRef.current?.scrollToOffset({ offset: 0, animated: false });
+    },
+    [cancelarScrollPendente],
+  );
+
+  const irParaCategoria = useCallback(
+    (index: number) => {
+      cancelarScrollPendente();
+      listaRef.current?.scrollToIndex({ index, animated: true, viewOffset: AJUSTE_SCROLL_PRATELEIRA });
+    },
+    [cancelarScrollPendente],
+  );
+
+  // A prateleira alvo ainda nao foi montada (lista vertical sob demanda): rola ate a
+  // posicao estimada, o que faz ela montar, e acerta a posicao exata em seguida.
+  const aoFalharScroll = useCallback(
+    (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
+      const pendente = scrollPendente.current;
+      if (pendente.timer) clearTimeout(pendente.timer);
+      if (pendente.tentativas >= MAX_TENTATIVAS_SCROLL) {
+        scrollPendente.current = { timer: null, tentativas: 0 };
+        return;
+      }
+      pendente.tentativas += 1;
+      listaRef.current?.scrollToOffset({
+        offset: alturaCabecalho.current + info.averageItemLength * info.index,
+        animated: true,
+      });
+      pendente.timer = setTimeout(() => {
+        pendente.timer = null;
+        listaRef.current?.scrollToIndex({
+          index: info.index,
+          animated: true,
+          viewOffset: AJUSTE_SCROLL_PRATELEIRA,
+        });
+      }, 300);
+    },
+    [],
+  );
+
+  const medirCabecalho = useCallback((ev: LayoutChangeEvent) => {
+    alturaCabecalho.current = ev.nativeEvent.layout.height;
+  }, []);
+
+  const abrirEbook = useCallback((ebook: Ebook) => {
     setEbookAtivo(ebook);
     setViewerAberto(true);
-  }
+  }, []);
 
-  function pedirGuiaExclusivo() {
+  const fecharViewer = useCallback(() => setViewerAberto(false), []);
+
+  const pedirGuiaExclusivo = useCallback(() => {
     onClose();
     setTimeout(() => {
       navigation.navigate("HomeTab");
     }, 250);
-  }
+  }, [onClose, navigation]);
+
+  const renderPrateleira = useCallback(
+    ({ item }: ListRenderItemInfo<Prateleira>) => <PrateleiraLinha pr={item} aba={aba} onAbrir={abrirEbook} />,
+    [aba, abrirEbook],
+  );
+
+  const chaveDaPrateleira = useCallback((pr: Prateleira) => `${aba}-${pr.id}`, [aba]);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -111,209 +463,32 @@ export default function EbooksScreen({ visible, onClose }: Props) {
           <View style={{ width: 32 }} />
         </View>
 
-        <ScrollView
-          ref={scrollRef}
+        {/* Lista vertical unica: so as prateleiras perto da tela ficam montadas */}
+        <FlatList
+          ref={listaRef}
+          data={prateleiras}
+          keyExtractor={chaveDaPrateleira}
+          renderItem={renderPrateleira}
+          ListHeaderComponent={
+            <Cabecalho
+              aba={aba}
+              prateleiras={prateleiras}
+              onTrocarAba={trocarAba}
+              onIrPara={irParaCategoria}
+              onLayout={medirCabecalho}
+            />
+          }
+          ListFooterComponent={<Rodape onPedir={pedirGuiaExclusivo} />}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
-        >
-          {/* HERO com mascote presente */}
-          <View style={styles.hero}>
-            <LinearGradient
-              colors={["#fde68a", "#f59e0b", "#b45309"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-            />
-            <View style={styles.heroCircleA} />
-            <View style={styles.heroCircleB} />
-            <View style={styles.heroBody}>
-              <View style={styles.giftPill}>
-                <Gift size={12} color="#7c2d12" strokeWidth={2.6} />
-                <Text style={styles.giftPillText}>{(MOSTRAR_COLECAO ? LIVROS_COLECAO.length : 0) + CLASSICOS.length} GUIAS · DE GRAÇA</Text>
-              </View>
-              <Text style={styles.heroTitle}>
-                Os guias do{"\n"}Doutor Gentileza
-              </Text>
-              <Text style={styles.heroSub}>
-                PDFs feitos pra você ler no celular, no computador ou imprimir.
-                Sem cadastro, sem pagar. Leve quantos quiser.
-              </Text>
-            </View>
-            <Image source={MASCOT_GIFT} style={styles.heroMascot} />
-          </View>
-
-          {/* ABAS */}
-          {MOSTRAR_COLECAO && (
-            <View style={styles.abas}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => trocarAba("colecao")}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: aba === "colecao" }}
-                style={[styles.aba, aba === "colecao" && styles.abaAtiva]}
-              >
-                <Text style={[styles.abaText, aba === "colecao" && styles.abaTextAtiva]}>
-                  📚 Coleção ({LIVROS_COLECAO.length})
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => trocarAba("classicos")}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: aba === "classicos" }}
-                style={[styles.aba, aba === "classicos" && styles.abaAtiva]}
-              >
-                <Text style={[styles.abaText, aba === "classicos" && styles.abaTextAtiva]}>
-                  ⭐ Clássicos ({CLASSICOS.length})
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* CHIPS DE CATEGORIA */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chips}
-          >
-            {prateleiras.map((pr) => (
-              <TouchableOpacity
-                key={pr.id}
-                activeOpacity={0.8}
-                onPress={() => irParaCategoria(pr.id)}
-                accessibilityRole="button"
-                accessibilityLabel={`Ir para ${pr.nome}, ${pr.livros.length} guias`}
-                style={[styles.chip, { borderColor: pr.cor }]}
-              >
-                <Text style={styles.chipText}>
-                  {pr.emoji} {pr.nome}
-                </Text>
-                <Text style={styles.chipCount}>{pr.livros.length}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* PRATELEIRAS POR CATEGORIA */}
-          {prateleiras.map((pr) => (
-            <View
-              key={`${aba}-${pr.id}`}
-              onLayout={(ev) => {
-                posicoes.current[pr.id] = ev.nativeEvent.layout.y;
-              }}
-              style={[styles.shelf, { borderTopColor: pr.cor }]}
-            >
-              <View style={styles.shelfHead}>
-                <View style={[styles.shelfEmoji, { backgroundColor: pr.cor }]}>
-                  <Text style={styles.shelfEmojiText}>{pr.emoji}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.shelfTitleRow}>
-                    <Text style={styles.shelfTitle}>{pr.nome}</Text>
-                    <View style={[styles.shelfCount, { backgroundColor: pr.cor }]}>
-                      <Text style={styles.shelfCountText}>{pr.livros.length}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.shelfSub}>{pr.chamada}</Text>
-                </View>
-              </View>
-
-              {aba === "classicos" && pr.id === "comece" && (
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  onPress={() => abrirEbook(EBOOK_DESTAQUE)}
-                  style={styles.destaqueCard}
-                >
-                  <View style={styles.destaqueImagemWrap}>
-                    <Image source={{ uri: EBOOK_DESTAQUE.capa }} style={styles.destaqueImg} />
-                    <View style={styles.destaquePill}>
-                      <Text style={styles.destaquePillText}>+ POPULAR</Text>
-                    </View>
-                  </View>
-                  <View style={styles.destaqueInfo}>
-                    <Text style={styles.destaqueTitulo} numberOfLines={2}>
-                      {EBOOK_DESTAQUE.titulo}
-                    </Text>
-                    <Text style={styles.destaqueSub} numberOfLines={3}>
-                      {EBOOK_DESTAQUE.subtitulo}
-                    </Text>
-                    <View style={styles.destaqueCta}>
-                      <Download size={16} color="#fff" strokeWidth={2.6} />
-                      <Text style={styles.destaqueCtaText}>Abrir guia</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              )}
-
-              <FlatList
-                horizontal
-                data={pr.livros.filter((e) => e.id !== EBOOK_DESTAQUE.id)}
-                keyExtractor={(e) => e.id}
-                showsHorizontalScrollIndicator={false}
-                style={styles.carrossel}
-                contentContainerStyle={styles.carrosselConteudo}
-                initialNumToRender={3}
-                maxToRenderPerBatch={3}
-                windowSize={3}
-                renderItem={({ item: e }) => (
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={() => abrirEbook(e)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Abrir guia ${e.titulo}`}
-                    style={[styles.gridCard, { width: aba === "colecao" ? 118 : 146 }]}
-                  >
-                    <View
-                      style={[
-                        styles.gridCapaWrap,
-                        { backgroundColor: pr.cor + "20", aspectRatio: aba === "colecao" ? 9 / 16 : 3 / 4 },
-                      ]}
-                    >
-                      <Image source={{ uri: e.capa }} style={styles.gridCapa} />
-                      {aba === "classicos" && (
-                        <View style={[styles.gridNum, { backgroundColor: pr.cor }]}>
-                          <Text style={styles.gridNumText}>{e.numero}</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.gridTitulo} numberOfLines={2}>
-                      {aba === "colecao" ? e.titulo : `${e.emoji} ${e.titulo}`}
-                    </Text>
-                    {aba === "classicos" && e.subtitulo ? (
-                      <Text style={styles.gridSub} numberOfLines={2}>
-                        {e.subtitulo}
-                      </Text>
-                    ) : null}
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
-          ))}
-
-          {/* RODAPE */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={pedirGuiaExclusivo}
-            style={styles.rodape}
-          >
-            <Text style={styles.rodapeTitulo}>Não achou um guia da sua planta?</Text>
-            <Text style={styles.rodapeTexto}>
-              Manda mensagem pelo formulário pós-diagnóstico. O Doutor escreve
-              um guia exclusivo pra você e envia de graça.
-            </Text>
-            <View style={styles.rodapeCta}>
-              <Camera size={14} color={COLORS.greenDark} strokeWidth={2.6} />
-              <Text style={styles.rodapeCtaText}>Tirar foto agora</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View style={{ height: 32 }} />
-        </ScrollView>
-
-        <EbookViewerModal
-          visible={viewerAberto}
-          ebook={ebookAtivo}
-          onClose={() => setViewerAberto(false)}
+          initialNumToRender={2}
+          maxToRenderPerBatch={2}
+          windowSize={3}
+          onScrollToIndexFailed={aoFalharScroll}
         />
+
+        {/* O leitor so entra na arvore depois que um guia for aberto */}
+        {ebookAtivo && <EbookViewerModal visible={viewerAberto} ebook={ebookAtivo} onClose={fecharViewer} />}
       </View>
     </Modal>
   );
@@ -610,14 +785,24 @@ const styles = StyleSheet.create({
     marginHorizontal: -16,
   },
   carrosselConteudo: {
-    paddingHorizontal: 12,
+    paddingHorizontal: RESPIRO_CARROSSEL,
   },
-  gridCard: {
-    paddingHorizontal: 4,
+  gridCardColecao: {
+    width: LARGURA_CARD.colecao,
+    paddingHorizontal: RESPIRO_CARD,
+  },
+  gridCardClassico: {
+    width: LARGURA_CARD.classicos,
+    paddingHorizontal: RESPIRO_CARD,
+  },
+  capaColecao: {
+    aspectRatio: 9 / 16,
+  },
+  capaClassico: {
+    aspectRatio: 3 / 4,
   },
   gridCapaWrap: {
     width: "100%",
-    aspectRatio: 3 / 4,
     borderRadius: 14,
     overflow: "hidden",
     marginBottom: 8,

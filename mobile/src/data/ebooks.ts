@@ -264,6 +264,28 @@ export const TODOS_EBOOKS: Ebook[] = [EBOOK_DESTAQUE, ...EBOOKS];
 // Classicos cujo assunto ja tem livro novo na Colecao (mesmo mapa do site, lib/temas.ts).
 export const NUMEROS_NA_COLECAO: ReadonlySet<number> = new Set([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19]);
 
+// Miniaturas das capas pelo otimizador de imagens do proprio site (mesmo usado em /guias).
+// A capa cheia tem 520x924 e pesa de 50 a 260 KB, a miniatura fica entre 15 e 45 KB.
+// Se o otimizador sair do ar, desligar aqui: a tela volta a usar a capa original.
+export const USAR_CAPA_OTIMIZADA = true;
+const SITE = "https://terragentil.com.br";
+// Larguras aceitas pelo otimizador do site (outras respondem 400).
+const LARGURAS_MINIATURA = [128, 256, 384] as const;
+
+// Menor largura que cobre o tamanho em pixels na tela, tolerando 15% de ampliacao.
+export function larguraDaMiniatura(larguraPx: number): number {
+  for (const l of LARGURAS_MINIATURA) {
+    if (l >= larguraPx * 0.85) return l;
+  }
+  return LARGURAS_MINIATURA[LARGURAS_MINIATURA.length - 1];
+}
+
+export function capaOtimizada(capa: string, larguraPx: number): string {
+  if (!USAR_CAPA_OTIMIZADA || !capa.startsWith(`${SITE}/`)) return capa;
+  const caminho = capa.slice(SITE.length);
+  return `${SITE}/_next/image?url=${encodeURIComponent(caminho)}&w=${larguraDaMiniatura(larguraPx)}&q=75`;
+}
+
 export function ebookPorPlanta(nomePlanta: string): Ebook {
   const lower = nomePlanta.toLowerCase();
   for (const ebook of EBOOKS) {
