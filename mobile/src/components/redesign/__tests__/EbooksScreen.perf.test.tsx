@@ -1,5 +1,5 @@
 import React from "react";
-import { Image } from "react-native";
+import { FlatList, Image, StyleSheet } from "react-native";
 import { act, fireEvent, render } from "@testing-library/react-native";
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -35,7 +35,7 @@ const cards = (tela: Tela) => tela.queryAllByLabelText(/^Abrir guia /);
 // todas em tamanho cheio (520x924, media de 67 KB na Colecao e 200 KB nos Classicos).
 describe("EbooksScreen, custo da primeira renderizacao", () => {
   it("Colecao monta so as 2 primeiras prateleiras, com 4 cartoes cada", () => {
-    const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+    const tela = render(<EbooksScreen />);
     expect(cards(tela)).toHaveLength(8);
     expect(capas(tela)).toHaveLength(8);
     expect(tela.queryByText("Orquídeas")).toBeTruthy();
@@ -44,14 +44,14 @@ describe("EbooksScreen, custo da primeira renderizacao", () => {
   });
 
   it("as capas pedem a miniatura do site, nao a imagem cheia", () => {
-    const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+    const tela = render(<EbooksScreen />);
     for (const uri of capas(tela)) {
       expect(uri).toMatch(/^https:\/\/terragentil\.com\.br\/_next\/image\?url=%2Fguias%2F.+%2Fcapa\.webp&w=(128|256|384)&q=75$/);
     }
   });
 
   it("Classicos monta so as 2 primeiras prateleiras, com o destaque do ebook 1", () => {
-    const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+    const tela = render(<EbooksScreen />);
     fireEvent.press(tela.getByText(/Clássicos/));
     expect(tela.getByText("+ POPULAR")).toBeTruthy();
     expect(tela.getByText("O Código Secreto das Plantas")).toBeTruthy();
@@ -61,13 +61,17 @@ describe("EbooksScreen, custo da primeira renderizacao", () => {
     expect(tela.queryByText("Jardim que cabe no bolso")).toBeNull();
   });
 
-  it("nao renderiza nada com o modal fechado", () => {
-    const tela = render(<EbooksScreen visible={false} onClose={jest.fn()} />);
-    expect(tela.UNSAFE_queryAllByType(Image)).toHaveLength(0);
+  it("e tela de aba: sem botao de fechar e com espaco pra barra de baixo", () => {
+    const tela = render(<EbooksScreen />);
+    expect(tela.getByText("Ebooks grátis")).toBeTruthy();
+    expect(tela.queryByLabelText(/fechar/i)).toBeNull();
+    const lista = tela.UNSAFE_getAllByType(FlatList)[0];
+    // 68 da barra + 6 de respiro minimo (insets zerados no mock)
+    expect(StyleSheet.flatten(lista.props.contentContainerStyle).paddingBottom).toBe(74);
   });
 
   it("o leitor de PDF so e montado quando um guia e aberto", () => {
-    const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+    const tela = render(<EbooksScreen />);
     expect(tela.queryAllByTestId("webview-pdf")).toHaveLength(0);
     expect(tela.queryByText("Baixar PDF grátis")).toBeNull();
     fireEvent.press(cards(tela)[0]);
@@ -76,7 +80,7 @@ describe("EbooksScreen, custo da primeira renderizacao", () => {
   });
 
   it("abrir um guia nao troca as imagens ja montadas", () => {
-    const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+    const tela = render(<EbooksScreen />);
     const antes = imagensRemotas(tela).map((img) => img.props.source);
     fireEvent.press(cards(tela)[1]);
     const depois = imagensRemotas(tela).map((img) => img.props.source);
@@ -85,7 +89,7 @@ describe("EbooksScreen, custo da primeira renderizacao", () => {
   });
 
   it("se a miniatura falhar, usa a capa original", () => {
-    const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+    const tela = render(<EbooksScreen />);
     fireEvent(imagensRemotas(tela)[0], "error", { nativeEvent: { error: "400" } });
     expect(capas(tela)[0]).toBe("https://terragentil.com.br/guias/orquidea-florir-de-novo/capa.webp");
   });
@@ -93,7 +97,7 @@ describe("EbooksScreen, custo da primeira renderizacao", () => {
 
 describe("EbooksScreen, abas e chips", () => {
   it("mostra as duas abas e um chip por prateleira", () => {
-    const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+    const tela = render(<EbooksScreen />);
     expect(tela.getByText(/Coleção \(105\)/)).toBeTruthy();
     expect(tela.getByText(/Clássicos \(8\)/)).toBeTruthy();
     expect(tela.getByText("113 GUIAS · DE GRAÇA")).toBeTruthy();
@@ -105,7 +109,7 @@ describe("EbooksScreen, abas e chips", () => {
   it("tocar no chip de uma prateleira ainda nao montada nao quebra", () => {
     jest.useFakeTimers();
     try {
-      const tela = render(<EbooksScreen visible onClose={jest.fn()} />);
+      const tela = render(<EbooksScreen />);
       fireEvent.press(tela.getByLabelText(/^Ir para Cuidados do dia a dia/));
       act(() => {
         jest.runAllTimers();

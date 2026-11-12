@@ -13,6 +13,8 @@ import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/
 import { MASCOT_POSES } from "../../assets/mascot";
 import { Camera, Users, Tv, BookOpen, ShoppingBag, Gamepad2 } from "lucide-react-native";
 import { useIntermitentePulse } from "../../hooks/useIntermitentePulse";
+import { COLECAO } from "../../data/colecao";
+import { TODOS_EBOOKS, NUMEROS_NA_COLECAO } from "../../data/ebooks";
 import { listarConsultas, ConsultaHistorico } from "../../storage/historico";
 import { getUser, getProfileExtra } from "../../storage/auth";
 import { getComunidadeStats, calcularHistoricoStats, ConquistaStats, SELOS } from "../../storage/conquistas";
@@ -21,7 +23,6 @@ import StreakStrip from "./StreakStrip";
 import { useNotif } from "../../context/NotifContext";
 import SectionTitle from "./SectionTitle";
 import DoctorScanner from "./DoctorScanner";
-import EbooksScreen from "./EbooksScreen";
 import PromotionsScreen from "./PromotionsScreen";
 import NotificacoesModal from "./NotificacoesModal";
 import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
@@ -41,12 +42,14 @@ type Atalho = {
   bg: string;
   deep: string;
   tab?: string;
-  action?: "game" | "ebooks" | "promotions";
+  action?: "game" | "promotions";
   wide?: boolean;
 };
 
+// Mesmo total mostrado na aba Ebooks: colecao + classicos que nao repetem a colecao.
+const TOTAL_GUIAS = COLECAO.length + TODOS_EBOOKS.filter((e) => !NUMEROS_NA_COLECAO.has(e.numero)).length;
 const ATALHOS: Atalho[] = [
-  { Icon: BookOpen, label: "Ebooks", desc: "20 guias grátis", bg: COLORS.amber, deep: "#d97706", action: "ebooks" },
+  { Icon: BookOpen, label: "Ebooks", desc: `${TOTAL_GUIAS} guias grátis`, bg: COLORS.amber, deep: "#d97706", tab: "EbooksTab" },
   { Icon: ShoppingBag, label: "Promoções", desc: "Até 60% off", bg: COLORS.sky, deep: "#0284c7", action: "promotions" },
   { Icon: Users, label: "Comunidade", desc: "Posts e dicas", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
   { Icon: Tv, label: "Vídeos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
@@ -109,13 +112,13 @@ export default function HomeScreen({
     criticalDiag: 0, allHealthStates: false, noturnoDiag: 0,
     totalPosts: 0, totalRespostas: 0, totalReacoesEnviadas: 0,
   });
-  const [ebooksAberto, setEbooksAberto] = useState(false);
   const [promosAberto, setPromosAberto] = useState(false);
   const [notifAberto, setNotifAberto] = useState(false);
   const cameraPulse = useIntermitentePulse(4000, 6000);
   // A animacao do scanner so roda com a Home visivel (aba em foco e sem modal por cima).
+  // Ebooks agora e uma aba: ao abrir, a Home perde o foco e o scanner pausa sozinho.
   const emFoco = useIsFocused();
-  const scannerPausado = !emFoco || ebooksAberto || promosAberto || notifAberto;
+  const scannerPausado = !emFoco || promosAberto || notifAberto;
 
   useFocusEffect(
     useCallback(() => {
@@ -228,8 +231,6 @@ export default function HomeScreen({
           const handler =
             a.action === "game"
               ? onJogar ?? (() => {})
-              : a.action === "ebooks"
-              ? () => setEbooksAberto(true)
               : a.action === "promotions"
               ? () => setPromosAberto(true)
               : a.tab
@@ -286,10 +287,6 @@ export default function HomeScreen({
 
     </ScrollView>
 
-    <EbooksScreen
-      visible={ebooksAberto}
-      onClose={() => setEbooksAberto(false)}
-    />
     <PromotionsScreen
       visible={promosAberto}
       onClose={() => setPromosAberto(false)}

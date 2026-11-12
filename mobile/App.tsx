@@ -2,7 +2,6 @@ import React, { memo, useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Animated,
   Image,
   Platform,
   StyleSheet,
@@ -17,7 +16,6 @@ import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 // Fontes importadas por peso. O import pela raiz do pacote puxava os 30 arquivos .ttf
 // das duas familias (3,5 MB) pro bundle e pro update OTA, e o app usa so estes 8.
 import { useFonts } from "@expo-google-fonts/nunito/useFonts";
@@ -54,8 +52,8 @@ import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 import { COLORS, FONTS } from "./src/constants/theme";
 import { MASCOT_POSES } from "./src/assets/mascot";
-import { Home, Users, Tv, User, Camera } from "lucide-react-native";
-import { useIntermitentePulse } from "./src/hooks/useIntermitentePulse";
+import EbooksScreen from "./src/components/redesign/EbooksScreen";
+import MainTabBar from "./src/components/redesign/MainTabBar";
 import { NotifProvider } from "./src/context/NotifContext";
 import ConfiguracoesModal from "./src/components/redesign/ConfiguracoesModal";
 import LoginModal from "./src/components/redesign/LoginModal";
@@ -96,62 +94,6 @@ const Tab = createBottomTabNavigator();
 function CommunityTabScreen() { return <CommunityScreen />; }
 function VideosTab() { return <VideosScreen />; }
 
-// TabBar customizado com FAB central
-const TAB_ICONS = {
-  HomeTab: Home,
-  CommunityTab: Users,
-  VideosTab: Tv,
-  ProfileTab: User,
-} as const;
-
-const TAB_LABELS = {
-  HomeTab: "Inicio",
-  CommunityTab: "Comunidade",
-  VideosTab: "Videos",
-  ProfileTab: "Eu",
-} as const;
-
-const TAB_ORDER = ["HomeTab", "CommunityTab", "fab", "VideosTab", "ProfileTab"] as const;
-
-function CustomTabBar({ state, navigation, onFabPress }: any) {
-  const insets = useSafeAreaInsets();
-  const fabPulse = useIntermitentePulse(4000, 6000);
-  return (
-    <View style={[tabStyles.container, { paddingBottom: Math.max(insets.bottom, 6) }]}>
-      {/* FAB central */}
-      <TouchableOpacity onPress={onFabPress} style={tabStyles.fab} activeOpacity={0.8}>
-        <Animated.View style={{ transform: [{ scale: fabPulse }] }}>
-          <Camera size={28} color="#fff" strokeWidth={2.2} />
-        </Animated.View>
-      </TouchableOpacity>
-
-      <View style={tabStyles.tabRow}>
-        {TAB_ORDER.map((route) => {
-          if (route === "fab") {
-            return <View key="fab" style={{ flex: 1 }} />;
-          }
-          const routeIndex = state.routes.findIndex((r: any) => r.name === route);
-          const isActive = state.index === routeIndex;
-          const IconComponent = TAB_ICONS[route as keyof typeof TAB_ICONS];
-          const label = TAB_LABELS[route as keyof typeof TAB_LABELS];
-          const color = isActive ? COLORS.green : COLORS.inkMute;
-          return (
-            <TouchableOpacity
-              key={route}
-              onPress={() => navigation.navigate(route)}
-              style={tabStyles.tab}
-            >
-              <IconComponent size={24} color={color} strokeWidth={2.2} />
-              <Text style={[tabStyles.tabLabel, isActive && tabStyles.tabLabelActive]}>{label}</Text>
-              {isActive && <View style={tabStyles.tabDot} />}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
 // Main tabs com FAB. Memoizado: com os handlers estaveis do App, abrir
 // Configuracoes ou Login nao re-renderiza mais as abas montadas.
 const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
@@ -163,7 +105,7 @@ const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSett
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <CustomTabBar {...props} onFabPress={onTirarFoto} />}
+      tabBar={(props) => <MainTabBar {...props} onFabPress={onTirarFoto} />}
     >
       <Tab.Screen name="HomeTab">
         {() => (
@@ -176,6 +118,8 @@ const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSett
         )}
       </Tab.Screen>
       <Tab.Screen name="CommunityTab" component={CommunityTabScreen} />
+      {/* Aba preguicosa (padrao do navegador): a tela de ebooks so monta na primeira visita. */}
+      <Tab.Screen name="EbooksTab" component={EbooksScreen} />
       <Tab.Screen name="VideosTab" component={VideosTab} />
       <Tab.Screen name="ProfileTab">
         {() => <ProfileScreen onSettings={onSettings} />}
@@ -455,60 +399,6 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const tabStyles = StyleSheet.create({
-  container: {
-    position: "relative",
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-  },
-  fab: {
-    position: "absolute",
-    left: "50%",
-    top: -28,
-    marginLeft: -32,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.green,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: COLORS.greenDeep,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 8,
-    zIndex: 10,
-  },
-  tabRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    height: 68,
-    paddingHorizontal: 4,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 10,
-    gap: 4,
-  },
-  tabLabel: {
-    fontFamily: FONTS.bodySemiBold,
-    fontSize: 11,
-    color: COLORS.inkMute,
-  },
-  tabLabelActive: {
-    fontFamily: FONTS.bodyExtraBold,
-    color: COLORS.green,
-  },
-  tabDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.green,
-  },
-});
 
 const styles = StyleSheet.create({
   container: {

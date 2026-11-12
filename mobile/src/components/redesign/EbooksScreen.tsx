@@ -5,7 +5,6 @@ import {
   ImageStyle,
   LayoutChangeEvent,
   ListRenderItemInfo,
-  Modal,
   PixelRatio,
   ScrollView,
   StyleProp,
@@ -15,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Camera, Download, Gift, X } from "lucide-react-native";
+import { Camera, Download, Gift } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
@@ -31,11 +30,6 @@ import {
 } from "../../data/ebooks";
 import { COLECAO, TEMAS_COLECAO, capaDoLivro, pdfDoLivro } from "../../data/colecao";
 import EbookViewerModal from "./EbookViewerModal";
-
-interface Props {
-  visible: boolean;
-  onClose: () => void;
-}
 
 type Aba = "colecao" | "classicos";
 
@@ -360,8 +354,12 @@ const Rodape = memo(function Rodape({ onPedir }: { onPedir: () => void }) {
 // Quantas vezes insistir no scroll ate a prateleira, enquanto ela ainda nao foi medida.
 const MAX_TENTATIVAS_SCROLL = 6;
 
-export default function EbooksScreen({ visible, onClose }: Props) {
+// Tela da aba Ebooks. A aba e preguicosa: nada daqui monta antes da primeira visita.
+export default function EbooksScreen() {
   const insets = useSafeAreaInsets();
+  // Mesma conta das outras abas: altura da barra (68) mais a area segura de baixo.
+  const tabBarHeight = 68 + Math.max(insets.bottom, 6);
+  const estiloConteudo = useMemo(() => [styles.content, { paddingBottom: tabBarHeight }], [tabBarHeight]);
   const navigation = useNavigation<any>();
   const [ebookAtivo, setEbookAtivo] = useState<Ebook | null>(null);
   const [viewerAberto, setViewerAberto] = useState(false);
@@ -438,11 +436,8 @@ export default function EbooksScreen({ visible, onClose }: Props) {
   const fecharViewer = useCallback(() => setViewerAberto(false), []);
 
   const pedirGuiaExclusivo = useCallback(() => {
-    onClose();
-    setTimeout(() => {
-      navigation.navigate("HomeTab");
-    }, 250);
-  }, [onClose, navigation]);
+    navigation.navigate("HomeTab");
+  }, [navigation]);
 
   const renderPrateleira = useCallback(
     ({ item }: ListRenderItemInfo<Prateleira>) => <PrateleiraLinha pr={item} aba={aba} onAbrir={abrirEbook} />,
@@ -452,45 +447,41 @@ export default function EbooksScreen({ visible, onClose }: Props) {
   const chaveDaPrateleira = useCallback((pr: Prateleira) => `${aba}-${pr.id}`, [aba]);
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} hitSlop={10} style={styles.closeBtn}>
-            <X size={22} color={COLORS.greenDark} strokeWidth={2.4} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Ebooks grátis</Text>
-          <View style={{ width: 32 }} />
-        </View>
-
-        {/* Lista vertical unica: so as prateleiras perto da tela ficam montadas */}
-        <FlatList
-          ref={listaRef}
-          data={prateleiras}
-          keyExtractor={chaveDaPrateleira}
-          renderItem={renderPrateleira}
-          ListHeaderComponent={
-            <Cabecalho
-              aba={aba}
-              prateleiras={prateleiras}
-              onTrocarAba={trocarAba}
-              onIrPara={irParaCategoria}
-              onLayout={medirCabecalho}
-            />
-          }
-          ListFooterComponent={<Rodape onPedir={pedirGuiaExclusivo} />}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          initialNumToRender={2}
-          maxToRenderPerBatch={2}
-          windowSize={3}
-          onScrollToIndexFailed={aoFalharScroll}
-        />
-
-        {/* O leitor so entra na arvore depois que um guia for aberto */}
-        {ebookAtivo && <EbookViewerModal visible={viewerAberto} ebook={ebookAtivo} onClose={fecharViewer} />}
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle} accessibilityRole="header">
+          Ebooks grátis
+        </Text>
       </View>
-    </Modal>
+
+      {/* Lista vertical unica: so as prateleiras perto da tela ficam montadas */}
+      <FlatList
+        ref={listaRef}
+        data={prateleiras}
+        keyExtractor={chaveDaPrateleira}
+        renderItem={renderPrateleira}
+        ListHeaderComponent={
+          <Cabecalho
+            aba={aba}
+            prateleiras={prateleiras}
+            onTrocarAba={trocarAba}
+            onIrPara={irParaCategoria}
+            onLayout={medirCabecalho}
+          />
+        }
+        ListFooterComponent={<Rodape onPedir={pedirGuiaExclusivo} />}
+        contentContainerStyle={estiloConteudo}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        windowSize={3}
+        onScrollToIndexFailed={aoFalharScroll}
+      />
+
+      {/* O leitor so entra na arvore depois que um guia for aberto */}
+      {ebookAtivo && <EbookViewerModal visible={viewerAberto} ebook={ebookAtivo} onClose={fecharViewer} />}
+    </View>
   );
 }
 
@@ -502,17 +493,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.divider,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
   },
   headerTitle: {
     fontFamily: FONTS.displayBlack,
@@ -520,8 +505,8 @@ const styles = StyleSheet.create({
     color: COLORS.greenDark,
   },
   content: {
+    // paddingBottom dinamico vem inline pra compensar a TabBar e a Camera central
     paddingTop: 14,
-    paddingBottom: 20,
   },
 
   // HERO
