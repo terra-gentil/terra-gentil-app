@@ -261,6 +261,9 @@ export const EBOOKS: Ebook[] = [
 
 export const TODOS_EBOOKS: Ebook[] = [EBOOK_DESTAQUE, ...EBOOKS];
 
+// Classicos cujo assunto ja tem livro novo na Colecao (mesmo mapa do site, lib/temas.ts).
+export const NUMEROS_NA_COLECAO: ReadonlySet<number> = new Set([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19]);
+
 export function ebookPorPlanta(nomePlanta: string): Ebook {
   const lower = nomePlanta.toLowerCase();
   for (const ebook of EBOOKS) {

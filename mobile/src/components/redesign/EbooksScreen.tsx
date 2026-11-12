@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import { MASCOT_GIFT } from "../../assets/mascot";
-import { Ebook, EBOOK_DESTAQUE, TODOS_EBOOKS, CATEGORIAS_EBOOK, categoriaDoEbook } from "../../data/ebooks";
+import { Ebook, EBOOK_DESTAQUE, TODOS_EBOOKS, CATEGORIAS_EBOOK, categoriaDoEbook, NUMEROS_NA_COLECAO } from "../../data/ebooks";
 import { COLECAO, TEMAS_COLECAO, capaDoLivro, pdfDoLivro } from "../../data/colecao";
 import EbookViewerModal from "./EbookViewerModal";
 
@@ -28,6 +28,9 @@ type Aba = "colecao" | "classicos";
 
 // Interruptor da aba Colecao (PDFs regerados e no ar desde 2026-11-11).
 const MOSTRAR_COLECAO = true;
+
+// Com a Colecao ligada, os classicos repetidos nela saem da lista.
+const CLASSICOS = MOSTRAR_COLECAO ? TODOS_EBOOKS.filter((e) => !NUMEROS_NA_COLECAO.has(e.numero)) : TODOS_EBOOKS;
 
 interface Prateleira {
   id: string;
@@ -59,7 +62,7 @@ const PRATELEIRAS_COLECAO: Prateleira[] = TEMAS_COLECAO.map((t) => ({
 
 const PRATELEIRAS_CLASSICOS: Prateleira[] = CATEGORIAS_EBOOK.map((c) => ({
   ...c,
-  livros: TODOS_EBOOKS.filter((e) => categoriaDoEbook(e) === c.id),
+  livros: CLASSICOS.filter((e) => categoriaDoEbook(e) === c.id),
 })).filter((p) => p.livros.length > 0);
 
 export default function EbooksScreen({ visible, onClose }: Props) {
@@ -126,7 +129,7 @@ export default function EbooksScreen({ visible, onClose }: Props) {
             <View style={styles.heroBody}>
               <View style={styles.giftPill}>
                 <Gift size={12} color="#7c2d12" strokeWidth={2.6} />
-                <Text style={styles.giftPillText}>{(MOSTRAR_COLECAO ? LIVROS_COLECAO.length : 0) + TODOS_EBOOKS.length} GUIAS · DE GRAÇA</Text>
+                <Text style={styles.giftPillText}>{(MOSTRAR_COLECAO ? LIVROS_COLECAO.length : 0) + CLASSICOS.length} GUIAS · DE GRAÇA</Text>
               </View>
               <Text style={styles.heroTitle}>
                 Os guias do{"\n"}Doutor Gentileza
@@ -161,7 +164,7 @@ export default function EbooksScreen({ visible, onClose }: Props) {
                 style={[styles.aba, aba === "classicos" && styles.abaAtiva]}
               >
                 <Text style={[styles.abaText, aba === "classicos" && styles.abaTextAtiva]}>
-                  ⭐ Clássicos ({TODOS_EBOOKS.length})
+                  ⭐ Clássicos ({CLASSICOS.length})
                 </Text>
               </TouchableOpacity>
             </View>
