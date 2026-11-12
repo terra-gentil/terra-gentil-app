@@ -26,9 +26,8 @@ interface Props {
 
 type Aba = "colecao" | "classicos";
 
-// A colecao fica escondida enquanto os PDFs dela estiverem com o texto ilegivel no ar
-// (defeito da compressao em scripts/guias/pdf-web.py do site). Religar quando regerados.
-const MOSTRAR_COLECAO = false;
+// Interruptor da aba Colecao (PDFs regerados e no ar desde 2026-11-11).
+const MOSTRAR_COLECAO = true;
 
 interface Prateleira {
   id: string;
