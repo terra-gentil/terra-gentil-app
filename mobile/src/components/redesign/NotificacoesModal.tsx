@@ -8,7 +8,6 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
 import { X, Bell, Megaphone, Info } from "lucide-react-native";
 import { COLORS, FONTS, SIZES, shadowSoft } from "../../constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -60,10 +59,8 @@ export default function NotificacoesModal({ visible, onClose }: Props) {
     }
   }, [visible]);
 
-  useFocusEffect(useCallback(() => {
-    carregar();
-  }, [carregar]));
-
+  // Uma busca por abertura. Antes o useFocusEffect repetia a mesma chamada
+  // junto com este efeito, eram 2 requisicoes identicas a cada abertura.
   React.useEffect(() => {
     if (visible) carregar();
   }, [visible]);

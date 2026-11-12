@@ -57,20 +57,26 @@ export function WelcomeScreen({ onComecar }: Props) {
 
     const timer = setTimeout(() => handleComecar(), DURACAO_MS);
 
+    let vivo = true;
+    let pulsoLoopTimer: ReturnType<typeof setTimeout> | undefined;
     function pulsarBotao() {
+      if (!vivo) return;
       Animated.sequence([
         Animated.timing(pulso, { toValue: 1.08, duration: 200, useNativeDriver: true }),
         Animated.timing(pulso, { toValue: 0.96, duration: 150, useNativeDriver: true }),
         Animated.timing(pulso, { toValue: 1, duration: 180, useNativeDriver: true }),
       ]).start(() => {
-        setTimeout(pulsarBotao, 3000);
+        // Sem esse guarda o pulso continuava se reagendando depois do unmount.
+        if (vivo) pulsoLoopTimer = setTimeout(pulsarBotao, 3000);
       });
     }
     const pulsoTimer = setTimeout(pulsarBotao, 1500);
 
     return () => {
       clearTimeout(timer);
+      vivo = false;
       clearTimeout(pulsoTimer);
+      clearTimeout(pulsoLoopTimer);
       progresso.stopAnimation();
       pulso.stopAnimation();
     };

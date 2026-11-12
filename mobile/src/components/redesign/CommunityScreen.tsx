@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -36,7 +36,7 @@ import {
 } from "../../data/comunidade";
 import {
   alternarSeguir,
-  contarComentarios,
+  contarComentariosEmLote,
   listarMeusPosts,
   obterLikes,
   obterSaves,
@@ -52,6 +52,54 @@ import LoginModal from "./LoginModal";
 import { incrementarStat } from "../../storage/conquistas";
 
 const FILTROS = ["Recentes", "Populares", "Salvos", "Meus posts", "Seguindo", "Pragas", "Suculentas"];
+
+// Voltar pra aba dentro desse intervalo reaproveita a lista ja carregada
+// (sem nova requisicao e sem perder a paginacao e a posicao do scroll).
+const FOCO_TTL_MS = 30000;
+
+interface AcoesPost {
+  onLikedChange: (post: PostBase, novo: boolean) => void;
+  onSavedChange: (post: PostBase, novo: boolean) => void;
+  onSeguindoChange: (autor: string, novo: boolean) => void;
+  onMore: (post: PostBase) => void;
+  onAbrirComentarios: (post: PostBase) => void;
+  onShare: (post: PostBase) => void;
+  onReport: (post: PostBase) => void;
+}
+
+interface PostItemProps {
+  post: PostBase;
+  liked: boolean;
+  saved: boolean;
+  seguindo: boolean;
+  comentariosLocais: number;
+  acoes: AcoesPost;
+}
+
+// Linha memoizada da lista: so re-renderiza quando o proprio post muda
+// (curtida, salvo, seguindo, contagem), nao a cada tecla da busca ou modal aberto.
+const PostItem = memo(function PostItem({ post, liked, saved, seguindo, comentariosLocais, acoes }: PostItemProps) {
+  return (
+    <PostCard
+      post={post}
+      liked={liked}
+      saved={saved}
+      seguindo={seguindo}
+      comentariosLocais={comentariosLocais}
+      onLikedChange={(novo) => acoes.onLikedChange(post, novo)}
+      onSavedChange={(novo) => acoes.onSavedChange(post, novo)}
+      onSeguindoChange={acoes.onSeguindoChange}
+      onMore={() => acoes.onMore(post)}
+      onComment={() => acoes.onAbrirComentarios(post)}
+      onShare={() => acoes.onShare(post)}
+      onVerComentarios={() => acoes.onAbrirComentarios(post)}
+      onContinuarLendo={() => acoes.onAbrirComentarios(post)}
+      onReport={!post.isMine ? () => acoes.onReport(post) : undefined}
+    />
+  );
+});
+
+const chavePost = (item: PostBase) => String(item.id);
 
 function PostCardSkeleton() {
   return (
@@ -173,17 +221,15 @@ export default function CommunityScreen() {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [temMais, setTemMais] = useState(true);
   const carregandoRef = useRef(false);
+  const ultimaCargaRef = useRef(0);
+  // topicToPost roda regex no corpo inteiro (que pode trazer foto em base64).
+  // O cache por topic evita refazer isso e mantem o mesmo objeto entre renders.
+  const cachePostsRef = useRef(new WeakMap<TopicOut, { userId: string | null; post: PostBase }>());
   const flatListRef = useRef<FlatList<PostBase>>(null);
 
   const recarregarComentarios = useCallback(async (ids: (string | number)[]) => {
-    const entries = await Promise.all(
-      ids.map(async (id) => [String(id), await contarComentarios(id)] as const),
-    );
-    setComentariosPorPost((curr) => {
-      const next = { ...curr };
-      for (const [id, n] of entries) next[id] = n;
-      return next;
-    });
+    const contagens = await contarComentariosEmLote(ids);
+    setComentariosPorPost((curr) => ({ ...curr, ...contagens }));
   }, []);
 
   const carregarTopics = useCallback(async (
@@ -202,6 +248,7 @@ export default function CommunityScreen() {
       setApiTopics((prev) => (resetar ? resultado.items : [...prev, ...resultado.items]));
       setTemMais(resultado.items.length >= perPage);
       setPaginaAtual(pagina);
+      ultimaCargaRef.current = Date.now();
     } catch (err) {
       console.log("[comunidade] erro ao buscar topics:", err);
     } finally {
@@ -238,7 +285,9 @@ export default function CommunityScreen() {
         ];
         recarregarComentarios(todosIds);
       })();
-      carregarTopics(1, true, "newest", 8);
+      if (Date.now() - ultimaCargaRef.current >= FOCO_TTL_MS) {
+        carregarTopics(1, true, "newest", 8);
+      }
       return () => {
         alive = false;
       };
@@ -248,7 +297,14 @@ export default function CommunityScreen() {
   const todosPosts: PostBase[] = useMemo(() => {
     const fonte: PostBase[] =
       apiTopics.length > 0
-        ? apiTopics.map((t) => topicToPost(t, userId))
+        ? apiTopics.map((t) => {
+            const cache = cachePostsRef.current;
+            const salvo = cache.get(t);
+            if (salvo && salvo.userId === userId) return salvo.post;
+            const post = topicToPost(t, userId);
+            cache.set(t, { userId, post });
+            return post;
+          })
         : POSTS_MOCK;
     const pinados = fonte.filter((p) => p.pinned);
     const naoPinados = fonte.filter((p) => !p.pinned);
@@ -467,6 +523,57 @@ export default function CommunityScreen() {
     if (temMais && !carregando) carregarTopics(paginaAtual + 1, false, sortParaFiltro(filtro), 20);
   }
 
+  // Handlers que dependem do estado atual ficam num ref, e a lista recebe
+  // um objeto de acoes com identidade fixa (nao invalida o memo das linhas).
+  const handlersRef = useRef({ handleMore, handleAbrirComentarios, handleShare, handleReport });
+  handlersRef.current = { handleMore, handleAbrirComentarios, handleShare, handleReport };
+
+  const acoes = useMemo<AcoesPost>(() => ({
+    onLikedChange: (post, novo) => {
+      if (novo) incrementarStat("totalReacoesEnviadas");
+      setLikes((curr) => {
+        const next = { ...curr };
+        if (novo) next[String(post.id)] = true;
+        else delete next[String(post.id)];
+        return next;
+      });
+    },
+    onSavedChange: (post, novo) => {
+      setSaves((curr) => {
+        const next = { ...curr };
+        if (novo) next[String(post.id)] = true;
+        else delete next[String(post.id)];
+        return next;
+      });
+    },
+    onSeguindoChange: (autor, novo) => {
+      setSeguindo((curr) => {
+        const next = { ...curr };
+        if (novo) next[autor] = true;
+        else delete next[autor];
+        return next;
+      });
+    },
+    onMore: (post) => handlersRef.current.handleMore(post),
+    onAbrirComentarios: (post) => handlersRef.current.handleAbrirComentarios(post),
+    onShare: (post) => { handlersRef.current.handleShare(post); },
+    onReport: (post) => { handlersRef.current.handleReport(post); },
+  }), []);
+
+  const renderPost = useCallback(
+    ({ item: p }: { item: PostBase }) => (
+      <PostItem
+        post={p}
+        liked={Boolean(likes[String(p.id)])}
+        saved={Boolean(saves[String(p.id)])}
+        seguindo={Boolean(seguindo[p.author])}
+        comentariosLocais={comentariosPorPost[String(p.id)] ?? 0}
+        acoes={acoes}
+      />
+    ),
+    [likes, saves, seguindo, comentariosPorPost, acoes],
+  );
+
   return (
     <View style={styles.screen}>
       {!buscaAberta ? (
@@ -506,47 +613,12 @@ export default function CommunityScreen() {
       <FlatList
         ref={flatListRef}
         data={postsFiltrados}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={({ item: p }) => (
-          <PostCard
-            post={p}
-            liked={Boolean(likes[String(p.id)])}
-            saved={Boolean(saves[String(p.id)])}
-            seguindo={Boolean(seguindo[p.author])}
-            comentariosLocais={comentariosPorPost[String(p.id)] ?? 0}
-            onLikedChange={(novo) => {
-              if (novo) incrementarStat("totalReacoesEnviadas");
-              setLikes((curr) => {
-                const next = { ...curr };
-                if (novo) next[String(p.id)] = true;
-                else delete next[String(p.id)];
-                return next;
-              });
-            }}
-            onSavedChange={(novo) => {
-              setSaves((curr) => {
-                const next = { ...curr };
-                if (novo) next[String(p.id)] = true;
-                else delete next[String(p.id)];
-                return next;
-              });
-            }}
-            onSeguindoChange={(autor, novo) => {
-              setSeguindo((curr) => {
-                const next = { ...curr };
-                if (novo) next[autor] = true;
-                else delete next[autor];
-                return next;
-              });
-            }}
-            onMore={() => handleMore(p)}
-            onComment={() => handleAbrirComentarios(p)}
-            onShare={() => handleShare(p)}
-            onVerComentarios={() => handleAbrirComentarios(p)}
-            onContinuarLendo={() => handleAbrirComentarios(p)}
-            onReport={!p.isMine ? () => handleReport(p) : undefined}
-          />
-        )}
+        keyExtractor={chavePost}
+        renderItem={renderPost}
+        // Cada card tem cerca de meia tela: 4 de inicio ja cobrem a primeira dobra.
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={9}
         ListHeaderComponent={
           !buscaAberta ? (
             <View>

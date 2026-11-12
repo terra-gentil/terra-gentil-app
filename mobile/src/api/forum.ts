@@ -1,4 +1,4 @@
-import { FORUM_API_URL } from "../config/api";
+import { FORUM_API_URL, fetchComTimeout } from "../config/api";
 
 const SITE = "terra-gentil";
 const API_BASE_URL = FORUM_API_URL;
@@ -65,7 +65,9 @@ async function requisicao<T>(caminho: string, opts: RequisicaoOpts = {}): Promis
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  const resp = await fetch(`${API_BASE_URL}${caminho}`, {
+  // So as leituras tem timeout. Envio (post com foto em base64) pode demorar em rede lenta.
+  const buscar = method === "GET" ? fetchComTimeout : fetch;
+  const resp = await buscar(`${API_BASE_URL}${caminho}`, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,

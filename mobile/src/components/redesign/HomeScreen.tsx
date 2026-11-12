@@ -24,7 +24,7 @@ import DoctorScanner from "./DoctorScanner";
 import EbooksScreen from "./EbooksScreen";
 import PromotionsScreen from "./PromotionsScreen";
 import NotificacoesModal from "./NotificacoesModal";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   saudavel: { label: "Saudavel", color: COLORS.green },
@@ -113,6 +113,9 @@ export default function HomeScreen({
   const [promosAberto, setPromosAberto] = useState(false);
   const [notifAberto, setNotifAberto] = useState(false);
   const cameraPulse = useIntermitentePulse(4000, 6000);
+  // A animacao do scanner so roda com a Home visivel (aba em foco e sem modal por cima).
+  const emFoco = useIsFocused();
+  const scannerPausado = !emFoco || ebooksAberto || promosAberto || notifAberto;
 
   useFocusEffect(
     useCallback(() => {
@@ -214,7 +217,7 @@ export default function HomeScreen({
           </View>
         </View>
 
-        <DoctorScanner />
+        <DoctorScanner pausado={scannerPausado} />
       </TouchableOpacity>
 
       {/* Atalhos rapidos */}

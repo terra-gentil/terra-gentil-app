@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { memo, useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,12 +15,20 @@ import * as ImagePicker from "expo-image-picker";
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFonts, Nunito_700Bold, Nunito_800ExtraBold, Nunito_900Black } from "@expo-google-fonts/nunito";
-import { PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold } from "@expo-google-fonts/plus-jakarta-sans";
+// Fontes importadas por peso. O import pela raiz do pacote puxava os 30 arquivos .ttf
+// das duas familias (3,5 MB) pro bundle e pro update OTA, e o app usa so estes 8.
+import { useFonts } from "@expo-google-fonts/nunito/useFonts";
+import { Nunito_700Bold } from "@expo-google-fonts/nunito/700Bold";
+import { Nunito_800ExtraBold } from "@expo-google-fonts/nunito/800ExtraBold";
+import { Nunito_900Black } from "@expo-google-fonts/nunito/900Black";
+import { PlusJakartaSans_400Regular } from "@expo-google-fonts/plus-jakarta-sans/400Regular";
+import { PlusJakartaSans_500Medium } from "@expo-google-fonts/plus-jakarta-sans/500Medium";
+import { PlusJakartaSans_600SemiBold } from "@expo-google-fonts/plus-jakarta-sans/600SemiBold";
+import { PlusJakartaSans_700Bold } from "@expo-google-fonts/plus-jakarta-sans/700Bold";
+import { PlusJakartaSans_800ExtraBold } from "@expo-google-fonts/plus-jakarta-sans/800ExtraBold";
 
 import {
   DiagnosticoResponse,
@@ -38,7 +46,6 @@ import CommunityScreen from "./src/components/redesign/CommunityScreen";
 import GameScreen from "./src/components/redesign/GameScreen";
 import { salvarConsulta } from "./src/storage/historico";
 import {
-  resetarWelcome,
   tutorialJaVisto,
   welcomeJaVisto,
 } from "./src/storage/preferencias";
@@ -84,7 +91,6 @@ async function pedirPermissaoERegistrarPush() {
   }
 }
 
-const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function CommunityTabScreen() { return <CommunityScreen />; }
@@ -146,8 +152,9 @@ function CustomTabBar({ state, navigation, onFabPress }: any) {
   );
 }
 
-// Main tabs com FAB
-function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
+// Main tabs com FAB. Memoizado: com os handlers estaveis do App, abrir
+// Configuracoes ou Login nao re-renderiza mais as abas montadas.
+const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
   onTirarFoto: () => void;
   onEscolherGaleria: () => void;
   onSettings: () => void;
@@ -175,7 +182,7 @@ function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
       </Tab.Screen>
     </Tab.Navigator>
   );
-}
+});
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -203,13 +210,13 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const welcomeOk = await welcomeJaVisto();
+      // As duas leituras em paralelo: uma ida ao storage a menos antes da primeira tela.
+      const [welcomeOk, tutorialOk] = await Promise.all([welcomeJaVisto(), tutorialJaVisto()]);
       if (!welcomeOk) {
         setShowWelcome(true);
         setBootDone(true);
         return;
       }
-      const tutorialOk = await tutorialJaVisto();
       if (!tutorialOk) {
         setShowTutorial(true);
       }
@@ -237,7 +244,25 @@ export default function App() {
     setShowTutorial(false);
   }
 
-  async function handleTirarFoto() {
+  const enviarParaDiagnostico = useCallback(async (uri: string) => {
+    setLoading(true);
+    try {
+      const data = await diagnosticarPlanta(uri);
+      setResultado(data);
+      if (data.eh_planta) {
+        await salvarConsulta(data, uri);
+      }
+    } catch (err) {
+      const appErr = toAppError(err);
+      logError(appErr, "diagnostico");
+      setAppError(appErr);
+      setImageUri(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleTirarFoto = useCallback(async () => {
     const permissao = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissao.granted) {
       Alert.alert("Permissão negada", "Precisamos da câmera pra fotografar a planta.");
@@ -255,9 +280,9 @@ export default function App() {
     setResultado(null);
     setAppError(null);
     await enviarParaDiagnostico(uri);
-  }
+  }, [enviarParaDiagnostico]);
 
-  async function handleEscolherGaleria() {
+  const handleEscolherGaleria = useCallback(async () => {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
       Alert.alert("Permissão negada", "Precisamos acessar a galeria pra escolher a imagem.");
@@ -275,25 +300,7 @@ export default function App() {
     setResultado(null);
     setAppError(null);
     await enviarParaDiagnostico(uri);
-  }
-
-  async function enviarParaDiagnostico(uri: string) {
-    setLoading(true);
-    try {
-      const data = await diagnosticarPlanta(uri);
-      setResultado(data);
-      if (data.eh_planta) {
-        await salvarConsulta(data, uri);
-      }
-    } catch (err) {
-      const appErr = toAppError(err);
-      logError(appErr, "diagnostico");
-      setAppError(appErr);
-      setImageUri(null);
-    } finally {
-      setLoading(false);
-    }
-  }
+  }, [enviarParaDiagnostico]);
 
   function handleNovaFoto() {
     setImageUri(null);
@@ -301,11 +308,11 @@ export default function App() {
     setAppError(null);
   }
 
-  function handleSettings() {
+  const handleSettings = useCallback(() => {
     setConfigAberta(true);
-  }
+  }, []);
 
-  async function handleJogar() {
+  const handleJogar = useCallback(async () => {
     try {
       const nick = await obterOuCriarNickname();
       setGameNickname(nick);
@@ -314,7 +321,7 @@ export default function App() {
       setGameNickname(undefined);
     }
     setShowGame(true);
-  }
+  }, []);
 
   function handleSairDoJogo() {
     setShowGame(false);
@@ -473,9 +480,6 @@ const tabStyles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 8,
     zIndex: 10,
-  },
-  fabIconWrap: {
-    // placeholder se precisar de wrapper
   },
   tabRow: {
     flexDirection: "row",

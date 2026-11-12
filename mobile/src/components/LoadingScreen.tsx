@@ -16,13 +16,15 @@ export function LoadingScreen() {
   const laserAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.timing(laserAnim, {
         toValue: 1,
         duration: 2000,
         useNativeDriver: true,
       }),
-    ).start();
+    );
+    loop.start();
+    return () => loop.stop();
   }, []);
 
   const laserTranslateY = laserAnim.interpolate({

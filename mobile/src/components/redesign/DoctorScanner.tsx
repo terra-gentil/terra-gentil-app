@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Image, ImageSourcePropType, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, ImageSourcePropType, LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Brain } from "lucide-react-native";
 import { COLORS, FONTS } from "../../constants/theme";
@@ -32,23 +32,6 @@ const EXAMPLES = [
   { name: "Manjericão", problem: "Pulgão na face inferior", severity: "Atenção", sevColor: COLORS.coral },
 ];
 
-const inPhase = (t: number, name: PhaseKey) => t >= PHASES[name][0] && t < PHASES[name][1];
-
-const phaseProgress = (t: number, name: PhaseKey) => {
-  const [a, b] = PHASES[name];
-  if (t < a) return 0;
-  if (t > b) return 1;
-  return (t - a) / (b - a);
-};
-
-const opacityFor = (t: number, name: PhaseKey, fade = 0.45) => {
-  const [a, b] = PHASES[name];
-  if (t >= a - fade && t < a) return (t - (a - fade)) / fade;
-  if (t >= a && t <= b) return 1;
-  if (t > b && t < b + fade) return 1 - (t - b) / fade;
-  return 0;
-};
-
 function hexAlpha(hex: string, alpha: number): string {
   if (hex.startsWith("#") && hex.length === 7) {
     const a = Math.round(alpha * 255).toString(16).padStart(2, "0");
@@ -57,90 +40,148 @@ function hexAlpha(hex: string, alpha: number): string {
   return hex;
 }
 
+// Constantes fora do componente pra nao recriar arrays a cada render.
+const VINHETA_CORES = ["rgba(11,20,16,0)", "rgba(11,20,16,0.65)"] as const;
+const VINHETA_LOCAIS = [0.35, 1] as const;
+const SCANLINE_CORES = ["transparent", COLORS.greenLeaf, "transparent"] as const;
+const SCANGLOW_CORES = ["rgba(116,198,157,0)", "rgba(116,198,157,0.18)", "rgba(116,198,157,0)"] as const;
+const SCANGLOW_LOCAIS = [0, 0.7, 1] as const;
+const GRADIENTE_ESQ = { x: 0, y: 0 };
+const GRADIENTE_DIR = { x: 1, y: 0 };
+
+// Ordem das fases dentro do ciclo. A primeira comeca em t = 0.
+const ORDEM_FASES: PhaseKey[] = ["intro", "scan", "think", "result", "plan", "ebook"];
+
+const FASE_HUD: Record<PhaseKey, { label: string; cor: string }> = {
+  intro: { label: "CÂMERA INICIANDO", cor: "#F4ECDB" },
+  scan: { label: "ESCANEANDO PLANTA", cor: COLORS.greenLeaf },
+  think: { label: "IA ANALISANDO", cor: COLORS.greenLeaf },
+  result: { label: "DIAGNÓSTICO PRONTO", cor: COLORS.coral },
+  plan: { label: "PLANO DE AÇÃO", cor: COLORS.greenLeaf },
+  ebook: { label: "EBOOK ENVIADO", cor: COLORS.greenLeaf },
+};
+
+const FADE_FOTO = 0.45;
+// O card de resultado termina de aparecer em 1/3 da fase "result".
+const RESULT_INICIO = PHASES.result[0];
+const RESULT_CHEIO = PHASES.result[0] + (PHASES.result[1] - PHASES.result[0]) / 3;
+
 interface Props {
   marginTop?: number;
+  // Com true a animacao para (tela fora de foco) e nao agenda nada.
+  pausado?: boolean;
 }
 
-export default function DoctorScanner({ marginTop = 14 }: Props) {
-  const [t, setT] = useState(0);
+/**
+ * Animacao em loop de 11 s. O relogio "t" e um Animated.Value com driver nativo,
+ * entao opacidade, escala e deslocamento rodam fora da thread JS. O React so
+ * re-renderiza nas trocas de fase (6 por ciclo), nao a cada quadro.
+ */
+export default function DoctorScanner({ marginTop = 14, pausado = false }: Props) {
+  const t = useRef(new Animated.Value(0)).current;
+  const [fase, setFase] = useState<PhaseKey>("intro");
   const [exampleIdx, setExampleIdx] = useState(0);
+  const [altura, setAltura] = useState(0);
 
   useEffect(() => {
-    let raf = 0;
-    let prev = 0;
-    let lastUpdate = 0;
-    const tick = (now: number) => {
-      if (!prev) prev = now;
-      const elapsed = now - lastUpdate;
-      if (elapsed >= 33) {
-        const dt = (now - prev) / 1000;
-        prev = now;
-        lastUpdate = now;
-        setT((curr) => {
-          const next = (curr + dt) % LOOP;
-          if (curr > LOOP - 1.5 && next < 1) {
-            setExampleIdx((i) => (i + 1) % EXAMPLES.length);
-          }
-          return next;
-        });
-      }
-      raf = requestAnimationFrame(tick);
+    if (pausado) return;
+    let vivo = true;
+    let timers: ReturnType<typeof setTimeout>[] = [];
+    const limparTimers = () => {
+      timers.forEach(clearTimeout);
+      timers = [];
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    const iniciarCiclo = (proximoExemplo: boolean) => {
+      if (!vivo) return;
+      limparTimers();
+      t.setValue(0);
+      setFase("intro");
+      if (proximoExemplo) setExampleIdx((i) => (i + 1) % EXAMPLES.length);
+      for (const key of ORDEM_FASES.slice(1)) {
+        timers.push(
+          setTimeout(() => {
+            if (vivo) setFase(key);
+          }, PHASES[key][0] * 1000),
+        );
+      }
+      Animated.timing(t, {
+        toValue: LOOP,
+        duration: LOOP * 1000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start();
+      // O reinicio vem de um timer proprio, nao do callback da animacao, pra o
+      // ciclo nao depender de quando o driver nativo avisa que terminou.
+      timers.push(setTimeout(() => iniciarCiclo(true), LOOP * 1000));
+    };
+    iniciarCiclo(false);
+    return () => {
+      vivo = false;
+      limparTimers();
+      t.stopAnimation();
+    };
+  }, [pausado, t]);
+
+  const fotos = useMemo(
+    () =>
+      ACTS.map((act) => {
+        const [a, b] = PHASES[act.key];
+        const inputRange = [a - FADE_FOTO, a, b, b + FADE_FOTO];
+        return {
+          key: act.key,
+          src: act.src,
+          opacity: t.interpolate({ inputRange, outputRange: [0, 1, 1, 0], extrapolate: "clamp" }),
+          scale: t.interpolate({ inputRange, outputRange: [1.02, 1.04, 1.04, 1.02], extrapolate: "clamp" }),
+        };
+      }),
+    [t],
+  );
+
+  const scan = useMemo(() => {
+    const inputRange = [PHASES.scan[0], PHASES.scan[1]];
+    return {
+      linhaY: t.interpolate({ inputRange, outputRange: [altura * 0.15, altura * 0.85], extrapolate: "clamp" }),
+      brilhoY: t.interpolate({ inputRange, outputRange: [altura * 0.03, altura * 0.73], extrapolate: "clamp" }),
+    };
+  }, [t, altura]);
+
+  const resultado = useMemo(() => {
+    const inputRange = [RESULT_INICIO, RESULT_CHEIO];
+    return {
+      opacity: t.interpolate({ inputRange, outputRange: [0, 1], extrapolate: "clamp" }),
+      translateY: t.interpolate({ inputRange, outputRange: [14, 0], extrapolate: "clamp" }),
+    };
+  }, [t]);
+
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
+    const h = e.nativeEvent.layout.height;
+    setAltura((atual) => (Math.abs(atual - h) < 0.5 ? atual : h));
   }, []);
 
   const example = EXAMPLES[exampleIdx];
-  const scanP = phaseProgress(t, "scan");
-  const resultP = phaseProgress(t, "result");
-  const showScanner = inPhase(t, "scan");
-  const showThink = inPhase(t, "think");
-  const showResult = t >= PHASES.result[0];
-  const resultOp = Math.min(1, resultP * 3);
-
-  let statusLabel = "PRONTO";
-  let toneColor: string = COLORS.greenLeaf;
-  if (inPhase(t, "intro")) {
-    statusLabel = "CÂMERA INICIANDO";
-    toneColor = "#F4ECDB";
-  } else if (inPhase(t, "scan")) {
-    statusLabel = "ESCANEANDO PLANTA";
-    toneColor = COLORS.greenLeaf;
-  } else if (inPhase(t, "think")) {
-    statusLabel = "IA ANALISANDO";
-    toneColor = COLORS.greenLeaf;
-  } else if (inPhase(t, "result")) {
-    statusLabel = "DIAGNÓSTICO PRONTO";
-    toneColor = COLORS.coral;
-  } else if (inPhase(t, "plan")) {
-    statusLabel = "PLANO DE AÇÃO";
-    toneColor = COLORS.greenLeaf;
-  } else if (inPhase(t, "ebook")) {
-    statusLabel = "EBOOK ENVIADO";
-    toneColor = COLORS.greenLeaf;
-  }
+  const { label: statusLabel, cor: toneColor } = FASE_HUD[fase];
+  const showScanner = fase === "scan" && altura > 0;
+  const showThink = fase === "think";
+  const showResult = fase === "result" || fase === "plan" || fase === "ebook";
 
   return (
-    <View style={[styles.stage, { marginTop }]}>
+    <View style={[styles.stage, { marginTop }]} onLayout={onLayout}>
       {/* Camada 0: pilha de fotos com crossfade */}
-      {ACTS.map((act) => {
-        const op = opacityFor(t, act.key);
-        return (
-          <Image
-            key={act.key}
-            source={act.src}
-            style={[
-              styles.photo,
-              { opacity: op, transform: [{ scale: 1.02 + op * 0.02 }] },
-            ]}
-          />
-        );
-      })}
+      {fotos.map((foto) => (
+        <Animated.Image
+          key={foto.key}
+          source={foto.src}
+          style={[
+            styles.photo,
+            { opacity: foto.opacity, transform: [{ scale: foto.scale }] },
+          ]}
+        />
+      ))}
 
       {/* Vinheta */}
       <LinearGradient
-        colors={["rgba(11,20,16,0)", "rgba(11,20,16,0.65)"]}
-        locations={[0.35, 1]}
+        colors={VINHETA_CORES}
+        locations={VINHETA_LOCAIS}
         style={StyleSheet.absoluteFillObject}
         pointerEvents="none"
       />
@@ -175,26 +216,27 @@ export default function DoctorScanner({ marginTop = 14 }: Props) {
       {/* Linha do scanner */}
       {showScanner && (
         <>
-          <LinearGradient
-            colors={["transparent", COLORS.greenLeaf, "transparent"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.scanline, { top: `${15 + scanP * 70}%` as any }]}
+          <Animated.View
             pointerEvents="none"
-          />
-          <LinearGradient
-            colors={[
-              "rgba(116,198,157,0)",
-              "rgba(116,198,157,0.18)",
-              "rgba(116,198,157,0)",
-            ]}
-            locations={[0, 0.7, 1]}
-            style={[
-              styles.scanGlow,
-              { top: `${Math.max(0, 15 + scanP * 70 - 12)}%` as any },
-            ]}
+            style={[styles.scanTrilho, { transform: [{ translateY: scan.linhaY }] }]}
+          >
+            <LinearGradient
+              colors={SCANLINE_CORES}
+              start={GRADIENTE_ESQ}
+              end={GRADIENTE_DIR}
+              style={styles.scanline}
+            />
+          </Animated.View>
+          <Animated.View
             pointerEvents="none"
-          />
+            style={[styles.scanTrilho, { transform: [{ translateY: scan.brilhoY }] }]}
+          >
+            <LinearGradient
+              colors={SCANGLOW_CORES}
+              locations={SCANGLOW_LOCAIS}
+              style={styles.scanGlow}
+            />
+          </Animated.View>
         </>
       )}
 
@@ -215,13 +257,13 @@ export default function DoctorScanner({ marginTop = 14 }: Props) {
 
       {/* Card diagnostico */}
       {showResult && (
-        <View
+        <Animated.View
           pointerEvents="none"
           style={[
             styles.result,
             {
-              opacity: resultOp,
-              transform: [{ translateY: (1 - resultOp) * 14 }],
+              opacity: resultado.opacity,
+              transform: [{ translateY: resultado.translateY }],
             },
           ]}
         >
@@ -243,7 +285,7 @@ export default function DoctorScanner({ marginTop = 14 }: Props) {
               {example.problem}
             </Text>
           </View>
-        </View>
+        </Animated.View>
       )}
     </View>
   );
@@ -359,10 +401,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     maxWidth: 130,
   },
-  scanline: {
+  scanTrilho: {
     position: "absolute",
+    top: 0,
     left: 0,
     right: 0,
+  },
+  scanline: {
     height: 2,
     shadowColor: COLORS.greenLeaf,
     shadowOpacity: 1,
@@ -371,9 +416,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   scanGlow: {
-    position: "absolute",
-    left: 0,
-    right: 0,
     height: 60,
   },
   thinkWrap: {

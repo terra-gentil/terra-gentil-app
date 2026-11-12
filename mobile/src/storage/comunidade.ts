@@ -186,6 +186,20 @@ export async function adicionarComentario(
   return novo;
 }
 
+// Conta os comentarios locais de varios posts com uma unica leitura do storage.
+export async function contarComentariosEmLote(
+  postIds: (string | number)[],
+): Promise<Record<string, number>> {
+  const todos = await lerObj<Record<string, Comentario[]>>(KEY_COMENTARIOS);
+  const contagens: Record<string, number> = {};
+  for (const postId of postIds) {
+    const id = String(postId);
+    const lista = todos[id];
+    contagens[id] = Array.isArray(lista) ? lista.length : 0;
+  }
+  return contagens;
+}
+
 export async function contarComentarios(
   postId: string | number,
 ): Promise<number> {

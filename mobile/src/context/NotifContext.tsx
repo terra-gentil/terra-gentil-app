@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { listarNotificacoes } from "../api/notificacoes";
 
 interface NotifContextType {
@@ -32,8 +32,11 @@ export function NotifProvider({ children }: { children: React.ReactNode }) {
     recarregarBadge();
   }, []);
 
+  // Valor memoizado: os consumidores so re-renderizam quando o badge muda de fato.
+  const value = useMemo(() => ({ badgeCount, recarregarBadge }), [badgeCount, recarregarBadge]);
+
   return (
-    <NotifContext.Provider value={{ badgeCount, recarregarBadge }}>
+    <NotifContext.Provider value={value}>
       {children}
     </NotifContext.Provider>
   );

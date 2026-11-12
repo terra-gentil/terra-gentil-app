@@ -1,5 +1,5 @@
 import { getToken } from "../storage/auth";
-import { FORUM_API_URL } from "../config/api";
+import { FORUM_API_URL, fetchComTimeout } from "../config/api";
 
 export interface Notificacao {
   id: string;
@@ -30,7 +30,7 @@ export async function registrarPushToken(token: string, platform: string): Promi
 
 export async function listarNotificacoes(limit = 50, offset = 0): Promise<Notificacao[]> {
   const h = await headers();
-  const r = await fetch(`${FORUM_API_URL}/notifications?limit=${limit}&offset=${offset}`, { headers: h });
+  const r = await fetchComTimeout(`${FORUM_API_URL}/notifications?limit=${limit}&offset=${offset}`, { headers: h });
   if (!r.ok) return [];
   return r.json();
 }
