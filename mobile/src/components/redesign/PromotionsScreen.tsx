@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,8 +8,9 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { ShoppingBag, X } from "lucide-react-native";
+import { ShoppingBag } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   COLORS,
   FONTS,
@@ -21,11 +21,6 @@ import Pills from "./Pills";
 import SectionTitle from "./SectionTitle";
 import { FlashDealCard, RecommendedDealCard, FlashDeal, RecommendedDeal } from "./DealCard";
 import { listarConsultas } from "../../storage/historico";
-
-interface Props {
-  visible: boolean;
-  onClose: () => void;
-}
 
 type Categoria = "Todas" | "Vasos" | "Adubos" | "Sementes" | "Ferramentas";
 const CATEGORIAS: Categoria[] = ["Todas", "Vasos", "Adubos", "Sementes", "Ferramentas"];
@@ -124,34 +119,35 @@ function calcularRestante(alvo: number) {
   };
 }
 
-export default function PromotionsScreen({ visible, onClose }: Props) {
+// Tela da aba Promoções. A aba e preguicosa: nada daqui monta antes da primeira visita.
+// Nao ha chamada de rede: as ofertas sao fixas e a planta vem do historico local.
+export default function PromotionsScreen() {
   const insets = useSafeAreaInsets();
+  // Mesma conta das outras abas: altura da barra (68) mais a area segura de baixo.
+  const tabBarHeight = 68 + Math.max(insets.bottom, 6);
+  const estiloConteudo = useMemo(() => [styles.content, { paddingBottom: tabBarHeight }], [tabBarHeight]);
   const [filtro, setFiltro] = useState<Categoria>("Todas");
   const [plantaUser, setPlantaUser] = useState<string | null>(null);
-  const [alvo, setAlvo] = useState<number>(() => Date.now() + DURACAO_OFERTA_MS);
-  const [restante, setRestante] = useState(() => calcularRestante(Date.now() + DURACAO_OFERTA_MS));
+  const [alvo] = useState<number>(() => Date.now() + DURACAO_OFERTA_MS);
+  const [restante, setRestante] = useState(() => calcularRestante(alvo));
 
-  useEffect(() => {
-    if (!visible) return;
-    const novoAlvo = Date.now() + DURACAO_OFERTA_MS;
-    setAlvo(novoAlvo);
-    setRestante(calcularRestante(novoAlvo));
-    listarConsultas(1).then((c) => {
-      if (c.length > 0 && c[0].nome_popular) {
-        setPlantaUser(c[0].nome_popular);
-      } else {
-        setPlantaUser(null);
-      }
-    });
-  }, [visible]);
-
-  useEffect(() => {
-    if (!visible) return;
-    const interval = setInterval(() => {
+  // So com a aba em foco: atualiza a planta do ultimo diagnostico e roda o contador.
+  useFocusEffect(
+    useCallback(() => {
+      let vivo = true;
       setRestante(calcularRestante(alvo));
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [visible, alvo]);
+      listarConsultas(1)
+        .then((c) => {
+          if (vivo) setPlantaUser(c.length > 0 && c[0].nome_popular ? c[0].nome_popular : null);
+        })
+        .catch(() => {});
+      const interval = setInterval(() => setRestante(calcularRestante(alvo)), 60000);
+      return () => {
+        vivo = false;
+        clearInterval(interval);
+      };
+    }, [alvo])
+  );
 
   const flashFiltrado = useMemo(() => {
     if (filtro === "Todas") return FLASH_DEALS;
@@ -176,18 +172,15 @@ export default function PromotionsScreen({ visible, onClose }: Props) {
   }
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} hitSlop={10} style={styles.closeBtn}>
-            <X size={22} color={COLORS.greenDark} strokeWidth={2.4} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Promoções</Text>
-          <View style={{ width: 32 }} />
+          <Text style={styles.headerTitle} accessibilityRole="header">
+            Promoções
+          </Text>
         </View>
 
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={estiloConteudo}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.tituloWrap}>
@@ -302,11 +295,8 @@ export default function PromotionsScreen({ visible, onClose }: Props) {
               direto pelo app, com curadoria do Doutor Gentileza.
             </Text>
           </View>
-
-          <View style={{ height: 40 }} />
         </ScrollView>
-      </View>
-    </Modal>
+    </View>
   );
 }
 
@@ -318,17 +308,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.divider,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
   },
   headerTitle: {
     fontFamily: FONTS.displayBlack,
@@ -336,8 +320,8 @@ const styles = StyleSheet.create({
     color: COLORS.greenDark,
   },
   content: {
+    // paddingBottom dinamico vem inline pra compensar a TabBar e a Camera central
     paddingTop: 8,
-    paddingBottom: 20,
   },
   tituloWrap: {
     paddingHorizontal: 16,

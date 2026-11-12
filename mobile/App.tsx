@@ -53,6 +53,7 @@ import { toAppError, logError } from "./src/errors/errorHandler";
 import { COLORS, FONTS } from "./src/constants/theme";
 import { MASCOT_POSES } from "./src/assets/mascot";
 import EbooksScreen from "./src/components/redesign/EbooksScreen";
+import PromotionsScreen from "./src/components/redesign/PromotionsScreen";
 import MainTabBar from "./src/components/redesign/MainTabBar";
 import { NotifProvider } from "./src/context/NotifContext";
 import ConfiguracoesModal from "./src/components/redesign/ConfiguracoesModal";
@@ -118,7 +119,8 @@ const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSett
         )}
       </Tab.Screen>
       <Tab.Screen name="CommunityTab" component={CommunityTabScreen} />
-      {/* Aba preguicosa (padrao do navegador): a tela de ebooks so monta na primeira visita. */}
+      {/* Abas preguicosas (padrao do navegador): promocoes e ebooks so montam na primeira visita. */}
+      <Tab.Screen name="PromosTab" component={PromotionsScreen} />
       <Tab.Screen name="EbooksTab" component={EbooksScreen} />
       <Tab.Screen name="VideosTab" component={VideosTab} />
       <Tab.Screen name="ProfileTab">

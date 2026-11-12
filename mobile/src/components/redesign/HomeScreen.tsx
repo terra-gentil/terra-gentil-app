@@ -23,7 +23,6 @@ import StreakStrip from "./StreakStrip";
 import { useNotif } from "../../context/NotifContext";
 import SectionTitle from "./SectionTitle";
 import DoctorScanner from "./DoctorScanner";
-import PromotionsScreen from "./PromotionsScreen";
 import NotificacoesModal from "./NotificacoesModal";
 import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
 
@@ -42,7 +41,7 @@ type Atalho = {
   bg: string;
   deep: string;
   tab?: string;
-  action?: "game" | "promotions";
+  action?: "game";
   wide?: boolean;
 };
 
@@ -50,7 +49,7 @@ type Atalho = {
 const TOTAL_GUIAS = COLECAO.length + TODOS_EBOOKS.filter((e) => !NUMEROS_NA_COLECAO.has(e.numero)).length;
 const ATALHOS: Atalho[] = [
   { Icon: BookOpen, label: "Ebooks", desc: `${TOTAL_GUIAS} guias grátis`, bg: COLORS.amber, deep: "#d97706", tab: "EbooksTab" },
-  { Icon: ShoppingBag, label: "Promoções", desc: "Até 60% off", bg: COLORS.sky, deep: "#0284c7", action: "promotions" },
+  { Icon: ShoppingBag, label: "Promoções", desc: "Até 60% off", bg: COLORS.sky, deep: "#0284c7", tab: "PromosTab" },
   { Icon: Users, label: "Comunidade", desc: "Posts e dicas", bg: COLORS.coral, deep: COLORS.coralDeep, tab: "CommunityTab" },
   { Icon: Tv, label: "Vídeos", desc: "Terra Gentil TV", bg: COLORS.lavender, deep: "#7c3aed", tab: "VideosTab" },
   { Icon: Gamepad2, label: "Resgate dos Jardins", desc: "Jogue com o Gentileza e relaxe", bg: COLORS.green, deep: COLORS.greenDeep, action: "game", wide: true },
@@ -112,13 +111,12 @@ export default function HomeScreen({
     criticalDiag: 0, allHealthStates: false, noturnoDiag: 0,
     totalPosts: 0, totalRespostas: 0, totalReacoesEnviadas: 0,
   });
-  const [promosAberto, setPromosAberto] = useState(false);
   const [notifAberto, setNotifAberto] = useState(false);
   const cameraPulse = useIntermitentePulse(4000, 6000);
   // A animacao do scanner so roda com a Home visivel (aba em foco e sem modal por cima).
-  // Ebooks agora e uma aba: ao abrir, a Home perde o foco e o scanner pausa sozinho.
+  // Ebooks e Promoções sao abas: ao abrir, a Home perde o foco e o scanner pausa sozinho.
   const emFoco = useIsFocused();
-  const scannerPausado = !emFoco || promosAberto || notifAberto;
+  const scannerPausado = !emFoco || notifAberto;
 
   useFocusEffect(
     useCallback(() => {
@@ -231,8 +229,6 @@ export default function HomeScreen({
           const handler =
             a.action === "game"
               ? onJogar ?? (() => {})
-              : a.action === "promotions"
-              ? () => setPromosAberto(true)
               : a.tab
               ? () => navigation.navigate(a.tab as string)
               : () => {};
@@ -287,10 +283,6 @@ export default function HomeScreen({
 
     </ScrollView>
 
-    <PromotionsScreen
-      visible={promosAberto}
-      onClose={() => setPromosAberto(false)}
-    />
     <NotificacoesModal
       visible={notifAberto}
       onClose={() => setNotifAberto(false)}
