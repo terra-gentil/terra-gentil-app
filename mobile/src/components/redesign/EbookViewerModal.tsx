@@ -42,7 +42,9 @@ function viewerUrl(pdfUrl: string): string {
   return pdfUrl;
 }
 
-const LOADING_MIN_MS = 10000;
+// Tempo minimo do aviso. No Android o gview avisa o fim da carga antes de desenhar o PDF
+// (tela em branco), entao segura um pouco mais. No iOS o PDF e nativo e aparece na hora.
+const LOADING_MIN_MS = Platform.OS === "android" ? 4000 : 1200;
 
 export default function EbookViewerModal({ visible, ebook, onClose }: Props) {
   const insets = useSafeAreaInsets();
