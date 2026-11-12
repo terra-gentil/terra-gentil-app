@@ -122,13 +122,14 @@ export default function HomeScreen({
       let alive = true;
       (async () => {
         const [hist, u, extra, cStats] = await Promise.all([
-          listarConsultas(5),
+          listarConsultas(),
           getUser(),
           getProfileExtra(),
           getComunidadeStats(),
         ]);
         if (!alive) return;
-        setHistorico(hist);
+        // Lista curta so para exibir; as estatisticas (dias seguidos, selos) usam o historico todo.
+        setHistorico(hist.slice(0, 5));
         setConquistaStats({ ...calcularHistoricoStats(hist), ...cStats });
         setNomeExibido(u ? (extra.nome || u.display_name) : null);
       })();
