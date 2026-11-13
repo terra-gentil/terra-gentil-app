@@ -30,6 +30,10 @@ import {
 } from "../../data/ebooks";
 import { COLECAO, TEMAS_COLECAO, capaDoLivro, pdfDoLivro } from "../../data/colecao";
 import EbookViewerModal from "./EbookViewerModal";
+import TopBar from "./TopBar";
+import NotificacoesModal from "./NotificacoesModal";
+import { useNotif } from "../../context/NotifContext";
+import { MASCOT_POSES } from "../../assets/mascot";
 
 type Aba = "colecao" | "classicos";
 
@@ -361,6 +365,8 @@ export default function EbooksScreen() {
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const estiloConteudo = useMemo(() => [styles.content, { paddingBottom: tabBarHeight }], [tabBarHeight]);
   const navigation = useNavigation<any>();
+  const { badgeCount } = useNotif();
+  const [notifAberto, setNotifAberto] = useState(false);
   const [ebookAtivo, setEbookAtivo] = useState<Ebook | null>(null);
   const [viewerAberto, setViewerAberto] = useState(false);
   const [aba, setAba] = useState<Aba>(MOSTRAR_COLECAO ? "colecao" : "classicos");
@@ -447,13 +453,15 @@ export default function EbooksScreen() {
   const chaveDaPrateleira = useCallback((pr: Prateleira) => `${aba}-${pr.id}`, [aba]);
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle} accessibilityRole="header">
-          Ebooks grátis
-        </Text>
-      </View>
+    <View style={styles.screen}>
+      <TopBar
+        avatarSource={MASCOT_POSES[0]}
+        badge={badgeCount}
+        showSearch={false}
+        title="Ebooks grátis"
+        onAvatarPress={() => navigation.navigate("ProfileTab")}
+        onBellPress={() => setNotifAberto(true)}
+      />
 
       {/* Lista vertical unica: so as prateleiras perto da tela ficam montadas */}
       <FlatList
@@ -481,6 +489,7 @@ export default function EbooksScreen() {
 
       {/* O leitor so entra na arvore depois que um guia for aberto */}
       {ebookAtivo && <EbookViewerModal visible={viewerAberto} ebook={ebookAtivo} onClose={fecharViewer} />}
+      <NotificacoesModal visible={notifAberto} onClose={() => setNotifAberto(false)} />
     </View>
   );
 }

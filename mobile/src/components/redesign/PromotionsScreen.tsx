@@ -10,7 +10,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { ShoppingBag } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   COLORS,
   FONTS,
@@ -18,6 +18,10 @@ import {
   shadowChunky,
 } from "../../constants/theme";
 import Pills from "./Pills";
+import TopBar from "./TopBar";
+import NotificacoesModal from "./NotificacoesModal";
+import { useNotif } from "../../context/NotifContext";
+import { MASCOT_POSES } from "../../assets/mascot";
 import SectionTitle from "./SectionTitle";
 import { FlashDealCard, RecommendedDealCard, FlashDeal, RecommendedDeal } from "./DealCard";
 import { listarConsultas } from "../../storage/historico";
@@ -123,6 +127,9 @@ function calcularRestante(alvo: number) {
 // Nao ha chamada de rede: as ofertas sao fixas e a planta vem do historico local.
 export default function PromotionsScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const { badgeCount } = useNotif();
+  const [notifAberto, setNotifAberto] = useState(false);
   // Mesma conta das outras abas: altura da barra (68) mais a area segura de baixo.
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
   const estiloConteudo = useMemo(() => [styles.content, { paddingBottom: tabBarHeight }], [tabBarHeight]);
@@ -172,12 +179,15 @@ export default function PromotionsScreen() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle} accessibilityRole="header">
-            Promoções
-          </Text>
-        </View>
+    <View style={styles.screen}>
+        <TopBar
+          avatarSource={MASCOT_POSES[0]}
+          badge={badgeCount}
+          showSearch={false}
+          title="Promoções"
+          onAvatarPress={() => navigation.navigate("ProfileTab")}
+          onBellPress={() => setNotifAberto(true)}
+        />
 
         <ScrollView
           contentContainerStyle={estiloConteudo}
@@ -296,6 +306,8 @@ export default function PromotionsScreen() {
             </Text>
           </View>
         </ScrollView>
+
+        <NotificacoesModal visible={notifAberto} onClose={() => setNotifAberto(false)} />
     </View>
   );
 }
