@@ -1,5 +1,27 @@
 # PROGRESSO - Terra Gentil
 
+## Atualizado: 2026-11-12 (sessao de ebooks, performance e barra de abas)
+
+### Estado atual (tudo publicado via eas update no canal production)
+- **Ebooks:** aba propria na barra inferior. Duas abas internas: Colecao (105 livros do site, PDFs no R2 pelo Worker) e Classicos (8, os outros 11 repetem a Colecao e ficam escondidos, NUMEROS_NA_COLECAO em data/ebooks.ts). Divididos em prateleiras por categoria com chips. Dados da Colecao vem de data/colecao.ts (GERADO por scripts/gerar-colecao.py, rodar de novo quando o site ganhar livros, ex.: Leva 10 TG115 a TG128). Interruptor MOSTRAR_COLECAO em EbooksScreen.tsx.
+- **PDFs da Colecao:** os 104 regerados com garbage=1 (garbage>=2 embaralhava as fontes Type3) e enviados ao R2; QA baixou os 105 do ar e todos tem texto legivel.
+- **Barra inferior (MainTabBar.tsx):** Inicio, Comunidade, Promocoes, [Camera], Ebooks, Videos, Eu. Promocoes e Ebooks viraram abas (PromosTab, EbooksTab), nao sao mais modais. Em 320 dp os rotulos encolhem ate 75%; se incomodar, trocar "Promocoes" por "Ofertas".
+- **Performance:** lista vertical virtualizada em Ebooks, miniaturas das capas via /_next/image do site (USAR_CAPA_OTIMIZADA em data/ebooks.ts, consome cota de imagens da Vercel), scanner da Home com animacao nativa e pausa fora de foco, fontes enxutas (30 para 8 arquivos), Comunidade com memo e cache de 30 s (FOCO_TTL_MS), timeout de 25 s nas leituras do forum, timers sem vazamento.
+- **Leitor de ebook:** aviso minimo de abertura 4 s no Android e 1,2 s no iOS (LOADING_MIN_MS em EbookViewerModal.tsx). Se aparecer tela em branco no Android, subir; se o PDF ja estiver pronto antes, descer.
+- **Correcoes:** videos reais (4 do canal @TerraGentil), capa do ebook 1, link de privacidade, dias de cuidado da Home usam o historico completo, acentos na Home.
+
+### Proximo passo
+- Conferir no aparelho: rotulos da barra em tela estreita, camera central, scanner da Home, scroll dos chips de ebooks, PDF no Android.
+- Leva 10 (TG115 a TG128) quando entrar no site: rodar o gerador e eas update.
+- Opcionais: sino de notificacoes nas abas Ebooks e Promocoes; reduzir a foto antes do diagnostico (cerca de 1600 px); cache longo de capas no site.
+
+### Blockers / depende de build novo ou backend
+- Recomprimir JPGs do mascote, icon.png, adaptive-icon.png, splash-icon.png e usar expo-image (novo build).
+- Fotos dos posts da Comunidade vem em base64 na listagem (backend deveria servir miniatura).
+- Comandos: tsc com `node --stack-size=8000 node_modules/typescript/bin/tsc --noEmit`; testes com `npx jest`; publicar com `eas update --branch production --message "..." --non-interactive` (login por `eas login --sso`).
+
+---
+
 ## Atualizado: 2026-06-21
 
 ---

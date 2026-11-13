@@ -141,11 +141,11 @@ export default function HomeScreen({
   function timeAgo(ts: number): string {
     const diff = Date.now() - ts;
     const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `ha ${mins} min`;
+    if (mins < 60) return `há ${mins} min`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `ha ${hrs}h`;
+    if (hrs < 24) return `há ${hrs}h`;
     const days = Math.floor(hrs / 24);
-    return `ha ${days} dia${days > 1 ? "s" : ""}`;
+    return `há ${days} dia${days > 1 ? "s" : ""}`;
   }
 
   return (
@@ -166,10 +166,10 @@ export default function HomeScreen({
       <View style={styles.greeting}>
         <Text style={styles.greetingTitle}>
           {nomeExibido
-            ? `Ola, ${nomeExibido.split(" ")[0].slice(0, 14)}! 🌱`
-            : "Ola! 🌱"}
+            ? `Olá, ${nomeExibido.split(" ")[0].slice(0, 14)}! 🌱`
+            : "Olá! 🌱"}
         </Text>
-        <Text style={styles.greetingSubtitle}>Como estao suas plantinhas hoje?</Text>
+        <Text style={styles.greetingSubtitle}>Como estão suas plantinhas hoje?</Text>
       </View>
 
       {/* Streak */}
@@ -223,7 +223,7 @@ export default function HomeScreen({
       </TouchableOpacity>
 
       {/* Atalhos rapidos */}
-      <SectionTitle title="Atalhos rapidos" />
+      <SectionTitle title="Atalhos rápidos" />
       <View style={styles.atalhosGrid}>
         {ATALHOS.map((a) => {
           const handler =
@@ -257,7 +257,7 @@ export default function HomeScreen({
       {/* Diagnosticos recentes */}
       {historico.length > 0 && (
         <>
-          <SectionTitle title="Diagnosticos recentes" action="Ver tudo →" />
+          <SectionTitle title="Diagnósticos recentes" action="Ver tudo →" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentesRow}>
             {historico.map((h) => {
               const st = STATUS_LABELS[h.estado_saude] || STATUS_LABELS.nao_aplicavel;
