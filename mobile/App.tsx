@@ -316,7 +316,7 @@ export default function App() {
       return (
         <View style={styles.container}>
           <StatusBar style="dark" />
-          <LoadingScreen />
+          <LoadingScreen imageUri={imageUri} />
         </View>
       );
     }
