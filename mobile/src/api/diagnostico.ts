@@ -80,7 +80,10 @@ export async function diagnosticarPlanta(imageUri: string): Promise<DiagnosticoR
         throw new AppError(ErrorCode.IMAGE_INVALID);
       if (response.status === 500)
         throw new AppError(ErrorCode.BACKEND_ERROR, `HTTP 500: ${errorText.substring(0, 200)}`);
-      if (response.status === 502 || response.status === 503)
+      // 504 (demorou demais) e 429 (cota do Gemini) viram o aviso de tentar de novo
+      if (response.status === 504)
+        throw new AppError(ErrorCode.NETWORK_TIMEOUT, `HTTP 504: ${errorText.substring(0, 200)}`);
+      if (response.status === 429 || response.status === 502 || response.status === 503)
         throw new AppError(ErrorCode.BACKEND_UNAVAILABLE, `HTTP ${response.status}: ${errorText.substring(0, 200)}`);
       throw new AppError(ErrorCode.BACKEND_ERROR, `HTTP ${response.status}: ${errorText.substring(0, 200)}`);
     }

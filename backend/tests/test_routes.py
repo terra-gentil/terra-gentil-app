@@ -247,3 +247,35 @@ class TestDiagnosticoComMock:
         )
 
         assert resp.status_code == 200
+
+
+class TestDiagnosticoErrosAmigaveis:
+    """Timeout e cota do Gemini viram erro claro, sem travar a API."""
+
+    def _post(self, client):
+        from io import BytesIO
+        from PIL import Image
+
+        buf = BytesIO()
+        Image.new("RGB", (20, 20), "green").save(buf, "PNG")
+        return client.post("/v1/diagnostico", files={"file": ("a.png", buf.getvalue(), "image/png")})
+
+    def test_cota_vira_429(self, client):
+        from unittest.mock import patch
+        from app.services.gemini_service import GeminiQuotaError
+
+        with patch("app.routes.diagnostico.GeminiService") as svc:
+            svc.return_value.diagnosticar.side_effect = GeminiQuotaError("cota")
+            resp = self._post(client)
+        assert resp.status_code == 429
+        assert resp.json()["detail"]["error_code"] == "GEMINI_QUOTA"
+
+    def test_timeout_vira_504(self, client):
+        from unittest.mock import patch
+        from app.services.gemini_service import GeminiTimeoutError
+
+        with patch("app.routes.diagnostico.GeminiService") as svc:
+            svc.return_value.diagnosticar.side_effect = GeminiTimeoutError("lento")
+            resp = self._post(client)
+        assert resp.status_code == 504
+        assert resp.json()["detail"]["error_code"] == "GEMINI_TIMEOUT"

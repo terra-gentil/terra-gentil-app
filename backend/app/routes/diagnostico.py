@@ -4,6 +4,7 @@ Rota de diagnóstico de plantas.
 POST /v1/diagnostico
 Recebe imagem via multipart/form-data e retorna diagnóstico estruturado.
 """
+import asyncio
 import logging
 
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
@@ -11,9 +12,12 @@ from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 from app.core.limiter import limiter
 from app.schemas.diagnostico import DiagnosticoErrorResponse, DiagnosticoResponse
 from app.services.gemini_service import (
+    GEMINI_TIMEOUT_S,
     GeminiInvalidResponseError,
+    GeminiQuotaError,
     GeminiService,
     GeminiServiceError,
+    GeminiTimeoutError,
 )
 
 logger = logging.getLogger(__name__)
@@ -86,7 +90,30 @@ async def diagnosticar(
 
     try:
         service = GeminiService()
-        resultado = service.diagnosticar(image_bytes)
+        # A chamada ao Gemini e bloqueante: roda em outra thread para nao travar a API inteira
+        # (forum, feed, health) enquanto uma foto e analisada.
+        resultado = await asyncio.wait_for(
+            asyncio.to_thread(service.diagnosticar, image_bytes),
+            timeout=GEMINI_TIMEOUT_S + 10,
+        )
+    except (asyncio.TimeoutError, GeminiTimeoutError) as exc:
+        logger.error("Diagnostico demorou demais: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail={
+                "error_code": "GEMINI_TIMEOUT",
+                "message": "O Doutor está com muita gente no consultório agora. Tente de novo em instantes.",
+            },
+        ) from exc
+    except GeminiQuotaError as exc:
+        logger.error("Cota do Gemini esgotada: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={
+                "error_code": "GEMINI_QUOTA",
+                "message": "O Doutor atendeu muitas plantas hoje e precisa descansar um pouco. Tente de novo mais tarde.",
+            },
+        ) from exc
     except GeminiInvalidResponseError as exc:
         logger.error("Resposta inválida do Gemini: %s", exc)
         raise HTTPException(

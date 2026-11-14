@@ -28,6 +28,29 @@ class GeminiInvalidResponseError(GeminiServiceError):
     """Gemini retornou resposta que não é JSON válido ou não bate com schema."""
 
 
+class GeminiQuotaError(GeminiServiceError):
+    """Limite de uso (cota) do Gemini atingido."""
+
+
+class GeminiTimeoutError(GeminiServiceError):
+    """Gemini demorou mais que o limite de tempo."""
+
+
+# Limite de tempo de uma chamada ao Gemini. Sem isso a biblioteca pode ficar minutos
+# esperando e tentando de novo quando bate o limite por minuto.
+GEMINI_TIMEOUT_S = 45
+
+
+def _classificar_erro(exc: Exception) -> GeminiServiceError:
+    nome = type(exc).__name__
+    texto = str(exc)
+    if nome == "ResourceExhausted" or "429" in texto or "quota" in texto.lower():
+        return GeminiQuotaError(f"Cota do Gemini esgotada: {exc}")
+    if nome in ("DeadlineExceeded", "RetryError", "TimeoutError") or "deadline" in texto.lower():
+        return GeminiTimeoutError(f"Gemini demorou demais: {exc}")
+    return GeminiServiceError(f"Falha ao chamar Gemini: {exc}")
+
+
 DIAGNOSTICO_JSON_SCHEMA = {
     "type": "object",
     "properties": {
@@ -155,9 +178,10 @@ class GeminiService:
                 response = self.model.generate_content(
                     [PROMPT_DIAGNOSTICO_V1, pil_image],
                     generation_config=generation_config,
+                    request_options={"timeout": GEMINI_TIMEOUT_S, "retry": None},
                 )
             except Exception as exc:
-                raise GeminiServiceError(f"Falha ao chamar Gemini: {exc}") from exc
+                raise _classificar_erro(exc) from exc
 
             elapsed_ms = int((time.time() - start) * 1000)
             raw_text = response.text.strip()
