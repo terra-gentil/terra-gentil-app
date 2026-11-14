@@ -26,8 +26,8 @@ class Settings(BaseSettings):
         description="API key do Google Gemini",
     )
     GEMINI_MODEL: str = Field(
-        default="gemini-2.5-flash",
-        description="Modelo do Gemini a usar: gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite",
+        default="gemini-3.8-flash",
+        description="Modelo do Gemini a usar (o 2.5 nao esta mais disponivel para projetos novos): gemini-3.8-flash",
     )
 
     GOOGLE_CLIENT_ID: str = Field(default="", description="Google OAuth client ID")
