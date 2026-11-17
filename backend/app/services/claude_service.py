@@ -24,7 +24,9 @@ import json
 import logging
 import time
 from datetime import datetime
+from functools import lru_cache
 from io import BytesIO
+from pathlib import Path
 
 import anthropic
 from anthropic import AsyncAnthropic
@@ -40,6 +42,10 @@ logger = logging.getLogger(__name__)
 
 LADO_MAXIMO_PX = 1568
 QUALIDADE_JPEG = 85
+
+# Gerado por mobile/scripts/gerar-colecao.py, mesma fonte da aba Ebooks do app
+CATALOGO_EBOOKS_PATH = Path(__file__).resolve().parent.parent / "data" / "catalogo_ebooks.json"
+MAX_EBOOKS = 2
 
 
 class ClaudeServiceError(Exception):
@@ -94,15 +100,59 @@ def preparar_imagem(image_bytes: bytes) -> tuple[bytes, tuple[int, int], tuple[i
     return buf.getvalue(), original, img.size
 
 
+@lru_cache(maxsize=1)
+def carregar_catalogo() -> dict[str, dict]:
+    """Catalogo indexado pelo id em minusculas. Arquivo ausente ou quebrado vira catalogo vazio."""
+    try:
+        itens = json.loads(CATALOGO_EBOOKS_PATH.read_text(encoding="utf-8"))
+        return {item["id"].lower(): item for item in itens}
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        logger.warning("Catalogo de ebooks indisponivel: %s", exc)
+        return {}
+
+
+@lru_cache(maxsize=1)
+def linhas_catalogo() -> tuple[str, ...]:
+    """Uma linha por guia, na ordem do arquivo, para o texto do prefixo em cache nao mudar."""
+    return tuple(
+        f"{i['id']} | {i['titulo']} | {i['tema']} | {i['descricao']}"
+        for i in carregar_catalogo().values()
+    )
+
+
 def resolver_ebooks(itens: list[EbookRecomendado]) -> list[EbookRecomendado]:
     """
-    Ponto de extensao dos ebooks (secao 2.6 da proposta).
-
-    Quando o catalogo existir (app/data/catalogo_ebooks.json), aqui o backend descarta
-    codigos fora do catalogo, remove repetidos, limita a 2 e completa titulo, capa, pdf,
-    tema e emoji. Na fase 1 nao ha catalogo, entao nada e recomendado.
+    Confere os ebooks indicados pelo modelo (secao 2.6 da proposta): descarta codigos fora
+    do catalogo e repetidos, limita a MAX_EBOOKS e completa titulo, capa, pdf, tema e emoji
+    com os dados do catalogo, nunca com o que o modelo escreveu.
     """
-    return []
+    catalogo = carregar_catalogo()
+    resultado: list[EbookRecomendado] = []
+    vistos: set[str] = set()
+    for item in itens:
+        chave = item.id.strip().lower()
+        livro = catalogo.get(chave)
+        if livro is None:
+            if chave:
+                logger.info("Ebook fora do catalogo descartado: %s", item.id)
+            continue
+        if chave in vistos:
+            continue
+        vistos.add(chave)
+        resultado.append(
+            EbookRecomendado(
+                id=livro["id"],
+                motivo=item.motivo.strip(),
+                titulo=livro["titulo"],
+                capa=livro["capa"],
+                pdf=livro["pdf"],
+                tema=livro["tema"],
+                emoji=livro.get("emoji", ""),
+            )
+        )
+        if len(resultado) == MAX_EBOOKS:
+            break
+    return resultado
 
 
 def _formato_resposta() -> str:
@@ -121,7 +171,7 @@ def extrair_json(texto: str) -> str:
     return texto[inicio : fim + 1] if inicio != -1 and fim > inicio else texto
 
 
-def _montar_requisicao(imagem_jpeg: bytes, linhas_catalogo: list[str] | None = None) -> dict:
+def _montar_requisicao(imagem_jpeg: bytes, catalogo: list[str] | tuple[str, ...] | None = None) -> dict:
     """Parametros de messages.create. Ordem e conteudo do prefixo precisam ser estaveis."""
     data_hoje = datetime.now(FUSO_BRASILIA).strftime("%d/%m/%Y")
     return {
@@ -131,7 +181,7 @@ def _montar_requisicao(imagem_jpeg: bytes, linhas_catalogo: list[str] | None = N
             {"type": "text", "text": instrucoes_v2() + _formato_resposta()},
             {
                 "type": "text",
-                "text": catalogo_v2(linhas_catalogo),
+                "text": catalogo_v2(list(catalogo) if catalogo else None),
                 "cache_control": {"type": "ephemeral", "ttl": "1h"},
             },
         ],
@@ -200,7 +250,7 @@ class ClaudeService:
             original[0], original[1], final[0], final[1], len(imagem_jpeg),
         )
 
-        params = _montar_requisicao(imagem_jpeg)
+        params = _montar_requisicao(imagem_jpeg, linhas_catalogo())
         inicio = time.monotonic()
         try:
             resposta = await self.client.messages.create(**params)

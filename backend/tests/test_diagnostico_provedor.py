@@ -120,7 +120,9 @@ class TestRotaComClaude:
             assert data[campo] == esperado[campo], campo
         assert data["problemas_detectados"][0]["categoria"] == "rega_excesso"
         assert data["plano_timeline"][0]["como_fazer"] == "Espere o solo secar."
-        assert data["ebooks_recomendados"] == []
+        [ebook] = data["ebooks_recomendados"]
+        assert ebook["id"] == "TG074" and ebook["titulo"] == "Espada-de-são-jorge"
+        assert ebook["pdf"].endswith("/TG074.pdf")
         gemini_ok.return_value.diagnosticar.assert_not_called()
 
 

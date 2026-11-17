@@ -1,0 +1,1271 @@
+[
+ {
+  "id": "TG004",
+  "titulo": "Cactos e Babosa",
+  "tema": "suculentas",
+  "descricao": "Como cuidar de cacto e babosa: quanto sol, quanta água e como mexer sem se espetar.",
+  "capa": "https://terragentil.com.br/guias/cactos-e-babosa/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG004.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG005",
+  "titulo": "Rega sem Afogar",
+  "tema": "cuidados",
+  "descricao": "Quando regar a planta sem afogar a raiz, tocando a terra antes, e como trocar de vaso sem drama.",
+  "capa": "https://terragentil.com.br/guias/rega-sem-afogar/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG005.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG006",
+  "titulo": "O Mato que Ensina",
+  "tema": "cuidados",
+  "descricao": "Cada mato que nasce conta como está a sua terra. Aprenda a ler o chão e a não deixar ele pelado.",
+  "capa": "https://terragentil.com.br/guias/mato-que-ensina/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG006.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG007",
+  "titulo": "Mudas de Graça",
+  "tema": "cuidados",
+  "descricao": "Como fazer muda de graça: um galho vira uma planta nova, começando pela suculenta.",
+  "capa": "https://terragentil.com.br/guias/mudas-de-graca/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG007.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG008",
+  "titulo": "Casa com Pet",
+  "tema": "dentro-de-casa",
+  "descricao": "Planta e bicho em paz: quais plantas são tóxicas para cão e gato e onde deixar cada uma.",
+  "capa": "https://terragentil.com.br/guias/casa-com-pet/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG008.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG009",
+  "titulo": "Planta sem Sol",
+  "tema": "dentro-de-casa",
+  "descricao": "As plantas que vivem longe da janela e o teste simples para saber se a luz basta.",
+  "capa": "https://terragentil.com.br/guias/planta-sem-sol/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG009.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG010",
+  "titulo": "Suculentas sem Afogar",
+  "tema": "suculentas",
+  "descricao": "Como regar suculenta sem afogar, quanta luz ela precisa e por que fica vermelha.",
+  "capa": "https://terragentil.com.br/guias/suculentas-sem-afogar/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG010.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG011",
+  "titulo": "Rosa-do-Deserto",
+  "tema": "suculentas",
+  "descricao": "Como cuidar da rosa-do-deserto em casa: sol forte, rega certa e raiz seca no frio, nunca molhada.",
+  "capa": "https://terragentil.com.br/guias/rosa-do-deserto/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG011.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG012",
+  "titulo": "Horta em Vaso",
+  "tema": "horta",
+  "descricao": "Como fazer horta em vaso e colher alface e salada na sua janela, mesmo sem quintal.",
+  "capa": "https://terragentil.com.br/guias/horta-em-vaso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG012.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG013",
+  "titulo": "Tomate no Vaso",
+  "tema": "horta",
+  "descricao": "Como plantar tomate no vaso e colher tomate de verdade na varanda, plantando fundo.",
+  "capa": "https://terragentil.com.br/guias/tomate-no-vaso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG013.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG014",
+  "titulo": "Temperos da Janela",
+  "tema": "horta",
+  "descricao": "Como plantar tempero no vaso e ter ervas frescas perto da panela, começando pela muda.",
+  "capa": "https://terragentil.com.br/guias/temperos-da-janela/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG014.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG015",
+  "titulo": "Florir de Novo",
+  "tema": "orquideas",
+  "descricao": "Como fazer a orquídea florir de novo depois que a flor cai: luz certa, haste e rega da Phalaenopsis.",
+  "capa": "https://terragentil.com.br/guias/orquidea-florir-de-novo/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG015.pdf",
+  "emoji": "🌸"
+ },
+ {
+  "id": "TG016",
+  "titulo": "Cattleya e Dendrobium",
+  "tema": "orquideas",
+  "descricao": "Como cuidar de Cattleya e Dendrobium, as orquídeas que andam, com luz forte e rega certa.",
+  "capa": "https://terragentil.com.br/guias/cattleya-e-dendrobium/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG016.pdf",
+  "emoji": "🌸"
+ },
+ {
+  "id": "TG017",
+  "titulo": "Orquídea Doente",
+  "tema": "orquideas",
+  "descricao": "Descubra o que a sua orquídea doente tem e como tratar, começando pela tesoura limpa.",
+  "capa": "https://terragentil.com.br/guias/orquidea-doente/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG017.pdf",
+  "emoji": "🌸"
+ },
+ {
+  "id": "TG018",
+  "titulo": "Vaso de Orquídea",
+  "tema": "orquideas",
+  "descricao": "Como escolher o vaso da orquídea e plantar em casca ou tronco sem erro, com furo e drenagem.",
+  "capa": "https://terragentil.com.br/guias/vaso-de-orquidea/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG018.pdf",
+  "emoji": "🌸"
+ },
+ {
+  "id": "TG019",
+  "titulo": "Agaves e Kalanchoes",
+  "tema": "suculentas",
+  "descricao": "Como cuidar de agave e kalanchoe: flor fácil, roseta forte e pouca água, não zero água.",
+  "capa": "https://terragentil.com.br/guias/agaves-e-kalanchoes/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG019.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG020",
+  "titulo": "Suculenta Pendente",
+  "tema": "suculentas",
+  "descricao": "Como cuidar de suculenta pendente: colar, rabo e coração no alto, em terra que drena.",
+  "capa": "https://terragentil.com.br/guias/suculenta-pendente/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG020.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG021",
+  "titulo": "Enxerto e Muda",
+  "tema": "suculentas",
+  "descricao": "Como fazer muda de rosa-do-deserto por semente, estaca e enxerto, com ferramenta limpa.",
+  "capa": "https://terragentil.com.br/guias/rosa-do-deserto-enxerto-e-muda/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG021.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG022",
+  "titulo": "Composteira em Casa",
+  "tema": "cuidados",
+  "descricao": "Como fazer composteira em casa e transformar resto de cozinha em terra boa para as plantas.",
+  "capa": "https://terragentil.com.br/guias/composteira-em-casa/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG022.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG023",
+  "titulo": "Armadilhas e Aliados",
+  "tema": "cuidados",
+  "descricao": "Joaninha, lesma e garrafa PET: armadilhas e aliados para cuidar da praga no jardim, olhando bem antes de matar.",
+  "capa": "https://terragentil.com.br/guias/armadilhas-e-aliados/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG023.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG024",
+  "titulo": "Jardim do Zero",
+  "tema": "jardim",
+  "descricao": "Como começar um jardim do zero, do entulho à primeira muda, com a planta certa no lugar certo.",
+  "capa": "https://terragentil.com.br/guias/jardim-do-zero/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG024.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG025",
+  "titulo": "Horta de Semente",
+  "tema": "horta",
+  "descricao": "Como plantar horta a partir da semente, do pacotinho ao prato, lendo o verso do pacote.",
+  "capa": "https://terragentil.com.br/guias/horta-de-semente/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG025.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG026",
+  "titulo": "Abelha e Passarinho",
+  "tema": "jardim",
+  "descricao": "Como fazer um quintal cheio de vida, que chama abelha e passarinho, plantando flor simples e aberta.",
+  "capa": "https://terragentil.com.br/guias/abelha-e-passarinho/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG026.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG027",
+  "titulo": "Pimenta no Vaso",
+  "tema": "horta",
+  "descricao": "Como plantar pimenta no vaso: sol, calor e terra só úmida, da semente até a réstia.",
+  "capa": "https://terragentil.com.br/guias/pimenta-no-vaso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG027.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG028",
+  "titulo": "Árvore no Quintal",
+  "tema": "jardim",
+  "descricao": "Como escolher a árvore certa para o seu quintal, plantar do jeito certo e ver crescer sem pressa.",
+  "capa": "https://terragentil.com.br/guias/arvore-no-quintal/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG028.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG029",
+  "titulo": "Roseira no Vaso",
+  "tema": "rosas",
+  "descricao": "Como plantar roseira no vaso e ter rosa na varanda sem quintal, com sol da manhã.",
+  "capa": "https://terragentil.com.br/guias/roseira-no-vaso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG029.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG030",
+  "titulo": "Roseira Doente",
+  "tema": "rosas",
+  "descricao": "Como tratar roseira doente com praga e fungo sem veneno, regando o pé e não a folha.",
+  "capa": "https://terragentil.com.br/guias/roseira-doente/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG030.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG031",
+  "titulo": "Poda de Roseira",
+  "tema": "rosas",
+  "descricao": "Como podar roseira sem medo e florir mais, cortando acima da gema que olha para fora.",
+  "capa": "https://terragentil.com.br/guias/poda-de-roseira/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG031.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG032",
+  "titulo": "Muda de Rosa",
+  "tema": "rosas",
+  "descricao": "Como fazer muda de rosa por estaca: um galho grosso como um lápis vira uma roseira nova.",
+  "capa": "https://terragentil.com.br/guias/muda-de-rosa/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG032.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG033",
+  "titulo": "Antúrio",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar do antúrio para ter flor o ano todo sem afogar, com drenagem acima de tudo.",
+  "capa": "https://terragentil.com.br/guias/anturio/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG033.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG034",
+  "titulo": "Costela-de-adão",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar da costela-de-adão com luz clara e filtrada, para a folha grande, furada e feliz.",
+  "capa": "https://terragentil.com.br/guias/costela-de-adao/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG034.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG035",
+  "titulo": "Jiboia e Filodendro",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de jiboia e filodendro, as trepadeiras de casa, com um apoio para subir.",
+  "capa": "https://terragentil.com.br/guias/jiboia-e-filodendro/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG035.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG036",
+  "titulo": "Lírio-da-paz",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar do lírio-da-paz e ter flor branca na sombra, com rega farta e terra quase seca.",
+  "capa": "https://terragentil.com.br/guias/lirio-da-paz/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG036.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG037",
+  "titulo": "Bromélias",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de bromélias com meia-sombra e água mole, para ter cor o ano todo e filhotes.",
+  "capa": "https://terragentil.com.br/guias/bromelias/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG037.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG038",
+  "titulo": "Samambaias",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de samambaia em casa para ficar verde o ano todo, com sombra e terra sempre úmida.",
+  "capa": "https://terragentil.com.br/guias/samambaias/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG038.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG039",
+  "titulo": "Morango no Vaso",
+  "tema": "horta",
+  "descricao": "Como plantar morango no vaso e colher fruta doce na varanda, com o fruto longe da terra.",
+  "capa": "https://terragentil.com.br/guias/morango-no-vaso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG039.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG040",
+  "titulo": "Microverdes",
+  "tema": "horta",
+  "descricao": "Como plantar microverdes em casa: salada que nasce na bandeja, com semente bem junta.",
+  "capa": "https://terragentil.com.br/guias/microverdes/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG040.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG041",
+  "titulo": "Mato sem Veneno",
+  "tema": "cuidados",
+  "descricao": "Como tirar o mato sem veneno e ter o canteiro limpo do jeito antigo, antes da semente.",
+  "capa": "https://terragentil.com.br/guias/mato-sem-veneno/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG041.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG042",
+  "titulo": "Horta na Varanda",
+  "tema": "horta",
+  "descricao": "Como fazer horta na varanda e ter comida fresca em pouco espaço, contando as horas de sol.",
+  "capa": "https://terragentil.com.br/guias/horta-na-varanda/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG042.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG043",
+  "titulo": "Canteiro Elevado",
+  "tema": "horta",
+  "descricao": "Como montar um canteiro elevado e ter horta alta com terra fofa, sem nunca pisar dentro.",
+  "capa": "https://terragentil.com.br/guias/canteiro-elevado/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG043.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG044",
+  "titulo": "Ervas Secas",
+  "tema": "horta",
+  "descricao": "Como secar as ervas da horta e guardar o cheiro o ano todo, colhendo antes da flor.",
+  "capa": "https://terragentil.com.br/guias/ervas-secas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG044.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG045",
+  "titulo": "Guardar Semente",
+  "tema": "horta",
+  "descricao": "Como guardar semente crioula da sua horta para o ano que vem, colhendo madura e seca.",
+  "capa": "https://terragentil.com.br/guias/guardar-semente/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG045.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG046",
+  "titulo": "Flores de Varanda",
+  "tema": "jardim",
+  "descricao": "Como ter flores de varanda com cor o ano inteiro no vaso, tirando a flor murcha.",
+  "capa": "https://terragentil.com.br/guias/flores-de-varanda/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG046.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG047",
+  "titulo": "Trepadeiras Floridas",
+  "tema": "jardim",
+  "descricao": "Como plantar trepadeira florida e transformar o muro sem graça em cortina de flor, com sol e suporte.",
+  "capa": "https://terragentil.com.br/guias/trepadeiras-floridas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG047.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG048",
+  "titulo": "Azaleia e Hortênsia",
+  "tema": "jardim",
+  "descricao": "Como cuidar de azaleia, hortênsia, camélia e gardênia, flores bonitas que vivem longe do sol forte.",
+  "capa": "https://terragentil.com.br/guias/azaleia-e-hortensia/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG048.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG049",
+  "titulo": "Bulbos que Voltam",
+  "tema": "jardim",
+  "descricao": "Como cuidar de bulbos como dália, amarílis e agapanto, plantas que somem, descansam e florescem de novo.",
+  "capa": "https://terragentil.com.br/guias/bulbos-que-voltam/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG049.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG050",
+  "titulo": "Jardim Tropical",
+  "tema": "jardim",
+  "descricao": "Como fazer um jardim tropical com helicônia, alpínia e folha larga, dando cara de mata ao seu quintal.",
+  "capa": "https://terragentil.com.br/guias/jardim-tropical/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG050.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG051",
+  "titulo": "Palmeiras de Casa",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de palmeira de vaso como areca, ráfis e kentia, com luz clara, rega certa e ar úmido.",
+  "capa": "https://terragentil.com.br/guias/palmeiras-de-casa/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG051.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG052",
+  "titulo": "Violeta e Parentes",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de violeta e das parentes dela, como a gloxínia, para ter flor o ano todo dentro de casa.",
+  "capa": "https://terragentil.com.br/guias/violeta-e-parentes/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG052.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG053",
+  "titulo": "Folhagem Colorida",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de cróton, coleus e caládio, folhagens coloridas que ficam mais bonitas que flor o ano todo.",
+  "capa": "https://terragentil.com.br/guias/folhagem-colorida/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG053.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG054",
+  "titulo": "Jardim sem Sede",
+  "tema": "jardim",
+  "descricao": "Como ter um jardim que quase não pede água, com a planta certa, rega funda e o chão sempre coberto.",
+  "capa": "https://terragentil.com.br/guias/jardim-sem-sede/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG054.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG055",
+  "titulo": "Frutífera em Vaso",
+  "tema": "horta",
+  "descricao": "Como plantar frutífera em vaso e colher limão, romã e amora mesmo sem quintal, no canto de mais sol.",
+  "capa": "https://terragentil.com.br/guias/frutifera-em-vaso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG055.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG056",
+  "titulo": "Gramado Bonito",
+  "tema": "jardim",
+  "descricao": "Como ter um gramado verde, fechado e sem mato, começando pelo chão bom, com plantio e corte certos.",
+  "capa": "https://terragentil.com.br/guias/gramado-bonito/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG056.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG057",
+  "titulo": "Adubo Caseiro",
+  "tema": "cuidados",
+  "descricao": "Como fazer adubo caseiro com esterco curtido, composto, cinza e casca de ovo para a planta do vaso.",
+  "capa": "https://terragentil.com.br/guias/adubo-caseiro/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG057.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG058",
+  "titulo": "Poda sem Medo",
+  "tema": "cuidados",
+  "descricao": "Como podar sem medo: o corte certo, tirando todo ano o galho seco, o doente e o quebrado.",
+  "capa": "https://terragentil.com.br/guias/poda-sem-medo/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG058.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG059",
+  "titulo": "Fungo no Jardim",
+  "tema": "cuidados",
+  "descricao": "Fungo no jardim quase sempre é amigo: veja qual ajuda a terra e as árvores e qual adoece a planta.",
+  "capa": "https://terragentil.com.br/guias/fungo-no-jardim/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG059.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG060",
+  "titulo": "Lesma e Caracol",
+  "tema": "cuidados",
+  "descricao": "Como proteger a horta de lesma e caracol sem veneno nenhum, com ronda à noite, armadilha e bicho aliado.",
+  "capa": "https://terragentil.com.br/guias/lesma-e-caracol/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG060.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG061",
+  "titulo": "Lavanda e Alecrim",
+  "tema": "horta",
+  "descricao": "Como plantar lavanda e alecrim, ervas cheirosas de sol, com terra que escoa, poda leve e muda de estaca.",
+  "capa": "https://terragentil.com.br/guias/lavanda-e-alecrim/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG061.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG062",
+  "titulo": "Girassol",
+  "tema": "jardim",
+  "descricao": "Como plantar girassol e as amigas dele da semente, com sol cheio, raiz quieta, tutor e flor de corte.",
+  "capa": "https://terragentil.com.br/guias/girassol/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG062.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG063",
+  "titulo": "Abóbora e Abobrinha",
+  "tema": "horta",
+  "descricao": "Como plantar abobrinha, pepino e abóbora da semente ao fruto, com rega farta no pé e colheita certa.",
+  "capa": "https://terragentil.com.br/guias/abobora-e-abobrinha/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG063.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG064",
+  "titulo": "Feijão e Milho",
+  "tema": "horta",
+  "descricao": "Como plantar feijão e milho juntos no quintal: o milho dá suporte e o feijão dá nitrogênio à terra.",
+  "capa": "https://terragentil.com.br/guias/feijao-e-milho/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG064.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG065",
+  "titulo": "Cenoura e Raízes",
+  "tema": "horta",
+  "descricao": "Como plantar cenoura, rabanete, beterraba e batata em terra leve e fofa, semeando, desbastando e colhendo.",
+  "capa": "https://terragentil.com.br/guias/cenoura-e-raizes/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG065.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG066",
+  "titulo": "Comigo-ninguém-⁠pode",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de comigo-ninguém-pode, planta brasileira de meia-sombra, com terra que escoa e luva na mão.",
+  "capa": "https://terragentil.com.br/guias/comigo-ninguem-pode/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG066.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG067",
+  "titulo": "Hortelã e Manjericão",
+  "tema": "horta",
+  "descricao": "Como plantar hortelã e manjericão perto da cozinha, com vaso grande, muda de graça, poda e colheita.",
+  "capa": "https://terragentil.com.br/guias/hortela-e-manjericao/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG067.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG068",
+  "titulo": "Alface e Folhas",
+  "tema": "horta",
+  "descricao": "Como plantar alface, rúcula e acelga no quintal e colher salada fresca, semeando pouco e sempre.",
+  "capa": "https://terragentil.com.br/guias/alface-e-folhas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG068.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG069",
+  "titulo": "Begônia e Gerânio",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de begônia e gerânio na janela, com luz, rega certa e muda nova feita de uma folha só.",
+  "capa": "https://terragentil.com.br/guias/begonia-e-geranio/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG069.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG070",
+  "titulo": "Fícus e Hera",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de fícus, hera e clorofito dentro de casa, com luz, rega certa e muda de hera de graça.",
+  "capa": "https://terragentil.com.br/guias/ficus-e-hera/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG070.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG071",
+  "titulo": "Hibisco e Primavera",
+  "tema": "jardim",
+  "descricao": "Como cuidar de hibisco e primavera no muro, com sol pleno, rega certa e muda de hibisco de graça.",
+  "capa": "https://terragentil.com.br/guias/hibisco-e-primavera/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG071.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG072",
+  "titulo": "Flores que se Comem",
+  "tema": "jardim",
+  "descricao": "Como cultivar capuchinha e outras flores comestíveis de semente, com cuidado e salada para o prato.",
+  "capa": "https://terragentil.com.br/guias/flores-comestiveis/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG072.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG073",
+  "titulo": "Folhagem de Sombra",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de avenca, maranta, peperômia e tilândsia, com sombra, ar úmido, rega certa e mudas de graça.",
+  "capa": "https://terragentil.com.br/guias/folhagem-de-sombra/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG073.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG074",
+  "titulo": "Espada-de-são-jorge",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar da espada-de-são-jorge, zamioculca, iúca e palma, com sol, rega e muda de um pedaço de folha.",
+  "capa": "https://terragentil.com.br/guias/espada-de-sao-jorge/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG074.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG075",
+  "titulo": "Minhocário",
+  "tema": "cuidados",
+  "descricao": "Como montar um minhocário na varanda ou no quintal pequeno e transformar resto de cozinha em adubo.",
+  "capa": "https://terragentil.com.br/guias/minhocario-em-casa/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG075.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG076",
+  "titulo": "Frutas de Quintal",
+  "tema": "jardim",
+  "descricao": "Como plantar maracujá, uva, amora e pitaia no quintal, com sol, suporte e muda de estaca ou de semente.",
+  "capa": "https://terragentil.com.br/guias/frutas-de-quintal/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG076.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG077",
+  "titulo": "Cactos de Coleção",
+  "tema": "suculentas",
+  "descricao": "Como cuidar de cactos de deserto e de floresta, com rega certa, muda de filhote, enxerto e muita cor.",
+  "capa": "https://terragentil.com.br/guias/cactos-de-colecao/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG077.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG078",
+  "titulo": "Suculentas Coloridas",
+  "tema": "suculentas",
+  "descricao": "Como cuidar de suculentas coloridas, com luz, rega, muda de folha e o motivo de mudarem de cor com o sol.",
+  "capa": "https://terragentil.com.br/guias/suculentas-coloridas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG078.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG079",
+  "titulo": "Pimentas do Mundo",
+  "tema": "horta",
+  "descricao": "Como cultivar pimentas do México ao Peru no quintal, entendendo o ardido, a semente e a pimenta seca.",
+  "capa": "https://terragentil.com.br/guias/pimentas-do-mundo/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG079.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG080",
+  "titulo": "Orquídea na Árvore",
+  "tema": "orquideas",
+  "descricao": "Como prender orquídea no tronco de uma árvore, com placa, raiz no ar e rega certa, e por que ela não é parasita.",
+  "capa": "https://terragentil.com.br/guias/orquidea-na-arvore/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG080.pdf",
+  "emoji": "🌸"
+ },
+ {
+  "id": "TG081",
+  "titulo": "Rosas Perfumadas",
+  "tema": "rosas",
+  "descricao": "Como plantar e cuidar de rosas perfumadas, com terra boa, plantio certo e a história do perfume da roseira.",
+  "capa": "https://terragentil.com.br/guias/rosas-perfumadas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG081.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG082",
+  "titulo": "Alocásia e Filodendro",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de alocásia e filodendro dentro de casa, com luz, rega, muda de estaca e outras aráceas.",
+  "capa": "https://terragentil.com.br/guias/alocasia-e-filodendro/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG082.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG083",
+  "titulo": "Lírios de Jardim",
+  "tema": "jardim",
+  "descricao": "Como cultivar lírios de jardim e hemerocale, de bulbo, vaso ou semente, com o cuidado de cada um deles.",
+  "capa": "https://terragentil.com.br/guias/lirios-de-jardim/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG083.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG084",
+  "titulo": "Árvore na Cidade",
+  "tema": "jardim",
+  "descricao": "Como plantar ipê, quaresmeira e outras árvores na terra, com buraco certo, poda de formação e cuidado com a espirradeira. Livro grátis com PDF para baixar.",
+  "capa": "https://terragentil.com.br/guias/arvore-na-cidade/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG084.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG085",
+  "titulo": "Jardim de Borboleta",
+  "tema": "jardim",
+  "descricao": "Como montar um jardim de borboleta com budleia, sálvia e verbena, perto da janela e com bichos aliados.",
+  "capa": "https://terragentil.com.br/guias/jardim-de-borboleta/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG085.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG086",
+  "titulo": "Flores no Frio",
+  "tema": "jardim",
+  "descricao": "Como cuidar de kalanchoe, flor-de-maio, camélia e crisântemo no frio, com pouca água, luz, adubo e muda de estaca.",
+  "capa": "https://terragentil.com.br/guias/flores-no-frio/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG086.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG087",
+  "titulo": "Tomate Cereja",
+  "tema": "horta",
+  "descricao": "Como plantar tomate-cereja de semente ou muda, em vaso ou cesta pendurada, até a colheita ao ar livre.",
+  "capa": "https://terragentil.com.br/guias/tomate-cereja/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG087.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG088",
+  "titulo": "Batata e Inhame",
+  "tema": "horta",
+  "descricao": "Como plantar batata, batata-doce, inhame e taioba, até em saco de terra, com muda, colheita e história.",
+  "capa": "https://terragentil.com.br/guias/batata-e-inhame/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG088.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG089",
+  "titulo": "Beterraba e Acelga",
+  "tema": "horta",
+  "descricao": "Como plantar beterraba e acelga, a mesma espécie, uma de raiz e outra de folha, e conhecer salsão e aspargo.",
+  "capa": "https://terragentil.com.br/guias/beterraba-e-acelga/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG089.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG090",
+  "titulo": "Ervilha e Feijão",
+  "tema": "horta",
+  "descricao": "Como plantar ervilha-torta e feijão-trepador no quintal ou em vaso, de broto, vagem e grão.",
+  "capa": "https://terragentil.com.br/guias/ervilha-e-feijao/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG090.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG091",
+  "titulo": "Pepino e Berinjela",
+  "tema": "horta",
+  "descricao": "Como plantar pepino, berinjela, quiabo e abóbora no vaso, com calor, muita água, semente e colheita.",
+  "capa": "https://terragentil.com.br/guias/pepino-e-berinjela/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG091.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG092",
+  "titulo": "Flores Cheirosas",
+  "tema": "jardim",
+  "descricao": "Como cultivar jasmim, gardênia, hoia e tuberosa perto de casa, com rega, muda e vaso certo para cada uma.",
+  "capa": "https://terragentil.com.br/guias/flores-cheirosas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG092.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG093",
+  "titulo": "Flores de Semente",
+  "tema": "jardim",
+  "descricao": "Como cultivar cosmos, zínia, celósia e boca-de-leão de semente, com muda, cuidado e flor de perto.",
+  "capa": "https://terragentil.com.br/guias/flores-de-semente/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG093.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG094",
+  "titulo": "Alporquia e Mergulhia",
+  "tema": "cuidados",
+  "descricao": "Como fazer muda por alporquia, mergulhia e estaca, com anel de casca, musgo úmido e plástico preto, passo a passo.",
+  "capa": "https://terragentil.com.br/guias/alporquia-e-mergulhia/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG094.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG095",
+  "titulo": "Comedouro e Ninho",
+  "tema": "jardim",
+  "descricao": "Como fazer comedouro na janela e ninho no muro para passarinho, com comida, casinha e cerca viva.",
+  "capa": "https://terragentil.com.br/guias/comedouro-e-ninho/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG095.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG096",
+  "titulo": "Roseira no Jardim",
+  "tema": "rosas",
+  "descricao": "Como plantar roseira no canteiro, na cerca ou no arco, com cova, adubo e terra que não encharca.",
+  "capa": "https://terragentil.com.br/guias/roseira-no-jardim/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG096.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG097",
+  "titulo": "Substrato e Vaso",
+  "tema": "cuidados",
+  "descricao": "Como escolher substrato leve, drenagem, pH, adubo e o vaso certo, e como fazer a troca de vaso sem susto.",
+  "capa": "https://terragentil.com.br/guias/substrato-e-vaso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG097.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG098",
+  "titulo": "Deserto em Flor",
+  "tema": "suculentas",
+  "descricao": "Como cuidar da rosa-do-deserto para florir, com sol, fibra de coco, troca de vaso, cáudice e cultivo duro.",
+  "capa": "https://terragentil.com.br/guias/deserto-em-flor/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG098.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG099",
+  "titulo": "Orquídea no Dia a Dia",
+  "tema": "orquideas",
+  "descricao": "Como cuidar da orquídea na rotina, acertando a rega e a luz, com adubo, vaso e socorro quando algo falha.",
+  "capa": "https://terragentil.com.br/guias/orquidea-no-dia-a-dia/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG099.pdf",
+  "emoji": "🌸"
+ },
+ {
+  "id": "TG100",
+  "titulo": "Jardim Gentil",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de folhagens fáceis que viram muda, como o clorofito, e espalhar gentileza com plantas de graça.",
+  "capa": "https://terragentil.com.br/guias/jardim-gentil/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG100.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG101",
+  "titulo": "Solo Vivo",
+  "tema": "cuidados",
+  "descricao": "Como cuidar da terra viva do quintal, com minhoca, grumos e cobertura, e testar e consertar o solo sem gastar.",
+  "capa": "https://terragentil.com.br/guias/solo-vivo/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG101.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG102",
+  "titulo": "Cerca Viva e Vento",
+  "tema": "jardim",
+  "descricao": "Como plantar cerca viva que quebra o vento e protege o quintal, com a planta certa, o espaço e a poda.",
+  "capa": "https://terragentil.com.br/guias/cerca-viva-e-vento/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG102.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG103",
+  "titulo": "Mato Teimoso",
+  "tema": "cuidados",
+  "descricao": "Como acabar com o mato que volta, entendendo rizoma e estolão e tirando a raiz sem veneno nem susto.",
+  "capa": "https://terragentil.com.br/guias/mato-teimoso/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG103.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG104",
+  "titulo": "Horta Companheira",
+  "tema": "horta",
+  "descricao": "Como plantar flores e ervas junto da horta para chamar aliados e afastar praga, com os erros mais comuns.",
+  "capa": "https://terragentil.com.br/guias/horta-companheira/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG104.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG105",
+  "titulo": "Hotel de Bicho",
+  "tema": "jardim",
+  "descricao": "Como montar um hotel de insetos e dar casa, abrigo e comida para os bichos úteis do seu jardim.",
+  "capa": "https://terragentil.com.br/guias/hotel-de-bicho/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG105.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG106",
+  "titulo": "Clima do Quintal",
+  "tema": "jardim",
+  "descricao": "Como ler o vento, o muro e os cantos do quintal para plantar cada planta no lugar com o clima certo.",
+  "capa": "https://terragentil.com.br/guias/clima-do-quintal/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG106.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG107",
+  "titulo": "Sementeira Caseira",
+  "tema": "horta",
+  "descricao": "Como fazer sementeira em casa, com pote e substrato certos, semear passo a passo e cuidar da muda.",
+  "capa": "https://terragentil.com.br/guias/sementeira-caseira/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG107.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG108",
+  "titulo": "Sol e Sombra",
+  "tema": "jardim",
+  "descricao": "Como fazer o mapa de sol do seu espaço e saber que planta vai onde, no sol, na meia-sombra ou na sombra.",
+  "capa": "https://terragentil.com.br/guias/sol-e-sombra/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG108.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG109",
+  "titulo": "Folhas da Horta",
+  "tema": "horta",
+  "descricao": "Como plantar, colher e semear alface, couve e outras folhas da horta, com cuidado e os erros comuns.",
+  "capa": "https://terragentil.com.br/guias/folhas-da-horta/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG109.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG110",
+  "titulo": "Rosas Antigas",
+  "tema": "rosas",
+  "descricao": "Como conhecer rosas antigas, de onde vêm, como funciona a rosa enxertada e os cuidados certos.",
+  "capa": "https://terragentil.com.br/guias/rosas-antigas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG110.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG111",
+  "titulo": "Pulgão e Cochonilha",
+  "tema": "cuidados",
+  "descricao": "Como reconhecer e tratar pulgão, cochonilha, lagarta e fungo olhando de perto, sem veneno.",
+  "capa": "https://terragentil.com.br/guias/pulgao-e-cochonilha/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG111.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG112",
+  "titulo": "Orquídea de Pedra",
+  "tema": "orquideas",
+  "descricao": "Como cuidar de orquídea de pedra e de touceira, com vaso, substrato, água de chuva, sol e flor de perto.",
+  "capa": "https://terragentil.com.br/guias/orquidea-de-pedra/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG112.pdf",
+  "emoji": "🌸"
+ },
+ {
+  "id": "TG113",
+  "titulo": "Pimenta no Canteiro",
+  "tema": "horta",
+  "descricao": "Como plantar pimenta da semente ao canteiro, com repique, desponte, pulgão, ácaro e o ardido de cada uma.",
+  "capa": "https://terragentil.com.br/guias/pimenta-no-canteiro/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG113.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG114",
+  "titulo": "Árvore e Raiz",
+  "tema": "jardim",
+  "descricao": "Como plantar e regar árvore nova, entender raiz e fungo, cuidar de frutíferas e evitar cancro e fusariose.",
+  "capa": "https://terragentil.com.br/guias/arvore-e-raiz/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG114.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG115",
+  "titulo": "Extratos e Chás",
+  "tema": "cuidados",
+  "descricao": "Como preparar extrato e chá de planta no balde, coar, guardar e saber quando usar na horta e no jardim, com o teste certo. Livro grátis com PDF para baixar.",
+  "capa": "https://terragentil.com.br/guias/extratos-e-chas/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG115.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG116",
+  "titulo": "Aráceas de Casa",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de aráceas dentro de casa, com a luz e a rega certas, folhas e flores, e o jeito de cada planta.",
+  "capa": "https://terragentil.com.br/guias/araceas-de-casa/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG116.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG117",
+  "titulo": "Agave e Companhia",
+  "tema": "suculentas",
+  "descricao": "Como cuidar de agave, babosa, aloe, haworthia e iuca, tirar filhote e conhecer cada uma de perto.",
+  "capa": "https://terragentil.com.br/guias/agave-e-companhia/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG117.pdf",
+  "emoji": "🌵"
+ },
+ {
+  "id": "TG118",
+  "titulo": "Palmeiras e Bambu",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de palmeira em casa, plantar bambu, usar tutor de bambu e conhecer cada palmeira de perto.",
+  "capa": "https://terragentil.com.br/guias/palmeiras-e-bambu/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG118.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG119",
+  "titulo": "Rosa Pelo Mundo",
+  "tema": "rosas",
+  "descricao": "Como cuidar de rosa, entender óleo e perfume, plantar rosa de semente e conhecer a história da rosa pelo mundo.",
+  "capa": "https://terragentil.com.br/guias/rosa-pelo-mundo/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG119.pdf",
+  "emoji": "🌹"
+ },
+ {
+  "id": "TG120",
+  "titulo": "Estaca de Jardim",
+  "tema": "cuidados",
+  "descricao": "Como fazer muda por estaca de ramo, de suculenta, de arbusto e de folhagem, e outros jeitos de multiplicar planta.",
+  "capa": "https://terragentil.com.br/guias/estaca-de-jardim/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG120.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG121",
+  "titulo": "Trepadeiras de Flor",
+  "tema": "jardim",
+  "descricao": "Como dar apoio e amarra à trepadeira, saber a flor de cada uma, podar e colher semente, de perto.",
+  "capa": "https://terragentil.com.br/guias/trepadeiras-de-flor/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG121.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG122",
+  "titulo": "Bulbos e Dálias",
+  "tema": "jardim",
+  "descricao": "Como plantar bulbo em vaso e canteiro, cuidar de dália, lírio e outros bulbos, e conhecer cada um de perto.",
+  "capa": "https://terragentil.com.br/guias/bulbos-e-dalias/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG122.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG123",
+  "titulo": "Arbustos Floridos",
+  "tema": "jardim",
+  "descricao": "Como podar e plantar arbusto em vaso, ajustar terra e cor, e cuidar de hortênsia, azaleia e camélia.",
+  "capa": "https://terragentil.com.br/guias/arbustos-floridos/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG123.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG124",
+  "titulo": "Horta Diferente",
+  "tema": "horta",
+  "descricao": "Como evitar erros comuns e plantar raiz, talo, folha, flor e fruta fora do comum, com ervas e frutinhas novas.",
+  "capa": "https://terragentil.com.br/guias/horta-diferente/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG124.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG125",
+  "titulo": "Espaço para Horta",
+  "tema": "horta",
+  "descricao": "Como fazer horta em pouco espaço, com vaso e terra certos, luz e rega, parede e palete, até a colheita.",
+  "capa": "https://terragentil.com.br/guias/horta-em-pouco-espaco/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG125.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG126",
+  "titulo": "Desenho do Jardim",
+  "tema": "jardim",
+  "descricao": "Como desenhar o jardim com canteiro e piso, ler sol e solo, planejar água e árvore e escolher as plantas.",
+  "capa": "https://terragentil.com.br/guias/desenho-do-jardim/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG126.pdf",
+  "emoji": "🏡"
+ },
+ {
+  "id": "TG127",
+  "titulo": "Folha Colorida",
+  "tema": "dentro-de-casa",
+  "descricao": "Como cuidar de folha pintada, begônia, maranta, peperômia e folha variegada, e olhar cada folha de perto.",
+  "capa": "https://terragentil.com.br/guias/folha-colorida/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG127.pdf",
+  "emoji": "🪴"
+ },
+ {
+  "id": "TG128",
+  "titulo": "Ervas de Cozinha",
+  "tema": "horta",
+  "descricao": "Como plantar erva de cozinha no lugar e na terra certos, passo a passo, colher sem machucar e fazer muda.",
+  "capa": "https://terragentil.com.br/guias/ervas-de-cozinha/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG128.pdf",
+  "emoji": "🥬"
+ },
+ {
+  "id": "TG129",
+  "titulo": "Mato que Conta",
+  "tema": "cuidados",
+  "descricao": "Como ler o que o mato conta sobre o solo, arrancar com cuidado, controlar semente e aproveitar o mato amigo do jardim. Livro grátis com PDF para baixar.",
+  "capa": "https://terragentil.com.br/guias/mato-que-conta/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG129.pdf",
+  "emoji": "💧"
+ },
+ {
+  "id": "TG130",
+  "titulo": "Sarracenia",
+  "tema": "carnivoras",
+  "descricao": "Como cuidar da sarracênia, com sol pleno, substrato molhado, água limpa, divisão do rizoma e as espécies mais fáceis. Livro grátis com PDF para baixar.",
+  "capa": "https://terragentil.com.br/guias/sarracenia/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG130.pdf",
+  "emoji": "🪤"
+ },
+ {
+  "id": "TG131",
+  "titulo": "Drosera",
+  "tema": "carnivoras",
+  "descricao": "Como cuidar da drosera, a planta do orvalho que prende insetos, com luz forte, água limpa, gemas e espécies pigmeias. Livro grátis com PDF para baixar.",
+  "capa": "https://terragentil.com.br/guias/drosera/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG131.pdf",
+  "emoji": "🪤"
+ },
+ {
+  "id": "TG132",
+  "titulo": "Pinguícula",
+  "tema": "carnivoras",
+  "descricao": "Como cuidar da pinguícula, a planta de folha pegajosa, com luz, solo leve, água limpa e as espécies mexicanas.",
+  "capa": "https://terragentil.com.br/guias/pinguicula/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG132.pdf",
+  "emoji": "🪤"
+ },
+ {
+  "id": "TG133",
+  "titulo": "Nepenthes",
+  "tema": "carnivoras",
+  "descricao": "Como cuidar da nepentes, a planta-jarro tropical, com ar úmido, luz, vaso e rega certos e as espécies mais famosas.",
+  "capa": "https://terragentil.com.br/guias/nepenthes/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG133.pdf",
+  "emoji": "🪤"
+ },
+ {
+  "id": "TG134",
+  "titulo": "Bexigas e Byblis",
+  "tema": "carnivoras",
+  "descricao": "Como cuidar da utricularia, a planta de bexigas que pega bichinhos na água, com luz, água limpa, solo molhado e as espécies mais fáceis. Livro grátis em PDF.",
+  "capa": "https://terragentil.com.br/guias/utricularia/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG134.pdf",
+  "emoji": "🪤"
+ },
+ {
+  "id": "TG135",
+  "titulo": "Dioneia e Cia",
+  "tema": "carnivoras",
+  "descricao": "Como cuidar da dioneia, a armadilha de Vênus, com sol forte, água limpa, repouso de inverno e a aldrovanda, sua prima aquática. Livro grátis em PDF.",
+  "capa": "https://terragentil.com.br/guias/dioneia/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG135.pdf",
+  "emoji": "🪤"
+ },
+ {
+  "id": "TG136",
+  "titulo": "Cephalotus e Cia",
+  "tema": "carnivoras",
+  "descricao": "Como cuidar da cephalotus, a jarra de Albany, com sol, raiz fresca, água limpa, vaso fundo e o pega-moscas drosophyllum. Livro grátis com PDF para baixar.",
+  "capa": "https://terragentil.com.br/guias/cephalotus/capa.webp",
+  "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG136.pdf",
+  "emoji": "🪤"
+ },
+ {
+  "id": "ebook-01",
+  "titulo": "O Código Secreto das Plantas",
+  "tema": "classicos",
+  "descricao": "Pare de matar suas plantas: o guia base do Doutor. Fala de: geral, iniciante, basico.",
+  "capa": "https://terragentil.com.br/ebooks/covers/O-Codigo-Secreto-das-Plantas.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/1-O-Codigo-Secreto-das-Plantas.pdf",
+  "emoji": "📘"
+ },
+ {
+  "id": "ebook-02",
+  "titulo": "O Esquadrão Imortal",
+  "tema": "classicos",
+  "descricao": "6 plantas indestrutíveis pra começar bem. Fala de: espada, são jorge, sansevieria, zamioculca, zz plant, lírio da paz.",
+  "capa": "https://terragentil.com.br/ebooks/covers/esquadraoimortal.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/2-O-Esquadrao-Imortal.pdf",
+  "emoji": "🛡️"
+ },
+ {
+  "id": "ebook-03",
+  "titulo": "Plantas da Gratidão",
+  "tema": "classicos",
+  "descricao": "Proteção e energia boa para o lar. Fala de: arruda, pimenteira, comigo-ninguém-pode, guiné, energia, proteção.",
+  "capa": "https://terragentil.com.br/ebooks/covers/plantasdegratidao.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/3-Plantas-da-Gratidao.pdf",
+  "emoji": "✨"
+ },
+ {
+  "id": "ebook-04",
+  "titulo": "Jardim Lindo com Pouco Dinheiro",
+  "tema": "classicos",
+  "descricao": "Receitas caseiras de adubo, vasos e mais. Fala de: adubo caseiro, economizar, barato, reciclagem, garrafa pet.",
+  "capa": "https://terragentil.com.br/ebooks/covers/jardimbonitoebarato.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/4-Jardim-Lindo-com-Pouco-Dinheiro.pdf",
+  "emoji": "💰"
+ },
+ {
+  "id": "ebook-05",
+  "titulo": "Jardim Vertical na Parede",
+  "tema": "classicos",
+  "descricao": "Seu novo quintal mesmo sem espaço. Fala de: samambaia, parede, vertical, treliça, pendente, véu de noiva.",
+  "capa": "https://terragentil.com.br/ebooks/covers/jardimvertical.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/5-O-Seu-Novo-Quintal-e-na-Parede.pdf",
+  "emoji": "🧗"
+ },
+ {
+  "id": "ebook-06",
+  "titulo": "Jardim Terapêutico",
+  "tema": "classicos",
+  "descricao": "Plantas que acalmam e curam. Fala de: lavanda, camomila, jasmim, ansiedade, calma, terapia, melissa.",
+  "capa": "https://terragentil.com.br/ebooks/covers/jardimterapeutico.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/6-Jardim-Terapeutico.pdf",
+  "emoji": "🧘"
+ },
+ {
+  "id": "ebook-07",
+  "titulo": "Jardim Pequeno, Amor Gigante",
+  "tema": "classicos",
+  "descricao": "Apartamento ou sacada também viram jardim. Fala de: apartamento, pequeno, sacada, antúrio, begônia, violeta, kalanchoe.",
+  "capa": "https://terragentil.com.br/ebooks/covers/pequenojardimgiganteamor.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/7-Jardim-Pequeno-Amor-Gigante.pdf",
+  "emoji": "🏢"
+ },
+ {
+  "id": "ebook-18",
+  "titulo": "Tapete Verde da Bondade",
+  "tema": "classicos",
+  "descricao": "O segredo de um gramado bonito e fofo. Fala de: grama, gramado, relva, esmeralda, são carlos, batatais.",
+  "capa": "https://terragentil.com.br/ebooks/covers/comocantargrama.jpeg",
+  "pdf": "https://terragentil.com.br/ebooks/18-O-TAPETE-VERDE-DA-BONDADE.pdf",
+  "emoji": "🏡"
+ }
+]

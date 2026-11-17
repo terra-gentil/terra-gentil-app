@@ -17,9 +17,14 @@ from app.schemas.diagnostico_v2_schema import DIAGNOSTICO_V2_JSON_SCHEMA
 from app.services.claude_service import (
     LADO_MAXIMO_PX,
     ClaudeService,
+    MAX_EBOOKS,
     ClaudeServiceError,
+    carregar_catalogo,
+    linhas_catalogo,
     preparar_imagem,
+    resolver_ebooks,
 )
+from app.schemas.diagnostico_v2 import EbookRecomendado
 
 from .v2_fixtures import cliente_mock, mensagem_sdk, resposta_v2_planta
 
@@ -142,9 +147,21 @@ class TestResposta:
         rel = await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
         assert rel.versao_relatorio == "v2"
 
-    async def test_ebooks_ficam_vazios_sem_catalogo(self):
+    async def test_ebook_do_modelo_volta_completo_do_catalogo(self):
         rel = await ClaudeService(client=cliente_mock()).diagnosticar(_imagem(100, 100))
-        assert rel.ebooks_recomendados == []
+        [ebook] = rel.ebooks_recomendados
+        assert ebook.id == "TG074" and ebook.motivo == "Ajuda na rega."
+        assert ebook.titulo and ebook.emoji
+        assert ebook.capa.startswith("https://terragentil.com.br/guias/")
+        assert ebook.pdf.endswith("/TG074.pdf")
+
+    async def test_catalogo_vai_no_bloco_em_cache(self):
+        cliente = cliente_mock()
+        await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+        bloco = cliente.messages.create.call_args.kwargs["system"][1]
+        assert bloco["cache_control"]["ttl"] == "1h"
+        assert bloco["text"].startswith("TG004 | ")
+        assert "\nTG074 | " in bloco["text"] and "\nebook-02 | " in bloco["text"]
 
     async def test_numeros_fora_da_faixa_sao_ajustados(self):
         dados = resposta_v2_planta() | {"confianca": 1.4, "rega_dias": 90, "luz_porcentagem": -5}
@@ -207,3 +224,33 @@ def test_cliente_padrao_sem_retentativa_e_com_limite(monkeypatch):
     assert cliente.max_retries == 0
     assert cliente.timeout == settings.CLAUDE_TIMEOUT_S
     monkeypatch.setattr(claude_service, "_cliente", None)
+
+
+class TestResolverEbooks:
+    def test_catalogo_real_tem_site_e_classicos(self):
+        catalogo = carregar_catalogo()
+        assert len(catalogo) >= 140
+        assert "tg074" in catalogo and "ebook-01" in catalogo
+        assert all(i["titulo"] and i["capa"] and i["pdf"] and i["descricao"] for i in catalogo.values())
+        assert len(linhas_catalogo()) == len(catalogo)
+
+    def test_descarta_fora_do_catalogo_e_repetidos_e_limita(self):
+        itens = [
+            EbookRecomendado(id="TG999", motivo="inventado"),
+            EbookRecomendado(id=" tg074 ", motivo="primeiro"),
+            EbookRecomendado(id="TG074", motivo="repetido"),
+            EbookRecomendado(id="ebook-02", motivo="classico"),
+            EbookRecomendado(id="TG004", motivo="sobra"),
+        ]
+        resultado = resolver_ebooks(itens)
+        assert [e.id for e in resultado] == ["TG074", "ebook-02"]
+        assert len(resultado) == MAX_EBOOKS
+        assert resultado[0].motivo == "primeiro"
+
+    def test_titulo_e_link_nunca_vem_do_modelo(self):
+        item = EbookRecomendado(id="TG074", motivo="m", titulo="Falso", pdf="https://mal.example/x.pdf")
+        [ebook] = resolver_ebooks([item])
+        assert ebook.titulo != "Falso" and "mal.example" not in ebook.pdf
+
+    def test_lista_vazia(self):
+        assert resolver_ebooks([]) == []

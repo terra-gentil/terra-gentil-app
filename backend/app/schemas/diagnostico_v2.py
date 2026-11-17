@@ -140,8 +140,8 @@ class EbookRecomendado(BaseModel):
     Ebook indicado pelo Doutor.
 
     O modelo devolve so id e motivo. O backend confere o id no catalogo e completa
-    titulo, capa, pdf, tema e emoji (secao 2.6 da proposta). Na fase 1 nao ha catalogo
-    e a lista sai sempre vazia.
+    titulo, capa, pdf, tema e emoji (secao 2.6 da proposta), a partir de
+    app/data/catalogo_ebooks.json.
     """
 
     id: str
