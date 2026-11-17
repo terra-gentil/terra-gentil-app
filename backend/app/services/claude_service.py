@@ -2,7 +2,12 @@
 Servico de diagnostico v2 com o Claude (Anthropic).
 
 Prepara a foto (orientacao EXIF, no maximo 1568 px no lado maior, JPEG), chama o modelo
-com saida estruturada pelo schema v2 e devolve um DiagnosticoV2Response.
+com o schema v2 no prompt e devolve um DiagnosticoV2Response.
+
+Sem saida estruturada (output_config.format): o schema v2 compila numa gramatica maior
+que o limite interno da API ("compiled grammar is too large", fase 2, 17/11/2026). O
+schema vai no primeiro bloco do system, dentro do prefixo em cache, e o Pydantic valida
+a resposta; fora do schema vira ClaudeServiceError e a rota cai no Gemini.
 
 Regras (secoes 6.1, 7.2 e 7.4 da proposta):
 - Uma tentativa so, sem retentativa no SDK (max_retries=0) e com limite de tempo proprio
@@ -100,6 +105,22 @@ def resolver_ebooks(itens: list[EbookRecomendado]) -> list[EbookRecomendado]:
     return []
 
 
+def _formato_resposta() -> str:
+    """Instrucao de formato com o schema v2 compacto. Texto fixo para nao quebrar o cache."""
+    schema = json.dumps(DIAGNOSTICO_V2_JSON_SCHEMA, ensure_ascii=False, separators=(",", ":"))
+    return (
+        "\n\nFORMATO DA RESPOSTA: responda somente com um objeto JSON, sem texto antes ou "
+        "depois e sem cercas de codigo, que valide neste JSON Schema (todos os campos "
+        "sao obrigatorios):\n" + schema
+    )
+
+
+def extrair_json(texto: str) -> str:
+    """Recorta do primeiro '{' ao ultimo '}', tolerando cercas de codigo ou texto em volta."""
+    inicio, fim = texto.find("{"), texto.rfind("}")
+    return texto[inicio : fim + 1] if inicio != -1 and fim > inicio else texto
+
+
 def _montar_requisicao(imagem_jpeg: bytes, linhas_catalogo: list[str] | None = None) -> dict:
     """Parametros de messages.create. Ordem e conteudo do prefixo precisam ser estaveis."""
     data_hoje = datetime.now(FUSO_BRASILIA).strftime("%d/%m/%Y")
@@ -107,7 +128,7 @@ def _montar_requisicao(imagem_jpeg: bytes, linhas_catalogo: list[str] | None = N
         "model": settings.CLAUDE_MODEL,
         "max_tokens": settings.CLAUDE_MAX_TOKENS,
         "system": [
-            {"type": "text", "text": instrucoes_v2()},
+            {"type": "text", "text": instrucoes_v2() + _formato_resposta()},
             {
                 "type": "text",
                 "text": catalogo_v2(linhas_catalogo),
@@ -130,10 +151,7 @@ def _montar_requisicao(imagem_jpeg: bytes, linhas_catalogo: list[str] | None = N
                 ],
             }
         ],
-        "output_config": {
-            "effort": settings.CLAUDE_EFFORT,
-            "format": {"type": "json_schema", "schema": DIAGNOSTICO_V2_JSON_SCHEMA},
-        },
+        "output_config": {"effort": settings.CLAUDE_EFFORT},
     }
 
 
@@ -205,7 +223,7 @@ class ClaudeService:
             raise ClaudeServiceError("sem_texto", f"stop_reason={resposta.stop_reason}")
 
         try:
-            dados = json.loads(texto)
+            dados = json.loads(extrair_json(texto))
             relatorio = DiagnosticoV2Response(**dados)
         except Exception as exc:
             raise ClaudeServiceError("fora_do_schema", str(exc)[:500]) from exc

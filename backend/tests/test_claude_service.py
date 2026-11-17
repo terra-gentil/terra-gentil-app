@@ -98,11 +98,10 @@ class TestRequisicao:
         assert system[0]["text"].startswith("Você é o Doutor Gentileza")
         assert "{CATALOGO_EBOOKS}" not in system[0]["text"] + system[1]["text"]
 
-        assert params["output_config"]["effort"] == "low"
-        assert params["output_config"]["format"] == {
-            "type": "json_schema",
-            "schema": DIAGNOSTICO_V2_JSON_SCHEMA,
-        }
+        # Sem gramatica forcada: o schema vai no prefixo em cache (limite da API, fase 2)
+        assert params["output_config"] == {"effort": "low"}
+        esperado = json.dumps(DIAGNOSTICO_V2_JSON_SCHEMA, ensure_ascii=False, separators=(",", ":"))
+        assert system[0]["text"].endswith(esperado)
 
         conteudo = params["messages"][0]["content"]
         assert conteudo[0]["type"] == "image"
@@ -136,6 +135,12 @@ class TestResposta:
         assert rel.versao_relatorio == "v2"
         assert rel.problemas_detectados[0].evidencia_visual
         assert rel.toxicidade.nivel == "leve"
+
+    async def test_json_com_cercas_ou_texto_em_volta_e_aceito(self):
+        texto = "Segue o relatorio:\n```json\n" + json.dumps(resposta_v2_planta()) + "\n```"
+        cliente = cliente_mock(mensagem_sdk(texto=texto))
+        rel = await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+        assert rel.versao_relatorio == "v2"
 
     async def test_ebooks_ficam_vazios_sem_catalogo(self):
         rel = await ClaudeService(client=cliente_mock()).diagnosticar(_imagem(100, 100))

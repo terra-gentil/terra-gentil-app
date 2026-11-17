@@ -72,3 +72,7 @@ coverage/
 
 # Claude Code (config local, não commitar)
 .claude/
+
+# Fase 2: fotos de teste e resultados ficam fora do git
+backend/fase2-fotos/
+backend/fase2-resultados/
