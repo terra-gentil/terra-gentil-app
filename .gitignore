@@ -76,3 +76,7 @@ coverage/
 # Fase 2: fotos de teste e resultados ficam fora do git
 backend/fase2-fotos/
 backend/fase2-resultados/
+
+# Pacote do Claude Design
+design-handoff/
+design-handoff.zip

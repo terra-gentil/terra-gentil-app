@@ -1,5 +1,26 @@
 # PROGRESSO - Terra Gentil
 
+## Atualizado: 2026-11-17 noite (fase 2 do diagnostico v2 e tela de espera)
+
+### Feito
+- BUG CRITICO corrigido (commit bca2e42): a API recusava o schema v2 como saida estruturada ("compiled grammar is too large", estoura a partir de 21 dos 32 campos). Em producao o Opus falharia 100% e tudo cairia no Gemini. Agora o schema vai no 1o bloco do system (em cache), sem output_config.format, e o Pydantic valida. 309 testes do backend passando.
+- Fase 2 (teste real) concluida so com o Opus: 12 fotos da internet (Serper do projeto youtube-marcaregistrada) em backend/fase2-fotos, resultados em backend/fase2-resultados (fora do git). 11 de 12 acertos, 27 s em media (pior 35 s), US$ 0,065 por diagnostico, cache funcionando. Duvida: foto "requeima do tomateiro" saiu como batata. Ebooks vieram vazios (catalogo ainda nao ligado). Gemini ficou fora (503, alta demanda): comparar depois.
+- Script backend/scripts/fase2_comparar.py (opcoes --so-claude, --so-gemini, --lado). Ambiente em backend/.venv. Chaves em backend/.env: ANTHROPIC_API_KEY = chave "teste-local-fase2" (workspace terra-gentil-prod, vence 24/11/2026) e GEMINI_API_KEY.
+- Pegadinha: o Claude Code exporta CLAUDE_EFFORT=medium no terminal e o backend le a mesma variavel; o script descarta.
+- Tela de espera v2 (commit 23cbdc7, NAO publicada por OTA): aviso de 30 s na entrada, 8 etapas ate 35 s, contagem "Cerca de N segundos", carrossel "Conheca o Terra Gentil" (quem somos, canal, ebooks, comunidade, dica), botao "Lembrar de ver o canal" que so guarda lembrete e o link aparece no fim do relatorio, demora aos 60 s, API_TIMEOUT_MS 100 s. Roteiro em docs/ROTEIRO-ESPERA-V2.md. 83 testes do app passando.
+- Pacote do Claude Design pronto: /Users/andrehz/Documents/Githubhz/terra-gentil-app/design-handoff.zip + BRIEF-DESIGN.md.
+
+### Proximo passo
+1. Andre leva design-handoff.zip ao claude.ai/design; aplicar o retorno mantendo testIDs e exports do BRIEF.
+2. Junto, mandar a tela do relatorio v2 (DiagnosisV2) ao Claude Design (fase 3).
+3. Ebooks: rodar mobile/scripts/gerar-colecao.py e ligar resolver_ebooks() no Opus.
+4. Repetir a fase 2 com --lado 1280 e com o Gemini quando ele voltar.
+5. Voz do Doutor (ElevenLabs) fica para depois: exige build novo (expo-audio).
+6. Revogar a chave teste-local-fase2 no Console ao terminar os testes.
+
+### Pendencias no site terragentil.com.br
+- Fala em 152 PDFs e em 12 ebooks gratuitos; app aparece "em breve" (ja esta na Play); contadores zerados.
+
 ## Atualizado: 2026-11-17 (diagnostico v2 com Claude Opus 5.5)
 
 ### Feito
