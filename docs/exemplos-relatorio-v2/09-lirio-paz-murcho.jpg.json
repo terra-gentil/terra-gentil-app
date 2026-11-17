@@ -1,0 +1,188 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Spathiphyllum wallisii",
+  "nome_popular": "Lírio-da-paz",
+  "confianca": 0.9,
+  "estado_saude": "doente",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: a planta inteira, por conter cristais de oxalato de cálcio. Sintomas: ardência na boca, salivação, inchaço dos lábios, vômito e dificuldade para engolir.",
+  "nivel_luz": "indireta_brilhante",
+  "rega_dias": 4,
+  "rega_condicao": "Regue quando os 2 primeiros centímetros do solo estiverem secos ao toque. As folhas começarem a pender também é um aviso de que está na hora.",
+  "temperatura_ideal": "18 a 30 graus",
+  "nivel_dificuldade": "facil",
+  "luz_porcentagem": 50,
+  "luz_veredito": "A foto não mostra onde a planta fica; o ideal para ela é luz clara, mas sem sol direto nas folhas.",
+  "diagnostico_titulo": "Lírio-da-paz desmaiado de sede",
+  "diagnostico_explicacao": "Seu lírio-da-paz desabou do jeito que ele costuma fazer quando o solo seca demais, e a boa notícia é que as folhas ainda estão verdes. Na maioria das vezes ele se levanta em poucas horas depois de uma boa rega. Como não dá para ver o solo, vale fazer o teste do dedo antes de regar.",
+  "problemas_detectados": [
+    {
+      "descricao": "Murcha geral",
+      "gravidade": "alta",
+      "causa_provavel": "O mais provável é falta de água, mas excesso de água com raiz apodrecida causa a mesma murcha.",
+      "categoria": "rega_falta",
+      "evidencia_visual": "Todas as folhas caídas ao mesmo tempo, ainda verdes e sem amarelar.",
+      "como_confirmar": "Enfie o dedo 2 cm no solo: se estiver seco, é sede; se estiver encharcado e com cheiro azedo, é excesso de água.",
+      "contagioso": false
+    },
+    {
+      "descricao": "Pontas secas e mancha marrom",
+      "gravidade": "baixa",
+      "causa_provavel": "Marcas deixadas por secas repetidas ou por ar seco.",
+      "categoria": "rega_falta",
+      "evidencia_visual": "Pontas escurecidas e uma mancha marrom alongada numa folha à direita.",
+      "como_confirmar": "",
+      "contagioso": false
+    }
+  ],
+  "plano_tratamento": "Hidrate a planta hoje por imersão e depois passe a regar sempre que a superfície do solo secar. Quando ela tiver se recuperado, retire as partes danificadas.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Se o solo estiver seco, deixe o vaso de molho numa bacia com água por 20 a 30 minutos.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Coloque o vaso numa bacia com água até a metade da altura dele e espere o solo encharcar por baixo. Depois deixe escorrer bem e jogue fora a água do prato.",
+      "por_que": "A terra muito seca repele a água, e o molho faz o torrão se hidratar por inteiro.",
+      "materiais": [
+        "Bacia ou balde",
+        "Água em temperatura ambiente"
+      ]
+    },
+    {
+      "etapa": "Próximos 2 dias",
+      "acao": "Deixe a planta em luz clara indireta, longe do sol direto, e acompanhe se ela se levanta.",
+      "tipo": "manejo",
+      "dia_inicio": 1,
+      "como_fazer": "Ela deve se reerguer em 12 a 24 horas. Se o solo estiver úmido e ela continuar caída, tire a planta do vaso e confira se as raízes estão escuras e moles.",
+      "por_que": "",
+      "materiais": []
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Corte as pontas secas e retire as folhas que não se recuperaram.",
+      "tipo": "manejo",
+      "dia_inicio": 7,
+      "como_fazer": "Use uma tesoura limpa e corte só a parte marrom, seguindo o formato da ponta. As folhas muito danificadas podem ser cortadas rente à base.",
+      "por_que": "",
+      "materiais": [
+        "Tesoura limpa",
+        "Álcool para limpar a tesoura"
+      ]
+    },
+    {
+      "etapa": "Daqui a 15 dias",
+      "acao": "Confira se as raízes saem pelo furo do vaso e, se saírem, troque por um vaso de 2 a 4 cm maior.",
+      "tipo": "manejo",
+      "dia_inicio": 15,
+      "como_fazer": "Use um substrato para folhagens misturado com um pouco de casca de pinus ou perlita. Mantenha o vaso com furo no fundo.",
+      "por_que": "",
+      "materiais": [
+        "Vaso com furo",
+        "Substrato para folhagens"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 7 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "aceitavel",
+    "problemas": [
+      "obstruida"
+    ],
+    "o_que_aparece": "Um lírio-da-paz em vaso escuro, segurado no alto pela mão, com as folhas caídas cobrindo o vaso e o solo.",
+    "dica_proxima_foto": "Apoie o vaso numa mesa perto de uma janela, de dia, e tire uma foto de cima mostrando o solo."
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "Quase todas as folhas estão murchas e penduradas, com os talos dobrados.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "folhas",
+      "observacao": "Pontas escuras e secas em várias folhas e uma mancha marrom numa folha da direita.",
+      "sinal": "atencao"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Os talos continuam verdes e as folhas mantêm a cor escura, sem amarelar.",
+      "sinal": "bom"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "alta",
+    "como_reconheci": "Reconheci pelas folhas lanceoladas verde-escuras e brilhantes, que saem em touceira sobre talos longos e finos, e pela forma típica de murchar inteira quando falta água.",
+    "outros_nomes": [
+      "Espatifilo",
+      "Bandeira-branca"
+    ],
+    "alternativas": []
+  },
+  "acompanhamento": {
+    "prazo_melhora": "Ele costuma se levantar em 1 dia. Folhas novas saudáveis aparecem em 3 a 4 semanas.",
+    "sinais_melhora": [
+      "As folhas voltam a ficar em pé e firmes.",
+      "Surgem brotos novos no centro da touceira."
+    ],
+    "sinais_piora": [
+      "Ele continua caído mesmo com o solo úmido.",
+      "A base dos talos fica mole ou escura, ou as folhas amarelam em massa."
+    ],
+    "retorno_em_dias": 7,
+    "como_evitar": "Regue sempre que os 2 primeiros centímetros do solo secarem, sem esperar a planta desmaiar."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "moderada",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas"
+    ],
+    "partes_toxicas": "A planta inteira, por conter cristais de oxalato de cálcio.",
+    "sintomas": "Ardência na boca, salivação, inchaço dos lábios, vômito e dificuldade para engolir.",
+    "o_que_fazer": "Mantenha a planta longe do alcance. Em caso de ingestão, procure um veterinário ou atendimento médico e leve o nome da planta."
+  },
+  "cuidados": {
+    "rega": "Regue quando os 2 primeiros centímetros do solo estiverem secos ao toque. As folhas começarem a pender também é um aviso de que está na hora.",
+    "luz_e_local": "Luz indireta e clara, perto de uma janela, sem sol forte direto nas folhas.",
+    "solo_e_vaso": "Prefira um substrato leve e rico, que retenha umidade mas escoe bem, sempre em vaso com furo no fundo.",
+    "adubacao": "Na primavera e no verão, aplique adubo para folhagens diluído na metade da dose a cada mês.",
+    "poda_e_limpeza": "Corte as flores velhas e as folhas secas rente à base, e limpe a poeira das folhas com um pano úmido.",
+    "como_fazer_mudas": "Na troca de vaso, divida a touceira em partes que tenham folhas e raízes, e plante cada uma em seu vaso.",
+    "erros_comuns": [
+      "Deixar o solo secar por completo com frequência, o que queima as pontas das folhas."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "Apesar do nome, o lírio-da-paz não é um lírio: ele é parente da costela-de-adão, e sua flor branca é na verdade uma folha modificada, chamada espata."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG036",
+      "motivo": "Seu lírio-da-paz desabou por falta de água, e este guia trata justamente da rega certa dessa espécie.",
+      "titulo": "Lírio-da-paz",
+      "capa": "https://terragentil.com.br/guias/lirio-da-paz/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG036.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    },
+    {
+      "id": "TG008",
+      "motivo": "O lírio-da-paz é tóxico para cães e gatos, e este guia ajuda a manter a planta e o pet em segurança.",
+      "titulo": "Casa com Pet",
+      "capa": "https://terragentil.com.br/guias/casa-com-pet/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG008.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    }
+  ],
+  "rega_ml": 400,
+  "vaso_estimado_cm": 15
+}

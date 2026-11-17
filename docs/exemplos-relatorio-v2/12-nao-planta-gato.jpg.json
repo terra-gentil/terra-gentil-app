@@ -1,0 +1,69 @@
+{
+  "eh_planta": false,
+  "especie_identificada": "Não identificada",
+  "nome_popular": "Não identificada",
+  "confianca": 0.0,
+  "estado_saude": "nao_aplicavel",
+  "toxica_para_pets": false,
+  "toxicidade_detalhes": "",
+  "nivel_luz": "nao_aplicavel",
+  "rega_dias": 0,
+  "rega_condicao": "",
+  "temperatura_ideal": "",
+  "nivel_dificuldade": "nao_aplicavel",
+  "luz_porcentagem": 0,
+  "luz_veredito": "",
+  "diagnostico_titulo": "",
+  "diagnostico_explicacao": "",
+  "problemas_detectados": [],
+  "plano_tratamento": "Para eu ajudar, envie uma foto de uma planta viva, com a planta inteira no centro, o vaso aparecendo e boa luz natural.",
+  "plano_timeline": [],
+  "precisa_retorno": false,
+  "mensagem_retorno": "",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "boa",
+    "problemas": [],
+    "o_que_aparece": "Que fofura! A imagem é uma ilustração de um gatinho laranja e branco dormindo num sofá, mas não aparece nenhuma planta.",
+    "dica_proxima_foto": "Fotografe uma planta de verdade de dia, perto de uma janela, mostrando as folhas, o caule e também o vaso com o solo."
+  },
+  "leitura_foto": [],
+  "identificacao": {
+    "nivel_confianca": "nao_aplicavel",
+    "como_reconheci": "",
+    "outros_nomes": [],
+    "alternativas": []
+  },
+  "acompanhamento": {
+    "prazo_melhora": "",
+    "sinais_melhora": [],
+    "sinais_piora": [],
+    "retorno_em_dias": 0,
+    "como_evitar": ""
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "nao_aplicavel",
+    "afeta": [],
+    "partes_toxicas": "",
+    "sintomas": "",
+    "o_que_fazer": ""
+  },
+  "cuidados": {
+    "rega": "",
+    "luz_e_local": "",
+    "solo_e_vaso": "",
+    "adubacao": "",
+    "poda_e_limpeza": "",
+    "como_fazer_mudas": "",
+    "erros_comuns": []
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [],
+  "ebooks_recomendados": [],
+  "rega_ml": 0,
+  "vaso_estimado_cm": 0
+}

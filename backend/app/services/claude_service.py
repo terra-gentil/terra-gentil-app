@@ -155,6 +155,95 @@ def resolver_ebooks(itens: list[EbookRecomendado]) -> list[EbookRecomendado]:
     return resultado
 
 
+# Observacoes da foto que vao para a tela (so as nao neutras)
+MAX_LEITURA_FOTO = 3
+
+# Toxicidade: niveis que fazem o app mostrar o cartao de alerta (toxica_para_pets true)
+NIVEIS_TOXICOS = {"leve", "moderada", "grave", "desconhecida"}
+
+TEXTO_TOXICIDADE_DESCONHECIDA = (
+    "Não deu para confirmar se esta planta é segura. "
+    "Mantenha fora do alcance de pets e crianças até ter certeza."
+)
+
+# Luz que a especie precisa, para a ficha de cuidados (cuidados.luz_e_local)
+ROTULO_LUZ = {
+    "sol_pleno": "Sol direto por boa parte do dia, em área externa ou janela bem ensolarada.",
+    "meia_sombra": "Meia sombra, com sol fraco da manhã ou do fim da tarde.",
+    "indireta_brilhante": "Luz indireta e clara, perto de uma janela, sem sol forte direto nas folhas.",
+    "sombra": "Pouca luz, longe da janela, sem sol direto.",
+}
+
+
+def _frase(texto: str) -> str:
+    """Tira espacos e ponto final, para juntar trechos sem pontuacao dobrada."""
+    return texto.strip().rstrip(".").strip()
+
+
+def _montar_toxicidade_detalhes(relatorio: DiagnosticoV2Response) -> str:
+    """Resumo v1 do risco a partir do bloco toxicidade (partes e sintomas)."""
+    tox = relatorio.toxicidade
+    if tox.nivel not in NIVEIS_TOXICOS:
+        return ""
+    partes, sintomas = _frase(tox.partes_toxicas), _frase(tox.sintomas)
+    trechos = []
+    if partes:
+        trechos.append(f"Partes tóxicas: {partes[0].lower() + partes[1:]}.")
+    if sintomas:
+        trechos.append(f"Sintomas: {sintomas[0].lower() + sintomas[1:]}.")
+    if trechos:
+        return " ".join(trechos)
+    if tox.nivel == "desconhecida":
+        return TEXTO_TOXICIDADE_DESCONHECIDA
+    return tox.o_que_fazer.strip()
+
+
+def _montar_mensagem_retorno(dias: int) -> str:
+    """Frase do lembrete da tela v1 a partir de retorno_em_dias."""
+    if dias <= 0:
+        return ""
+    prazo = "amanhã" if dias == 1 else f"daqui a {dias} dias"
+    return f"Tire uma nova foto {prazo} para conferir como a planta está reagindo."
+
+
+def completar_campos_derivados(relatorio: DiagnosticoV2Response) -> DiagnosticoV2Response:
+    """
+    Preenche os campos v1 que o modelo deixou de escrever (secao C de
+    docs/PESQUISA-CONCORRENTES.md), para a resposta continuar valida e completa para a
+    tela v1 publicada:
+    - toxicidade_detalhes: montado de toxicidade.partes_toxicas e sintomas
+    - toxica_para_pets: true sempre que o nivel pede o alerta (leve a grave ou desconhecida)
+    - precisa_retorno e mensagem_retorno: derivados de acompanhamento.retorno_em_dias
+    - cuidados.rega e cuidados.luz_e_local: da grade (rega_condicao e nivel_luz)
+    - calendario_cuidados: fica vazio (nenhuma tela usa; rega_dias ja cobre a rotina)
+    - leitura_foto: sem itens neutros e com no maximo MAX_LEITURA_FOTO, mesmo que o
+      modelo escape da regra do prompt
+    Campo que o modelo ainda preencher por conta propria e mantido.
+    """
+    relatorio.leitura_foto = [
+        item for item in relatorio.leitura_foto if item.sinal != "neutro"
+    ][:MAX_LEITURA_FOTO]
+
+    if relatorio.toxicidade.nivel in NIVEIS_TOXICOS:
+        relatorio.toxica_para_pets = True
+    if relatorio.toxica_para_pets and not relatorio.toxicidade_detalhes.strip():
+        relatorio.toxicidade_detalhes = (
+            _montar_toxicidade_detalhes(relatorio) or TEXTO_TOXICIDADE_DESCONHECIDA
+        )
+
+    dias = relatorio.acompanhamento.retorno_em_dias if relatorio.eh_planta else 0
+    relatorio.precisa_retorno = dias > 0
+    relatorio.mensagem_retorno = _montar_mensagem_retorno(dias)
+
+    if relatorio.eh_planta:
+        cuidados = relatorio.cuidados
+        if not cuidados.rega.strip():
+            cuidados.rega = relatorio.rega_condicao.strip()
+        if not cuidados.luz_e_local.strip():
+            cuidados.luz_e_local = ROTULO_LUZ.get(relatorio.nivel_luz.value, "")
+    return relatorio
+
+
 def _formato_resposta() -> str:
     """Instrucao de formato com o schema v2 compacto. Texto fixo para nao quebrar o cache."""
     schema = json.dumps(DIAGNOSTICO_V2_JSON_SCHEMA, ensure_ascii=False, separators=(",", ":"))
@@ -278,5 +367,10 @@ class ClaudeService:
         except Exception as exc:
             raise ClaudeServiceError("fora_do_schema", str(exc)[:500]) from exc
 
-        relatorio.ebooks_recomendados = resolver_ebooks(relatorio.ebooks_recomendados)
-        return relatorio
+        return pos_processar(relatorio)
+
+
+def pos_processar(relatorio: DiagnosticoV2Response) -> DiagnosticoV2Response:
+    """Tudo o que o backend faz sobre a resposta validada antes de devolver ao app."""
+    relatorio.ebooks_recomendados = resolver_ebooks(relatorio.ebooks_recomendados)
+    return completar_campos_derivados(relatorio)

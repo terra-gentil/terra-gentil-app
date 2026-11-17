@@ -1,0 +1,185 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Monstera deliciosa",
+  "nome_popular": "Costela-de-adão",
+  "confianca": 0.85,
+  "estado_saude": "atencao",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: folhas e caules, por conter cristais de oxalato de cálcio. Sintomas: ardência e inchaço na boca, salivação, vômito e dificuldade para engolir.",
+  "nivel_luz": "indireta_brilhante",
+  "rega_dias": 7,
+  "rega_condicao": "Regue quando os 2 a 3 cm de cima do substrato estiverem secos ao toque, sob as bolinhas.",
+  "temperatura_ideal": "18 a 30 graus",
+  "nivel_dificuldade": "facil",
+  "luz_porcentagem": 45,
+  "luz_veredito": "O ambiente parece de claridade moderada, um pouco abaixo do ideal para a costela-de-adão.",
+  "diagnostico_titulo": "Folha baixa amarelando, vale conferir a rega",
+  "diagnostico_explicacao": "A planta está no geral bem, mas uma folha da base amareleceu por inteiro. Isso pode ser só uma folha velha sendo descartada, mas em vaso com argila expandida o excesso de água no fundo é causa frequente. Uma foto da planta inteira permitiria avaliar melhor.",
+  "problemas_detectados": [
+    {
+      "descricao": "Folha inferior amarela",
+      "gravidade": "baixa",
+      "causa_provavel": "Provavelmente excesso de água acumulada no fundo do vaso, ou o envelhecimento natural de uma folha antiga.",
+      "categoria": "rega_excesso",
+      "evidencia_visual": "Folha da base amarela com restos de verde, enquanto as demais estão verdes.",
+      "como_confirmar": "Afaste as bolinhas e enfie o dedo 2 cm no substrato: se estiver encharcado ou com cheiro azedo, é excesso de água.",
+      "contagioso": false
+    },
+    {
+      "descricao": "Pecíolos esticados",
+      "gravidade": "baixa",
+      "causa_provavel": "Luz um pouco fraca, que faz a planta alongar os talos em busca de claridade.",
+      "categoria": "luz_falta",
+      "evidencia_visual": "Talos longos e finos com folhas pequenas para o comprimento.",
+      "como_confirmar": "Veja se a planta recebe claridade forte durante a maior parte do dia, perto de uma janela.",
+      "contagioso": false
+    }
+  ],
+  "plano_tratamento": "Confira a umidade sob as bolinhas e ajuste a rega, retire a folha amarela e aproxime a planta de uma janela clara, sem sol forte direto.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Verifique a umidade do substrato e se a água escorre pelo fundo.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Afaste as bolinhas e toque a terra a 2 cm de profundidade, depois veja se há água parada no cachepô ou no prato e jogue fora.",
+      "por_que": "Raiz em água parada apodrece e a primeira folha a sentir é a de baixo.",
+      "materiais": []
+    },
+    {
+      "etapa": "Hoje",
+      "acao": "Corte a folha amarela rente à base do pecíolo.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Use tesoura limpa com álcool e corte o talo perto do caule, sem ferir o caule principal.",
+      "por_que": "",
+      "materiais": [
+        "Tesoura",
+        "Álcool"
+      ]
+    },
+    {
+      "etapa": "Próximos 3 dias",
+      "acao": "Leve a planta para perto de uma janela bem clara.",
+      "tipo": "manejo",
+      "dia_inicio": 2,
+      "como_fazer": "Deixe a cerca de 1 metro da janela, com luz forte mas sem sol direto do meio-dia nas folhas.",
+      "por_que": "",
+      "materiais": []
+    },
+    {
+      "etapa": "Em 2 semanas",
+      "acao": "Regue só quando os primeiros centímetros da terra estiverem secos.",
+      "tipo": "manejo",
+      "dia_inicio": 14,
+      "como_fazer": "Molhe devagar até escorrer pelo furo e esvazie o prato após 15 minutos.",
+      "por_que": "",
+      "materiais": [
+        "Regador"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 21 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "aceitavel",
+    "problemas": [
+      "planta_cortada",
+      "obstruida"
+    ],
+    "o_que_aparece": "Aparece a parte de baixo de uma costela-de-adão em vaso com argila expandida, com uma mão segurando folhas na frente.",
+    "dica_proxima_foto": "Fotografe a planta inteira de dia, perto da janela, sem nada na frente, e uma segunda foto de perto da folha amarela e do verso das folhas."
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "Uma folha baixa está amarela com manchas verdes, enquanto as de cima seguem verdes e firmes.",
+      "sinal": "atencao"
+    },
+    {
+      "aspecto": "solo",
+      "observacao": "O vaso está coberto por bolinhas de argila expandida, que escondem a umidade do substrato.",
+      "sinal": "atencao"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Pecíolos longos e finos, esticados para cima.",
+      "sinal": "atencao"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "alta",
+    "como_reconheci": "Folhas grandes em forma de coração com recortes profundos nas bordas e pecíolos longos, típicos da costela-de-adão jovem.",
+    "outros_nomes": [
+      "Monstera",
+      "Banana-de-macaco"
+    ],
+    "alternativas": []
+  },
+  "acompanhamento": {
+    "prazo_melhora": "Em 3 a 6 semanas as folhas novas devem sair verdes e firmes.",
+    "sinais_melhora": [
+      "Folhas novas nascendo verdes e maiores",
+      "Nenhuma outra folha amarelando"
+    ],
+    "sinais_piora": [
+      "Outras folhas amarelando ou com manchas escuras moles",
+      "Cheiro azedo ou caule mole na base"
+    ],
+    "retorno_em_dias": 21,
+    "como_evitar": "Toque a terra antes de regar e nunca deixe água parada no fundo do vaso ou cachepô."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "moderada",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas"
+    ],
+    "partes_toxicas": "Folhas e caules, por conter cristais de oxalato de cálcio.",
+    "sintomas": "Ardência e inchaço na boca, salivação, vômito e dificuldade para engolir.",
+    "o_que_fazer": "Mantenha fora do alcance e, em caso de ingestão, lave a boca e procure veterinário ou atendimento médico informando o nome da planta."
+  },
+  "cuidados": {
+    "rega": "Regue quando os 2 a 3 cm de cima do substrato estiverem secos ao toque, sob as bolinhas.",
+    "luz_e_local": "Luz indireta e clara, perto de uma janela, sem sol forte direto nas folhas.",
+    "solo_e_vaso": "Use substrato leve e arejado, com casca de pinus e fibra de coco, em vaso com furo.",
+    "adubacao": "Na primavera e no verão, adube uma vez por mês com adubo orgânico ou NPK equilibrado diluído.",
+    "poda_e_limpeza": "Retire folhas amarelas e passe pano úmido nas folhas para tirar a poeira.",
+    "como_fazer_mudas": "Corte um pedaço do caule com um nó e uma raiz aérea e enraíze na água ou no substrato úmido.",
+    "erros_comuns": [
+      "Regar por calendário e deixar água acumulada no cachepô."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "Os furos nas folhas surgem conforme a planta amadurece e ajudam a deixar passar luz e vento na mata."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG034",
+      "motivo": "Sua costela-de-adão está com talos esticados e uma folha amarela, e este guia trata da luz e dos cuidados dessa espécie.",
+      "titulo": "Costela-de-adão",
+      "capa": "https://terragentil.com.br/guias/costela-de-adao/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG034.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    },
+    {
+      "id": "TG005",
+      "motivo": "A folha amarela pode vir de água parada no fundo do vaso, e este guia ensina a hora certa de regar.",
+      "titulo": "Rega sem Afogar",
+      "capa": "https://terragentil.com.br/guias/rega-sem-afogar/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG005.pdf",
+      "tema": "cuidados",
+      "emoji": "💧"
+    }
+  ],
+  "rega_ml": 800,
+  "vaso_estimado_cm": 30
+}

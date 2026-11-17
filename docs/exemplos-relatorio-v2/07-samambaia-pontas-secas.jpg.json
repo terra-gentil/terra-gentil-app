@@ -1,0 +1,174 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Polystichum sp.",
+  "nome_popular": "Samambaia",
+  "confianca": 0.5,
+  "estado_saude": "atencao",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: sem identificação segura da espécie, considere a planta inteira até confirmar. Sintomas: se ingerida, pode causar vômito ou desconforto digestivo, dependendo da espécie.",
+  "nivel_luz": "meia_sombra",
+  "rega_dias": 3,
+  "rega_condicao": "Regue quando a superfície da terra começar a ficar seca ao toque, sem deixar secar por completo nem encharcar.",
+  "temperatura_ideal": "15 a 27 graus",
+  "nivel_dificuldade": "medio",
+  "luz_porcentagem": 40,
+  "luz_veredito": "O fundo sugere um local sombreado adequado, mas a foto não mostra o ambiente com clareza.",
+  "diagnostico_titulo": "Pontas secas por falta de umidade",
+  "diagnostico_explicacao": "A fronde secou da ponta para a base, padrão típico de falta de água ou ar seco, comum em novembro com o calor aumentando. Também pode ser só uma folha velha morrendo naturalmente. Com uma foto da planta inteira daria para dizer com mais segurança.",
+  "problemas_detectados": [
+    {
+      "descricao": "Ressecamento das frondes",
+      "gravidade": "media",
+      "causa_provavel": "O mais provável é solo secando demais entre regas ou sol e vento direto, mas pode ser apenas envelhecimento desta fronde.",
+      "categoria": "rega_falta",
+      "evidencia_visual": "Ponta da fronde marrom, quebradiça e enrolada, com amarelamento progressivo em direção à base.",
+      "como_confirmar": "Enfie o dedo dois centímetros na terra: se estiver seca, falta água; se só esta fronde estiver assim e as novas estiverem verdes, é envelhecimento.",
+      "contagioso": false
+    }
+  ],
+  "plano_tratamento": "Ajustar a rega para manter a terra sempre levemente úmida, proteger do sol forte e retirar as partes secas. Depois, acompanhar as frondes novas.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Confira a umidade da terra e regue bem se estiver seca.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Regue devagar até a água escorrer pelo furo do vaso ou encharcar a terra em volta, e despeje o excesso do prato.",
+      "por_que": "Samambaias não toleram secar por completo e reagem secando as pontas.",
+      "materiais": [
+        "Regador"
+      ]
+    },
+    {
+      "etapa": "Próximos 3 dias",
+      "acao": "Corte a fronde muito seca rente à base.",
+      "tipo": "manejo",
+      "dia_inicio": 2,
+      "como_fazer": "Use tesoura limpa e corte a haste perto da terra; folhas pouco danificadas podem ficar, só aparando o marrom.",
+      "por_que": "",
+      "materiais": [
+        "Tesoura limpa",
+        "Álcool para limpar a lâmina"
+      ]
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Garanta sombra nas horas de sol forte e mais umidade no ar.",
+      "tipo": "manejo",
+      "dia_inicio": 7,
+      "como_fazer": "Mude para local com luz clara sem sol direto após as 10h, ou cubra a terra com folhas secas ou casca de pinus para segurar a umidade.",
+      "por_que": "",
+      "materiais": [
+        "Folhas secas ou casca de pinus"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 21 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "aceitavel",
+    "problemas": [
+      "perto_demais",
+      "planta_cortada"
+    ],
+    "o_que_aparece": "Uma única fronde de samambaia em close, com a ponta seca e marrom, sem mostrar a planta inteira, o vaso ou o solo.",
+    "dica_proxima_foto": "Afaste um pouco o celular e fotografe a planta inteira com o vaso e a terra, de dia e perto de uma janela."
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "A ponta da fronde está seca, marrom e enrolada, com transição amarelada até a parte ainda verde.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "folhas",
+      "observacao": "A base da fronde segue verde e firme, sem manchas ou insetos visíveis.",
+      "sinal": "bom"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "baixa",
+    "como_reconheci": "Fronde de samambaia dividida em folíolos recortados e serrilhados ao longo de uma haste central, mas sem ver a planta inteira e o verso das folhas não dá para confirmar a espécie.",
+    "outros_nomes": [
+      "Feto"
+    ],
+    "alternativas": [
+      {
+        "nome_popular": "Samambaia-renda",
+        "especie": "Nephrolepis exaltata",
+        "como_diferenciar": "A samambaia comum de vaso tem folíolos simples e inteiros, não recortados como estes, e frondes longas e pendentes."
+      },
+      {
+        "nome_popular": "Avenca",
+        "especie": "Adiantum sp.",
+        "como_diferenciar": "A avenca tem hastes finas e pretas e folhinhas arredondadas em leque, bem diferentes desta haste verde."
+      }
+    ]
+  },
+  "acompanhamento": {
+    "prazo_melhora": "As partes secas não voltam; em 3 a 6 semanas devem surgir frondes novas verdes.",
+    "sinais_melhora": [
+      "Brotos novos enrolados saindo do centro da planta",
+      "Frondes novas abrindo verdes e sem pontas secas"
+    ],
+    "sinais_piora": [
+      "Várias frondes secando ao mesmo tempo",
+      "Base da planta escura e mole, sinal de excesso de água"
+    ],
+    "retorno_em_dias": 21,
+    "como_evitar": "Mantenha a terra sempre levemente úmida e proteja a samambaia do sol forte e do vento seco."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "desconhecida",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas"
+    ],
+    "partes_toxicas": "Sem identificação segura da espécie, considere a planta inteira até confirmar.",
+    "sintomas": "Se ingerida, pode causar vômito ou desconforto digestivo, dependendo da espécie.",
+    "o_que_fazer": "Mantenha fora do alcance de pets e crianças até confirmar a espécie; em caso de ingestão, procure veterinário ou atendimento médico levando o nome ou uma foto da planta."
+  },
+  "cuidados": {
+    "rega": "Regue quando a superfície da terra começar a ficar seca ao toque, sem deixar secar por completo nem encharcar.",
+    "luz_e_local": "Meia sombra, com sol fraco da manhã ou do fim da tarde.",
+    "solo_e_vaso": "Prefere terra rica em matéria orgânica, fofa e que drene bem, em vaso com furo.",
+    "adubacao": "Adube de leve a cada mês na primavera e verão com húmus de minhoca ou adubo diluído.",
+    "poda_e_limpeza": "Retire as frondes secas pela base para a planta gastar energia nas folhas novas.",
+    "como_fazer_mudas": "Divida a touceira na primavera, separando partes com raízes e brotos.",
+    "erros_comuns": [
+      "Deixar a terra secar totalmente ou colocar a samambaia em sol forte da tarde."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "Samambaias não fazem flores nem sementes: elas se reproduzem por esporos, pozinhos que ficam no verso das folhas."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG038",
+      "motivo": "Sua samambaia está com pontas secas, e este guia trata de manter samambaias verdes com sombra e terra úmida.",
+      "titulo": "Samambaias",
+      "capa": "https://terragentil.com.br/guias/samambaias/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG038.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    },
+    {
+      "id": "TG005",
+      "motivo": "O ressecamento indica rega irregular, e este guia ensina a hora certa de regar tocando a terra.",
+      "titulo": "Rega sem Afogar",
+      "capa": "https://terragentil.com.br/guias/rega-sem-afogar/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG005.pdf",
+      "tema": "cuidados",
+      "emoji": "💧"
+    }
+  ],
+  "rega_ml": 300,
+  "vaso_estimado_cm": 0
+}

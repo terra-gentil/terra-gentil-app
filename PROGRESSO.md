@@ -1,10 +1,22 @@
 # PROGRESSO - Terra Gentil
 
-## PEDIDO DO ANDRE PARA A PROXIMA SESSAO (2026-11-17, depois de testar no celular)
-Redesenhar a TELA DE RESULTADO para o relatorio v2 do Opus, via Claude Design (mesmo fluxo da tela de espera):
-- Hoje a tela segue o padrao do Gemini (so campos v1). Mostrar os blocos v2: leitura_foto, identificacao (confianca, como reconheci, alternativas), problemas com evidencia visual, plano_timeline, acompanhamento, ajuda_profissional, toxicidade completa, cuidados, calendario_cuidados, curiosidades. Proposta de 19 blocos em docs/PROPOSTA-DIAGNOSTICO-V2.md secao 5.
-- PRESENTE: o cartao "Presente do Doutor" hoje e generico e pede e-mail. Deve mostrar a CAPA do ebook certo (ex.: orquidea -> livro da orquidea) e, ao tocar, abrir direto no leitor do app (EbookViewerModal), sem e-mail. Para isso ligar o catalogo no Opus: rodar mobile/scripts/gerar-colecao.py e ligar resolver_ebooks() em backend/app/services/claude_service.py (hoje ebooks_recomendados vem vazio). Dados dos livros em mobile/src/data/colecao.ts e ebooks.ts.
-- Fluxo: /enviar-design com DiagnosisScreen.tsx + exemplos reais de JSON v2 (backend/fase2-resultados/*.claude.json), Andre aprova, agente porta para React Native, jest + tsc, commit, eas update --branch production.
+## PROXIMA SESSAO: levar a tela de resultado v2 ao Claude Design (tudo pronto para isso)
+Lista APROVADA pelo Andre em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/PESQUISA-CONCORRENTES.md (secoes B, D e G).
+1. Rodar /enviar-design com: mobile/src/components/redesign/DiagnosisScreen.tsx, os 12 JSON reais finais em docs/exemplos-relatorio-v2 (ja com ebooks, tipo do passo, rega_ml, vaso_estimado_cm, como_evitar), as 8 capturas em docs/concorrentes e no BRIEF a ordem dos 19 blocos da secao D. Restricoes: manter testIDs/exports, quimico sempre recolhido e sem link, ofertas em faixa separada.
+2. Andre aprova no Claude Design, agente porta para React Native (EbookViewerModal para o "Leia de graca", lembrete local com expo-notifications, que ja esta no build), jest + tsc, commit, eas update --branch production (leva tambem os 133 livros da aba Ebooks).
+3. Depois: corrigir JSON quebrado do Opus (2 falhas em 17 no dia 17/11, intermitente), politica de privacidade/Data Safety citando a Anthropic (Andre pediu para deixar para o fim).
+
+## Atualizado: 2026-11-17 noite, parte 3 (ebooks no Opus, pesquisa de concorrentes, relatorio v3)
+
+### Feito
+- Ebooks ligados no Opus (commit d13195e, no ar): gerar-colecao.py roda no Mac (--site ou TG_SITE), gera colecao.ts (133 livros, tema carnivoras) e backend/app/data/catalogo_ebooks.json (133 + 8 classicos). resolver_ebooks descarta codigo fora do catalogo, tira repetido, limita a 2 e completa titulo/capa/pdf. Catalogo no bloco em cache. PDFs e capas conferidos no ar. Indicacoes boas (orquidea -> Orquidea Doente e Vaso de Orquidea).
+- Pesquisa de 9 concorrentes (3 agentes + analise Fable): docs/PESQUISA-CONCORRENTES.md e docs/concorrentes. Promessa da tela: laudo que mostra o que viu, gratis e sem assinatura (todos os concorrentes populares sao pagos e com reclamacao de cobranca).
+- Relatorio do Opus enxuto com 4 campos novos: PassoTratamentoV2.tipo (manejo/caseiro/organico/quimico), rega_ml, vaso_estimado_cm, acompanhamento.como_evitar. Cortes: calendario_cuidados, cuidados.rega/luz_e_local, toxicidade_detalhes, precisa_retorno, mensagem_retorno (backend deriva em completar_campos_derivados/pos_processar). 335 testes. Rodada real 12/12 validas, 11% menos tokens, ~25 s (antes ~30 s).
+- Exemplos finais (como o app recebe) em docs/exemplos-relatorio-v2.
+
+### Atencao
+- Tela atual em producao: toxicidade_detalhes agora no formato "Partes toxicas: ... Sintomas: ..." (pode passar de 150 caracteres) e o cartao de lembrete aparece tambem em planta saudavel (retorno de 30 dias).
+- Jiboia em garrafa: vaso 5 cm com 250 ml por rega, estimativa de vaso pode errar em recipiente atipico.
 
 ## Atualizado: 2026-11-17 noite, parte 2 (CLAUDE LIGADO EM PRODUCAO)
 

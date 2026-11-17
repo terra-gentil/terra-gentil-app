@@ -1,0 +1,199 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Cucurbita pepo",
+  "nome_popular": "Abobrinha",
+  "confianca": 0.8,
+  "estado_saude": "doente",
+  "toxica_para_pets": false,
+  "toxicidade_detalhes": "",
+  "nivel_luz": "sol_pleno",
+  "rega_dias": 2,
+  "rega_condicao": "Regue quando os primeiros 2 a 3 centímetros da terra estiverem secos ao toque, sempre no pé.",
+  "temperatura_ideal": "18 a 30 graus",
+  "nivel_dificuldade": "medio",
+  "luz_porcentagem": 95,
+  "luz_veredito": "O sol direto é o que a abobrinha precisa, só falta ar circulando entre as folhas.",
+  "diagnostico_titulo": "Oídio forte nas folhas da abobrinha",
+  "diagnostico_explicacao": "O pó branco que cobre as folhas é oídio, um fungo muito comum em abóboras e abobrinhas no tempo quente e seco. As folhas mais tomadas já não fazem fotossíntese direito e não vão se recuperar, mas a planta pode seguir produzindo se você controlar o fungo nas folhas novas.",
+  "problemas_detectados": [
+    {
+      "descricao": "Oídio (míldio pulverulento)",
+      "gravidade": "alta",
+      "causa_provavel": "Fungo favorecido por calor, dias secos, noites úmidas e plantas muito juntas, com pouca circulação de ar.",
+      "categoria": "fungo_ou_bacteria",
+      "evidencia_visual": "Camada de pó branco-acinzentado cobrindo quase toda a superfície das folhas.",
+      "como_confirmar": "Passe o dedo na folha: se o pó branco sair como talco, é oídio.",
+      "contagioso": true
+    },
+    {
+      "descricao": "Bordas secas e amareladas",
+      "gravidade": "media",
+      "causa_provavel": "Folhas enfraquecidas pelo fungo somadas ao sol forte e talvez a regas irregulares.",
+      "categoria": "clima",
+      "evidencia_visual": "Bordas amarelas com faixa marrom ressecada nas folhas mais velhas.",
+      "como_confirmar": "Enfie o dedo dois centímetros na terra: se estiver seca, aumente a rega no pé.",
+      "contagioso": false
+    }
+  ],
+  "plano_tratamento": "Retire as folhas mais tomadas, regue só o pé e aplique leite diluído nas folhas restantes; se o fungo continuar, use enxofre ou bicarbonato de potássio.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Corte as folhas mais cobertas de pó e jogue no lixo, não na compostagem.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Corte o talo rente à base com tesoura limpa, mantendo as folhas mais verdes e as novas. Não tire mais de um terço da folhagem de uma vez.",
+      "por_que": "Isso reduz os esporos que espalham o fungo para as folhas novas.",
+      "materiais": [
+        "Tesoura limpa",
+        "Álcool",
+        "Saco de lixo"
+      ]
+    },
+    {
+      "etapa": "Amanhã",
+      "acao": "Pulverize as folhas restantes com leite diluído, dos dois lados.",
+      "tipo": "caseiro",
+      "dia_inicio": 1,
+      "como_fazer": "Misture 1 parte de leite para 9 de água e borrife no fim da tarde, repetindo a cada 7 dias. Teste antes numa folha e espere um dia.",
+      "por_que": "",
+      "materiais": [
+        "Leite",
+        "Borrifador",
+        "Água"
+      ]
+    },
+    {
+      "etapa": "Próximos 7 dias",
+      "acao": "Regue sempre no pé, de manhã cedo, sem molhar as folhas.",
+      "tipo": "manejo",
+      "dia_inicio": 1,
+      "como_fazer": "Despeje a água devagar na base da planta e cubra a terra com palha para segurar a umidade. Tire também mato ou plantas encostadas para o ar circular.",
+      "por_que": "",
+      "materiais": [
+        "Regador",
+        "Palha seca"
+      ]
+    },
+    {
+      "etapa": "Em 15 dias",
+      "acao": "Se o pó voltar nas folhas novas, aplique enxofre ou bicarbonato de potássio.",
+      "tipo": "quimico",
+      "dia_inicio": 15,
+      "como_fazer": "Siga a dose do rótulo, aplique no fim da tarde e nunca em dia acima de 30 graus, pois o enxofre queima as folhas no calor. Use luvas e respeite o prazo para colher.",
+      "por_que": "",
+      "materiais": [
+        "Enxofre ou bicarbonato de potássio",
+        "Luvas",
+        "Borrifador"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 14 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "boa",
+    "problemas": [],
+    "o_que_aparece": "",
+    "dica_proxima_foto": ""
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "Folhas grandes cobertas por um pó branco-acinzentado, com bordas amarelas e queimadas de marrom.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Talos das folhas ainda verdes e firmes, sem sinais de podridão.",
+      "sinal": "bom"
+    },
+    {
+      "aspecto": "ambiente_e_luz",
+      "observacao": "Horta ao ar livre sob sol forte, com plantas bem juntas e folhagem densa.",
+      "sinal": "atencao"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "media",
+    "como_reconheci": "Folhas muito grandes, lobadas e ásperas, com talos longos, ocos e verdes, crescendo em touceira típica de abobrinha.",
+    "outros_nomes": [
+      "Abobrinha-italiana",
+      "Abóbora-de-moita"
+    ],
+    "alternativas": [
+      {
+        "nome_popular": "Abóbora",
+        "especie": "Cucurbita moschata",
+        "como_diferenciar": "A abóbora espalha ramas compridas pelo chão, enquanto a abobrinha cresce em moita compacta."
+      },
+      {
+        "nome_popular": "Moranga",
+        "especie": "Cucurbita maxima",
+        "como_diferenciar": "A moranga tem folhas mais arredondadas e quase sem recortes, e frutos grandes e achatados."
+      }
+    ]
+  },
+  "acompanhamento": {
+    "prazo_melhora": "Em 2 a 3 semanas as folhas novas devem sair limpas; as atuais não voltam ao normal.",
+    "sinais_melhora": [
+      "Folhas novas abrem verdes e sem pó branco",
+      "A planta continua soltando flores e frutinhos"
+    ],
+    "sinais_piora": [
+      "O pó branco aparece nas folhas novas em poucos dias",
+      "Os talos murcham ou a base da planta escurece"
+    ],
+    "retorno_em_dias": 14,
+    "como_evitar": "Plante com espaço entre as covas, regue só no pé pela manhã e retire logo a primeira folha com pó."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "nao_toxica",
+    "afeta": [],
+    "partes_toxicas": "Não é considerada tóxica para cães, gatos ou pessoas.",
+    "sintomas": "Folhas ásperas podem causar leve irritação na pele de quem é sensível.",
+    "o_que_fazer": "Mantenha pets longe das folhas tratadas com produtos e procure o veterinário se houver mal-estar após ingestão."
+  },
+  "cuidados": {
+    "rega": "Regue quando os primeiros 2 a 3 centímetros da terra estiverem secos ao toque, sempre no pé.",
+    "luz_e_local": "Sol direto por boa parte do dia, em área externa ou janela bem ensolarada.",
+    "solo_e_vaso": "Gosta de terra fofa, rica em composto e que não encharque, em cova ou vaso de pelo menos 40 litros.",
+    "adubacao": "Adube com composto ou esterco curtido no plantio e a cada 20 dias durante a produção.",
+    "poda_e_limpeza": "Retire folhas velhas, secas ou doentes da base para arejar o centro da planta.",
+    "como_fazer_mudas": "Faz-se por semente, plantando 2 a 3 por cova a 2 centímetros de profundidade e deixando a mais forte.",
+    "erros_comuns": [
+      "Molhar as folhas na rega, o que espalha fungos como o oídio."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "A flor da abobrinha só fica aberta por uma manhã, por isso as abelhas são essenciais para formar os frutos."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG063",
+      "motivo": "Sua abobrinha precisa de rega no pé e manejo certo, e este guia é dedicado a abobrinha e abóbora.",
+      "titulo": "Abóbora e Abobrinha",
+      "capa": "https://terragentil.com.br/guias/abobora-e-abobrinha/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG063.pdf",
+      "tema": "horta",
+      "emoji": "🥬"
+    },
+    {
+      "id": "TG111",
+      "motivo": "O oídio nas folhas é um fungo, e este guia ajuda a reconhecer e tratar fungos sem veneno.",
+      "titulo": "Pulgão e Cochonilha",
+      "capa": "https://terragentil.com.br/guias/pulgao-e-cochonilha/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG111.pdf",
+      "tema": "cuidados",
+      "emoji": "💧"
+    }
+  ],
+  "rega_ml": 0,
+  "vaso_estimado_cm": 0
+}

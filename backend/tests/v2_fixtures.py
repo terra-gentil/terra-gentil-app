@@ -9,7 +9,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 
 def resposta_v2_planta() -> dict:
-    """JSON v2 completo de uma planta com problema."""
+    """
+    JSON v2 de uma planta com problema, no formato que o modelo escreve hoje: sem os
+    campos v1 que o backend deriva (toxicidade_detalhes, precisa_retorno,
+    mensagem_retorno, calendario_cuidados, cuidados.rega e cuidados.luz_e_local).
+    """
     return {
         "versao_relatorio": "v2",
         "eh_planta": True,
@@ -51,6 +55,7 @@ def resposta_v2_planta() -> dict:
             {
                 "etapa": "Hoje",
                 "acao": "Pare de regar.",
+                "tipo": "manejo",
                 "dia_inicio": 0,
                 "como_fazer": "Espere o solo secar.",
                 "por_que": "Raiz encharcada apodrece.",
@@ -62,12 +67,10 @@ def resposta_v2_planta() -> dict:
             "sinais_melhora": ["Folhas novas verdes"],
             "sinais_piora": ["Caule mole"],
             "retorno_em_dias": 7,
+            "como_evitar": "Regue só quando o solo estiver seco a 2 cm.",
         },
-        "precisa_retorno": True,
-        "mensagem_retorno": "Volte em 7 dias.",
         "ajuda_profissional": {"recomendada": False, "motivo": ""},
         "toxica_para_pets": True,
-        "toxicidade_detalhes": "Irrita a boca de cães e gatos.",
         "toxicidade": {
             "nivel": "leve",
             "afeta": ["caes", "gatos"],
@@ -77,21 +80,20 @@ def resposta_v2_planta() -> dict:
         },
         "nivel_luz": "indireta_brilhante",
         "rega_dias": 7,
+        "rega_ml": 300,
+        "vaso_estimado_cm": 20,
         "rega_condicao": "Quando o solo estiver seco a 2 cm.",
         "temperatura_ideal": "18 a 30 graus",
         "nivel_dificuldade": "facil",
         "luz_porcentagem": 60,
         "luz_veredito": "Boa luz para a espécie.",
         "cuidados": {
-            "rega": "Moderada.",
-            "luz_e_local": "Luz indireta.",
             "solo_e_vaso": "Vaso com furo.",
             "adubacao": "Na primavera.",
             "poda_e_limpeza": "Tire folhas secas.",
             "como_fazer_mudas": "Estaca em água.",
-            "erros_comuns": ["Regar por calendário", "Vaso sem furo"],
+            "erros_comuns": ["Regar por calendário"],
         },
-        "calendario_cuidados": [{"frequencia": "semanal", "tarefa": "Conferir o solo"}],
         "curiosidades": ["É nativa das Ilhas Salomão."],
         "ebooks_recomendados": [{"id": "TG074", "motivo": "Ajuda na rega."}],
     }

@@ -1,0 +1,157 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Epipremnum aureum",
+  "nome_popular": "Jiboia",
+  "confianca": 0.92,
+  "estado_saude": "saudavel",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: todas as partes, especialmente folhas e caules, por conterem cristais de oxalato de cálcio. Sintomas: irritação e ardor na boca, salivação excessiva, inchaço e vômito.",
+  "nivel_luz": "indireta_brilhante",
+  "rega_dias": 5,
+  "rega_condicao": "Enfie o dedo 2 cm na terra e regue só quando estiver seca; folhas murchas e moles também indicam sede.",
+  "temperatura_ideal": "18 a 30 graus",
+  "nivel_dificuldade": "facil",
+  "luz_porcentagem": 50,
+  "luz_veredito": "A luz clara e indireta do ambiente parece adequada para a jiboia.",
+  "diagnostico_titulo": "Estacas saudáveis e prontas para a terra",
+  "diagnostico_explicacao": "Suas mudas de jiboia estão com folhas viçosas e raízes abundantes, o que mostra que o enraizamento na água deu muito certo. Como as raízes já ocupam a garrafa, este é um bom momento para passar as mudas para um vaso com terra, onde terão mais espaço e nutrientes.",
+  "problemas_detectados": [],
+  "plano_tratamento": "Plantar as estacas enraizadas em vaso com substrato leve e manter a terra úmida nas primeiras semanas para a adaptação.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Troque a água da garrafa por água limpa.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Encha a garrafa até cobrir só as raízes, deixando as folhas fora da água.",
+      "por_que": "Água parada perde oxigênio e favorece o apodrecimento das raízes.",
+      "materiais": [
+        "Água filtrada ou descansada"
+      ]
+    },
+    {
+      "etapa": "Próximos 3 dias",
+      "acao": "Plante as estacas num vaso de 12 a 15 cm com furo no fundo.",
+      "tipo": "manejo",
+      "dia_inicio": 3,
+      "como_fazer": "Tire as estacas com cuidado, sem puxar as raízes, e enterre os nós com raiz cerca de 3 cm em substrato com um pouco de areia ou casca de pínus.",
+      "por_que": "",
+      "materiais": [
+        "Vaso com furo",
+        "Substrato para plantas",
+        "Pedrinhas ou argila para drenagem"
+      ]
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Mantenha a terra levemente úmida durante a adaptação.",
+      "tipo": "manejo",
+      "dia_inicio": 7,
+      "como_fazer": "Regue quando a superfície começar a secar, sem encharcar, e deixe o vaso em luz clara sem sol direto.",
+      "por_que": "",
+      "materiais": []
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 30 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "boa",
+    "problemas": [
+      "varias_plantas"
+    ],
+    "o_que_aparece": "Analisei as estacas de jiboia na garrafa de vidro no centro; ao fundo, à direita, há outra jiboia maior.",
+    "dica_proxima_foto": ""
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "Folhas em forma de coração, verdes e firmes, com manchas amarelo-claras e sem pontas secas.",
+      "sinal": "bom"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Muitas raízes claras e longas dentro da água, sinal de enraizamento bem-sucedido.",
+      "sinal": "bom"
+    },
+    {
+      "aspecto": "vaso",
+      "observacao": "Garrafa de boca estreita já bem cheia de raízes emaranhadas.",
+      "sinal": "atencao"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "alta",
+    "como_reconheci": "Folhas em coração, cerosas, com manchas amarelo-claras irregulares e caules com raízes aéreas nos nós.",
+    "outros_nomes": [
+      "Pothos",
+      "Hera-do-diabo"
+    ],
+    "alternativas": []
+  },
+  "acompanhamento": {
+    "prazo_melhora": "",
+    "sinais_melhora": [
+      "Folhas novas surgindo nas pontas dos ramos em 3 a 4 semanas",
+      "Folhas firmes e sem murchar depois do plantio"
+    ],
+    "sinais_piora": [
+      "Raízes escuras, moles ou com mau cheiro",
+      "Folhas amarelando rápido após ir para a terra"
+    ],
+    "retorno_em_dias": 30,
+    "como_evitar": "Regue só quando a terra secar na camada de cima e mantenha a jiboia em luz clara, sem sol forte."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "moderada",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas"
+    ],
+    "partes_toxicas": "Todas as partes, especialmente folhas e caules, por conterem cristais de oxalato de cálcio.",
+    "sintomas": "Irritação e ardor na boca, salivação excessiva, inchaço e vômito.",
+    "o_que_fazer": "Mantenha longe de pets e crianças e, se alguém mastigar, procure veterinário ou atendimento médico levando o nome da planta."
+  },
+  "cuidados": {
+    "rega": "Enfie o dedo 2 cm na terra e regue só quando estiver seca; folhas murchas e moles também indicam sede.",
+    "luz_e_local": "Luz indireta e clara, perto de uma janela, sem sol forte direto nas folhas.",
+    "solo_e_vaso": "Use substrato leve e bem drenado em vaso com furo, sem deixar água acumulada no prato.",
+    "adubacao": "Na primavera e no verão, aplique adubo orgânico ou NPK 10-10-10 diluído uma vez por mês.",
+    "poda_e_limpeza": "Corte ramos compridos logo acima de um nó e limpe a poeira das folhas com pano úmido.",
+    "como_fazer_mudas": "Corte pedaços com pelo menos um nó e coloque na água ou direto na terra úmida, como você já fez.",
+    "erros_comuns": [
+      "Regar demais e deixar o vaso encharcado, o que apodrece as raízes."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "A jiboia é originária da Ilha de Moorea, na Polinésia Francesa, e na natureza pode ter folhas enormes subindo em árvores."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG035",
+      "motivo": "Suas mudas de jiboia vão para a terra, e este guia é dedicado aos cuidados com jiboia e filodendro.",
+      "titulo": "Jiboia e Filodendro",
+      "capa": "https://terragentil.com.br/guias/jiboia-e-filodendro/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG035.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    },
+    {
+      "id": "TG008",
+      "motivo": "A jiboia é tóxica para cães e gatos, e este guia ajuda a posicionar as plantas com segurança em casa com pets.",
+      "titulo": "Casa com Pet",
+      "capa": "https://terragentil.com.br/guias/casa-com-pet/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG008.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    }
+  ],
+  "rega_ml": 250,
+  "vaso_estimado_cm": 5
+}

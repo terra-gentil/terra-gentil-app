@@ -1,0 +1,206 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Opuntia sp.",
+  "nome_popular": "Palma",
+  "confianca": 0.8,
+  "estado_saude": "doente",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: espinhos e gloquídeos, os pelinhos finos das aréolas, que machucam a pele e a boca. Sintomas: irritação, coceira e feridas na boca, nas patas ou na pele.",
+  "nivel_luz": "sol_pleno",
+  "rega_dias": 15,
+  "rega_condicao": "Regue só quando a terra estiver totalmente seca; plantada no chão, a palma costuma viver só da chuva.",
+  "temperatura_ideal": "18 a 35 graus",
+  "nivel_dificuldade": "facil",
+  "luz_porcentagem": 75,
+  "luz_veredito": "Está ao ar livre, com boa luz, o que combina com o sol pleno que a palma gosta.",
+  "diagnostico_titulo": "Infestação forte de cochonilha-do-carmim",
+  "diagnostico_explicacao": "Sua palma está tomada por cochonilhas, pequenos insetos que se escondem sob uma cera branca e sugam a seiva da planta. Com tantas colônias, ela enfraquece e algumas raquetes já estão apodrecendo. Dá para recuperar com limpeza persistente e com o corte das partes mais atingidas.",
+  "problemas_detectados": [
+    {
+      "descricao": "Cochonilha-do-carmim",
+      "gravidade": "alta",
+      "causa_provavel": "Insetos sugadores que se espalham com o vento e se multiplicam muito em tempo seco e quente.",
+      "categoria": "praga",
+      "evidencia_visual": "Tufos brancos algodoados espalhados por quase toda a superfície das raquetes.",
+      "como_confirmar": "Esmague um tufo com um palito: se sair um líquido vermelho-vivo, é cochonilha-do-carmim.",
+      "contagioso": true
+    },
+    {
+      "descricao": "Raquetes apodrecendo",
+      "gravidade": "media",
+      "causa_provavel": "Planta enfraquecida pela praga, com feridas que favorecem fungos e bactérias.",
+      "categoria": "fungo_ou_bacteria",
+      "evidencia_visual": "Trechos escuros, secos e esfarelados nas raquetes da base.",
+      "como_confirmar": "Aperte a borda da área escura: se estiver mole ou com cheiro ruim, é podridão ativa.",
+      "contagioso": true
+    }
+  ],
+  "plano_tratamento": "Corte as raquetes mais tomadas e as podres, remova as cochonilhas com jato de água e escova e repita a aplicação de sabão neutro por algumas semanas. Se a praga voltar, use óleo de neem e, só em último caso, um inseticida doméstico.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Corte as raquetes podres e as mais cobertas de cochonilha.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Com luvas grossas e faca limpa, corte na junta entre as raquetes, coloque os pedaços em saco fechado e jogue no lixo, nunca na composteira.",
+      "por_que": "Tirar as partes mais infestadas reduz muito a quantidade de insetos e de podridão de uma vez.",
+      "materiais": [
+        "Luvas grossas",
+        "Faca limpa",
+        "Álcool",
+        "Saco de lixo"
+      ]
+    },
+    {
+      "etapa": "Próximos 3 dias",
+      "acao": "Remova as colônias restantes com jato de água e escova macia.",
+      "tipo": "caseiro",
+      "dia_inicio": 1,
+      "como_fazer": "Molhe com jato forte de mangueira e esfregue com escova velha uma solução de 1 colher de sopa de sabão neutro em 1 litro de água. Faça isso no fim da tarde, nunca sob sol forte.",
+      "por_que": "",
+      "materiais": [
+        "Mangueira",
+        "Escova macia",
+        "Sabão neutro",
+        "Borrifador"
+      ]
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Repita a limpeza com sabão uma vez por semana durante um mês.",
+      "tipo": "caseiro",
+      "dia_inicio": 7,
+      "como_fazer": "Borrife a solução de sabão em todas as raquetes, inclusive nas dobras e na base, e esfregue os tufos novos que aparecerem.",
+      "por_que": "",
+      "materiais": [
+        "Sabão neutro",
+        "Borrifador"
+      ]
+    },
+    {
+      "etapa": "Daqui a 15 dias",
+      "acao": "Se ainda houver muitos tufos, aplique óleo de neem.",
+      "tipo": "organico",
+      "dia_inicio": 15,
+      "como_fazer": "Dilua conforme o rótulo, geralmente 5 ml de óleo de neem com algumas gotas de sabão em 1 litro de água, e borrife no fim da tarde a cada 7 dias, três vezes. Só se nada disso resolver, considere um inseticida doméstico à base de imidacloprido, seguindo o rótulo.",
+      "por_que": "",
+      "materiais": [
+        "Óleo de neem",
+        "Sabão neutro",
+        "Borrifador"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 21 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "boa",
+    "problemas": [],
+    "o_que_aparece": "",
+    "dica_proxima_foto": ""
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Raquetes cobertas por dezenas de tufos brancos algodoados, típicos de cochonilha-do-carmim.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Algumas raquetes na base estão com partes escuras, secas e apodrecidas.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "flores_e_frutos",
+      "observacao": "Há um fruto avermelhado se formando entre as raquetes.",
+      "sinal": "bom"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "media",
+    "como_reconheci": "Caule em raquetes achatadas e ovais, verde-acinzentadas, com fruto arredondado na borda, típico das palmas do gênero Opuntia.",
+    "outros_nomes": [
+      "Palma-forrageira",
+      "Figo-da-índia",
+      "Palmatória"
+    ],
+    "alternativas": [
+      {
+        "nome_popular": "Palma-doce",
+        "especie": "Nopalea cochenillifera",
+        "como_diferenciar": "A palma-doce tem raquetes mais estreitas, brilhantes e quase sem espinhos, e flores vermelhas que não se abrem muito."
+      },
+      {
+        "nome_popular": "Figo-da-índia",
+        "especie": "Opuntia ficus-indica",
+        "como_diferenciar": "Tem raquetes grandes, de até 50 cm, e frutos maiores, amarelos a alaranjados."
+      }
+    ]
+  },
+  "acompanhamento": {
+    "prazo_melhora": "De 3 a 6 semanas para parar de surgir tufo novo; as marcas antigas nas raquetes não somem.",
+    "sinais_melhora": [
+      "Raquetes novas brotando limpas e verdes.",
+      "Cada vez menos tufos brancos aparecendo entre as limpezas."
+    ],
+    "sinais_piora": [
+      "Tufos novos voltando poucos dias depois da limpeza.",
+      "Manchas escuras e moles se espalhando para outras raquetes."
+    ],
+    "retorno_em_dias": 21,
+    "como_evitar": "Examine as raquetes toda semana e remova qualquer tufo branco assim que surgir, antes de virar colônia."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "leve",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas"
+    ],
+    "partes_toxicas": "Espinhos e gloquídeos, os pelinhos finos das aréolas, que machucam a pele e a boca.",
+    "sintomas": "Irritação, coceira e feridas na boca, nas patas ou na pele.",
+    "o_que_fazer": "Mantenha animais e crianças afastados e, em caso de contato ou mordida, procure veterinário ou atendimento médico informando que é uma palma."
+  },
+  "cuidados": {
+    "rega": "Regue só quando a terra estiver totalmente seca; plantada no chão, a palma costuma viver só da chuva.",
+    "luz_e_local": "Sol direto por boa parte do dia, em área externa ou janela bem ensolarada.",
+    "solo_e_vaso": "Prefere solo arenoso e bem drenado, sem encharcar.",
+    "adubacao": "Uma mão de composto ou esterco curtido ao redor no início das chuvas é suficiente.",
+    "poda_e_limpeza": "Retire raquetes velhas, podres ou muito atacadas com faca limpa e luvas.",
+    "como_fazer_mudas": "Deixe uma raquete sadia cortada secando por uma semana e depois enterre a base dela em terra seca.",
+    "erros_comuns": [
+      "Deixar a cochonilha se espalhar por meses antes de agir."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "A cochonilha que ataca a palma é a mesma usada há séculos para produzir o corante vermelho carmim."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG111",
+      "motivo": "Sua palma está tomada por cochonilha, e este guia trata justamente dessa praga sem veneno.",
+      "titulo": "Pulgão e Cochonilha",
+      "capa": "https://terragentil.com.br/guias/pulgao-e-cochonilha/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG111.pdf",
+      "tema": "cuidados",
+      "emoji": "💧"
+    },
+    {
+      "id": "TG077",
+      "motivo": "A palma é um cacto, e este guia ajuda a cuidar bem dela depois da recuperação.",
+      "titulo": "Cactos de Coleção",
+      "capa": "https://terragentil.com.br/guias/cactos-de-colecao/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG077.pdf",
+      "tema": "suculentas",
+      "emoji": "🌵"
+    }
+  ],
+  "rega_ml": 0,
+  "vaso_estimado_cm": 0
+}

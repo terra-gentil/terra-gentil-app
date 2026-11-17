@@ -116,8 +116,20 @@ class TestRotaComClaude:
         esperado = resposta_v2_planta()
         assert data["versao_relatorio"] == "v2"
         for campo in ("foto", "leitura_foto", "identificacao", "acompanhamento", "toxicidade",
-                      "cuidados", "calendario_cuidados", "curiosidades", "ajuda_profissional"):
+                      "curiosidades", "ajuda_profissional", "rega_ml", "vaso_estimado_cm"):
             assert data[campo] == esperado[campo], campo
+        assert data["plano_timeline"][0]["tipo"] == "manejo"
+        # Campos v1 que o backend deriva, para a tela v1 publicada continuar completa
+        assert data["cuidados"] == esperado["cuidados"] | {
+            "rega": esperado["rega_condicao"],
+            "luz_e_local": data["cuidados"]["luz_e_local"],
+        }
+        assert data["cuidados"]["luz_e_local"]
+        assert data["calendario_cuidados"] == []
+        assert data["precisa_retorno"] is True
+        assert "7 dias" in data["mensagem_retorno"]
+        assert data["toxica_para_pets"] is True
+        assert data["toxicidade_detalhes"] == "Partes tóxicas: folhas e caule. Sintomas: salivação."
         assert data["problemas_detectados"][0]["categoria"] == "rega_excesso"
         assert data["plano_timeline"][0]["como_fazer"] == "Espere o solo secar."
         [ebook] = data["ebooks_recomendados"]

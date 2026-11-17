@@ -1,0 +1,181 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Dracaena trifasciata",
+  "nome_popular": "Espada-de-são-jorge",
+  "confianca": 0.8,
+  "estado_saude": "doente",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: folhas. Sintomas: salivação, vômito e diarreia se mastigada.",
+  "nivel_luz": "meia_sombra",
+  "rega_dias": 15,
+  "rega_condicao": "Regue só quando a terra estiver seca até o fundo do vaso; um palito enfiado até o fundo deve sair limpo e seco.",
+  "temperatura_ideal": "18 a 30 graus",
+  "nivel_dificuldade": "facil",
+  "luz_porcentagem": 50,
+  "luz_veredito": "A foto não mostra o ambiente; ela tolera pouca luz, mas seca melhor e apodrece menos perto de uma janela clara.",
+  "diagnostico_titulo": "Início de apodrecimento na base de uma folha",
+  "diagnostico_explicacao": "A mancha amarela e meio transparente na base da folha costuma indicar podridão causada por umidade em excesso. A espada-de-são-jorge guarda água nas folhas e sofre quando a terra fica molhada por muito tempo. O broto novo mostra que a planta ainda tem força, então agir agora dá boas chances de recuperação.",
+  "problemas_detectados": [
+    {
+      "descricao": "Podridão na base da folha",
+      "gravidade": "media",
+      "causa_provavel": "O mais provável é excesso de rega ou água parada no vaso, que amolece o tecido encostado no solo.",
+      "categoria": "rega_excesso",
+      "evidencia_visual": "Área amarela e translúcida na base da folha maior, logo acima da terra.",
+      "como_confirmar": "Aperte a parte amarela com o dedo: se estiver mole, molenga ou com cheiro azedo, é podridão.",
+      "contagioso": false
+    }
+  ],
+  "plano_tratamento": "Suspenda a rega, retire a folha se a base estiver mole e deixe o solo secar por completo. Se a terra continuar encharcada, troque por um substrato bem drenado.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Pare de regar e confira se a base da folha está mole.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Enfie o dedo 3 cm na terra e aperte a mancha amarela. Se ela estiver mole, corte a folha rente ao solo com uma tesoura limpa com álcool.",
+      "por_que": "O tecido podre espalha a podridão para o resto da planta.",
+      "materiais": [
+        "Tesoura",
+        "Álcool 70%"
+      ]
+    },
+    {
+      "etapa": "Próximos 3 dias",
+      "acao": "Garanta que o vaso escoa bem a água e esvazie o prato.",
+      "tipo": "manejo",
+      "dia_inicio": 1,
+      "como_fazer": "Vire o vaso e veja se há furos livres no fundo. Deixe a planta em local claro e arejado, sem água no prato.",
+      "por_que": "",
+      "materiais": []
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Troque o substrato se a terra ainda estiver úmida ou cheirando mal.",
+      "tipo": "manejo",
+      "dia_inicio": 7,
+      "como_fazer": "Tire a planta, remova raízes escuras e moles e replante em mistura de terra, areia grossa e perlita em partes iguais. Espere 5 dias para regar de novo.",
+      "por_que": "",
+      "materiais": [
+        "Substrato para cactos e suculentas",
+        "Areia grossa",
+        "Perlita"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 14 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "aceitavel",
+    "problemas": [
+      "perto_demais",
+      "planta_cortada"
+    ],
+    "o_que_aparece": "A base de uma espada-de-são-jorge em vaso amarelo, com o solo e o início das folhas, sem a planta inteira.",
+    "dica_proxima_foto": "Tire também uma foto da planta inteira com o vaso, perto de uma janela de dia, para avaliarmos o ambiente e a luz."
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "A folha maior tem uma mancha amarela e translúcida bem na base, encostada no solo.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "solo",
+      "observacao": "Terra escura e com aparência úmida, com perlita branca misturada.",
+      "sinal": "atencao"
+    },
+    {
+      "aspecto": "folhas",
+      "observacao": "Um broto novo está nascendo junto à base, sinal de que a raiz ainda trabalha.",
+      "sinal": "bom"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "media",
+    "como_reconheci": "Folhas grossas e rígidas saindo direto do solo, com faixas horizontais verde-claras e verde-escuras e borda seca esbranquiçada.",
+    "outros_nomes": [
+      "Sansevieria",
+      "Língua-de-sogra",
+      "Espada-de-ogum"
+    ],
+    "alternativas": [
+      {
+        "nome_popular": "Espada-de-são-jorge-anã",
+        "especie": "Dracaena trifasciata 'Hahnii'",
+        "como_diferenciar": "Se a planta forma uma roseta baixa, com folhas curtas e largas, é a variedade anã."
+      },
+      {
+        "nome_popular": "Sansevieria-africana",
+        "especie": "Dracaena hyacinthoides",
+        "como_diferenciar": "Ela tem folhas mais planas, macias e abertas, com borda avermelhada ou esbranquiçada bem marcada."
+      }
+    ]
+  },
+  "acompanhamento": {
+    "prazo_melhora": "Em 3 a 4 semanas a planta deve estabilizar, e a melhora aparece no broto novo crescendo firme.",
+    "sinais_melhora": [
+      "O broto novo continua crescendo verde e firme.",
+      "Nenhuma outra folha ganha manchas amarelas na base."
+    ],
+    "sinais_piora": [
+      "Outras folhas ficam moles ou tombam junto ao solo.",
+      "Aparece cheiro azedo ou mofo na terra."
+    ],
+    "retorno_em_dias": 14,
+    "como_evitar": "Só regue quando a terra estiver seca até o fundo, e nunca deixe água parada no prato."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "leve",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas"
+    ],
+    "partes_toxicas": "Folhas.",
+    "sintomas": "Salivação, vômito e diarreia se mastigada.",
+    "o_que_fazer": "Mantenha fora do alcance de pets e crianças e, se alguém ingerir, procure veterinário ou atendimento médico levando o nome da planta."
+  },
+  "cuidados": {
+    "rega": "Regue só quando a terra estiver seca até o fundo do vaso; um palito enfiado até o fundo deve sair limpo e seco.",
+    "luz_e_local": "Meia sombra, com sol fraco da manhã ou do fim da tarde.",
+    "solo_e_vaso": "Prefere vaso com furo e terra bem arenosa, que seca rápido, e pode ficar apertada no vaso.",
+    "adubacao": "Um pouco de adubo para suculentas na primavera e no verão, a cada dois meses, já basta.",
+    "poda_e_limpeza": "Corte rente ao solo as folhas danificadas e limpe a poeira das folhas com pano úmido.",
+    "como_fazer_mudas": "Separe as touceiras com raiz ao trocar de vaso ou plante pedaços de folha secos por dois dias em areia úmida.",
+    "erros_comuns": [
+      "Regar toda semana como se fosse uma planta comum, o que apodrece a base das folhas."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "Ela era classificada no gênero Sansevieria, mas hoje os botânicos a incluem no gênero Dracaena."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG074",
+      "motivo": "Sua espada-de-são-jorge está com início de podridão, e este guia trata exatamente do cuidado com essa espécie.",
+      "titulo": "Espada-de-são-jorge",
+      "capa": "https://terragentil.com.br/guias/espada-de-sao-jorge/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG074.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    },
+    {
+      "id": "TG005",
+      "motivo": "O problema veio da umidade em excesso, e este guia ajuda a acertar o ponto da rega.",
+      "titulo": "Rega sem Afogar",
+      "capa": "https://terragentil.com.br/guias/rega-sem-afogar/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG005.pdf",
+      "tema": "cuidados",
+      "emoji": "💧"
+    }
+  ],
+  "rega_ml": 250,
+  "vaso_estimado_cm": 16
+}

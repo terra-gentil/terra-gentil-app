@@ -82,8 +82,12 @@ class ProblemaDetectadoV2(ProblemaDetectado):
 
 
 class PassoTratamentoV2(PassoTratamento):
+    # Degrau do plano: manejo e caseiro primeiro, organico e quimico se nao resolver.
+    # Quimico vem so com o principio ativo, nunca com marca.
+    tipo: Literal["manejo", "caseiro", "organico", "quimico"] = "manejo"
     dia_inicio: int = 0
     como_fazer: str = ""
+    # So o primeiro passo traz o motivo; os demais chegam vazios
     por_que: str = ""
     materiais: list[str] = Field(default_factory=list)
 
@@ -98,6 +102,8 @@ class Acompanhamento(BaseModel):
     sinais_melhora: list[str] = Field(default_factory=list)
     sinais_piora: list[str] = Field(default_factory=list)
     retorno_em_dias: int = 0
+    # Uma frase de prevencao para o problema nao voltar
+    como_evitar: str = ""
 
     @field_validator("retorno_em_dias", mode="before")
     @classmethod
@@ -119,6 +125,7 @@ class Toxicidade(BaseModel):
 
 
 class Cuidados(BaseModel):
+    # rega e luz_e_local nao vem mais do modelo: o backend preenche a partir da grade
     rega: str = ""
     luz_e_local: str = ""
     solo_e_vaso: str = ""
@@ -154,7 +161,13 @@ class EbookRecomendado(BaseModel):
 
 
 class DiagnosticoV2Response(DiagnosticoResponse):
-    """Relatorio v2: todos os campos v1 mais os blocos novos."""
+    """
+    Relatorio v2: todos os campos v1 mais os blocos novos.
+
+    Campos que o modelo deixou de escrever (toxicidade_detalhes, precisa_retorno,
+    mensagem_retorno, calendario_cuidados, cuidados.rega e cuidados.luz_e_local) ficam
+    com valor padrao aqui e sao preenchidos por completar_campos_derivados no servico.
+    """
 
     model_config = ConfigDict(extra="ignore")
 
@@ -171,6 +184,20 @@ class DiagnosticoV2Response(DiagnosticoResponse):
     calendario_cuidados: list[TarefaCalendario] = Field(default_factory=list)
     curiosidades: list[str] = Field(default_factory=list)
     ebooks_recomendados: list[EbookRecomendado] = Field(default_factory=list)
+    # Quantidade aproximada por rega (0 = nao se aplica) e diametro do vaso visto na foto
+    # (0 = nao deu para ver). Sempre exibidos como aproximados.
+    rega_ml: int = 0
+    vaso_estimado_cm: int = 0
+
+    @field_validator("rega_ml", mode="before")
+    @classmethod
+    def _rega_ml_na_faixa(cls, v):
+        return _limitar(v, 0, 20000)
+
+    @field_validator("vaso_estimado_cm", mode="before")
+    @classmethod
+    def _vaso_na_faixa(cls, v):
+        return _limitar(v, 0, 300)
 
     @field_validator("confianca", mode="before")
     @classmethod

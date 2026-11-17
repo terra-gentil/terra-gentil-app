@@ -1,0 +1,155 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Dieffenbachia seguine",
+  "nome_popular": "Comigo-ninguém-pode",
+  "confianca": 0.9,
+  "estado_saude": "saudavel",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: todas as partes, principalmente a seiva do caule e das folhas. Sintomas: ardência e inchaço na boca e garganta, salivação intensa, dificuldade para engolir e, no contato com os olhos, irritação forte.",
+  "nivel_luz": "indireta_brilhante",
+  "rega_dias": 5,
+  "rega_condicao": "Enfie o dedo dois centímetros na terra e regue só quando estiver seca, deixando a água escorrer pelo furo.",
+  "temperatura_ideal": "18 a 30 graus",
+  "nivel_dificuldade": "facil",
+  "luz_porcentagem": 55,
+  "luz_veredito": "O ambiente parece claro e sem sol direto, o que combina bem com o que a espécie precisa.",
+  "diagnostico_titulo": "Planta bonita, cheia e saudável",
+  "diagnostico_explicacao": "Sua comigo-ninguém-pode está vigorosa, com folhas firmes, cor viva e brotação nova, sinal de que luz e rega estão adequadas. O único ponto de atenção é o papel em volta do vaso, que pode esconder água parada e apodrecer as raízes.",
+  "problemas_detectados": [],
+  "plano_tratamento": "Garanta que a água escorra livremente pelo vaso e mantenha a rotina atual, adubando de leve agora na primavera.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Confira se o vaso tem furo e se não há água acumulada dentro do papel.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Levante o vaso, olhe o fundo e, se o papel estiver úmido, retire-o na hora de regar e só recoloque depois que escorrer tudo.",
+      "por_que": "Água parada no fundo é a principal causa de raiz podre nesta planta.",
+      "materiais": []
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Limpe as folhas com pano úmido e gire o vaso um quarto de volta.",
+      "tipo": "manejo",
+      "dia_inicio": 7,
+      "como_fazer": "Passe um pano macio com água nas duas faces das folhas, usando luvas, e repita o giro a cada 15 dias para a planta crescer reta.",
+      "por_que": "",
+      "materiais": [
+        "Pano macio",
+        "Luvas"
+      ]
+    },
+    {
+      "etapa": "Daqui a 15 dias",
+      "acao": "Faça uma adubação leve de primavera.",
+      "tipo": "organico",
+      "dia_inicio": 15,
+      "como_fazer": "Espalhe uma colher de sopa de húmus de minhoca sobre a terra, longe do caule, e regue em seguida.",
+      "por_que": "",
+      "materiais": [
+        "Húmus de minhoca"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 30 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "boa",
+    "problemas": [],
+    "o_que_aparece": "",
+    "dica_proxima_foto": ""
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "Folhas grandes, firmes e brilhantes, com manchas creme e verde-claro bem definidas e sem pontas secas.",
+      "sinal": "bom"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Caules grossos e eretos, com várias brotações saudáveis saindo da base.",
+      "sinal": "bom"
+    },
+    {
+      "aspecto": "vaso",
+      "observacao": "Vaso de uns 18 cm embrulhado em papel kraft, que pode reter água no fundo se não houver escoamento.",
+      "sinal": "atencao"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "alta",
+    "como_reconheci": "Folhas largas e ovais com manchas creme e verde-claro ao longo da nervura central, caule grosso e carnudo e pecíolos longos com bainha, típicos da comigo-ninguém-pode.",
+    "outros_nomes": [
+      "Aninga-do-Pará",
+      "Difembáquia"
+    ],
+    "alternativas": []
+  },
+  "acompanhamento": {
+    "prazo_melhora": "",
+    "sinais_melhora": [
+      "Folhas novas abrindo grandes e com manchas bem marcadas",
+      "Caule firme e sem manchas escuras na base"
+    ],
+    "sinais_piora": [
+      "Folhas de baixo amarelando várias ao mesmo tempo",
+      "Base do caule mole ou com cheiro azedo"
+    ],
+    "retorno_em_dias": 30,
+    "como_evitar": "Regue só quando a terra estiver seca no topo e nunca deixe água parada no fundo do vaso ou do papel."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "grave",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas",
+      "adultos"
+    ],
+    "partes_toxicas": "Todas as partes, principalmente a seiva do caule e das folhas.",
+    "sintomas": "Ardência e inchaço na boca e garganta, salivação intensa, dificuldade para engolir e, no contato com os olhos, irritação forte.",
+    "o_que_fazer": "Deixe fora do alcance de crianças e animais, use luvas ao mexer e, em caso de ingestão, procure um veterinário ou atendimento médico levando o nome da planta."
+  },
+  "cuidados": {
+    "rega": "Enfie o dedo dois centímetros na terra e regue só quando estiver seca, deixando a água escorrer pelo furo.",
+    "luz_e_local": "Luz indireta e clara, perto de uma janela, sem sol forte direto nas folhas.",
+    "solo_e_vaso": "Use terra vegetal misturada com casca de pinus ou areia grossa, em vaso com furo, e troque por um maior quando as raízes saírem por baixo.",
+    "adubacao": "Adube a cada 30 a 45 dias entre a primavera e o fim do verão, e pare no inverno.",
+    "poda_e_limpeza": "Corte folhas velhas amareladas rente ao caule com tesoura limpa e luvas.",
+    "como_fazer_mudas": "Corte pedaços do caule com uma gema, deite-os em terra úmida e espere brotar em algumas semanas.",
+    "erros_comuns": [
+      "Regar demais ou deixar água no prato, o que apodrece a base do caule."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "O nome Dieffenbachia homenageia Ernst Dieffenbach, médico e naturalista alemão, e a planta é nativa das florestas tropicais das Américas."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG066",
+      "motivo": "Sua planta é uma comigo-ninguém-pode, e este guia trata exatamente dos cuidados com ela.",
+      "titulo": "Comigo-ninguém-⁠pode",
+      "capa": "https://terragentil.com.br/guias/comigo-ninguem-pode/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG066.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    },
+    {
+      "id": "TG008",
+      "motivo": "Como essa espécie é tóxica, este guia ajuda a escolher um lugar seguro se você tem cão ou gato.",
+      "titulo": "Casa com Pet",
+      "capa": "https://terragentil.com.br/guias/casa-com-pet/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG008.pdf",
+      "tema": "dentro-de-casa",
+      "emoji": "🪴"
+    }
+  ],
+  "rega_ml": 400,
+  "vaso_estimado_cm": 18
+}

@@ -1,0 +1,183 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Solanum tuberosum",
+  "nome_popular": "Batata",
+  "confianca": 0.85,
+  "estado_saude": "doente",
+  "toxica_para_pets": true,
+  "toxicidade_detalhes": "Partes tóxicas: folhas, caules, frutinhos verdes e batatas esverdeadas ou brotadas. Sintomas: vômito, diarreia, salivação, fraqueza e sonolência.",
+  "nivel_luz": "sol_pleno",
+  "rega_dias": 3,
+  "rega_condicao": "Enfie o dedo 3 cm na terra e regue quando estiver quase seca, mantendo o solo úmido sem encharcar.",
+  "temperatura_ideal": "15 a 25 graus",
+  "nivel_dificuldade": "medio",
+  "luz_porcentagem": 60,
+  "luz_veredito": "A foto mostra pouco do ambiente, mas a planta parece estar ao ar livre, como a batata precisa.",
+  "diagnostico_titulo": "Provável requeima da batata, agir já",
+  "diagnostico_explicacao": "A mancha marrom com borda encharcada, junto com as folhas molhadas, lembra muito a requeima, uma doença causada por um micro-organismo que se espalha rápido com chuva e umidade. Ainda parece estar no começo, então tirar as folhas doentes e manter as folhas secas faz grande diferença. Uma foto da planta inteira e do verso da folha ajudaria a confirmar.",
+  "problemas_detectados": [
+    {
+      "descricao": "Requeima (mancha de folha)",
+      "gravidade": "alta",
+      "causa_provavel": "Provavelmente requeima, favorecida por folhas molhadas por muitas horas, embora pinta-preta também possa causar manchas parecidas.",
+      "categoria": "fungo_ou_bacteria",
+      "evidencia_visual": "Mancha marrom irregular na ponta da folha, com halo verde-claro aguado, em folhas cheias de gotas.",
+      "como_confirmar": "Olhe o verso da mancha de manhã cedo: um mofo branco fino na borda confirma requeima, e anéis concêntricos escuros indicam pinta-preta.",
+      "contagioso": true
+    }
+  ],
+  "plano_tratamento": "Retire as folhas doentes, mantenha a folhagem seca e areje a planta; se as manchas continuarem surgindo, use um fungicida doméstico à base de cobre.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Corte todas as folhas com manchas e descarte no lixo comum, fora da composteira.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Use tesoura limpa, cortando a folha inteira junto ao caule, e passe álcool na lâmina entre cada corte.",
+      "por_que": "A doença se espalha a partir das manchas, então tirá-las reduz a contaminação.",
+      "materiais": [
+        "Tesoura",
+        "Álcool 70%",
+        "Saco plástico"
+      ]
+    },
+    {
+      "etapa": "Próximos 3 dias",
+      "acao": "Regue só a terra, pela manhã, sem molhar as folhas.",
+      "tipo": "manejo",
+      "dia_inicio": 1,
+      "como_fazer": "Despeje a água rente ao pé da planta e, se possível, afaste plantas vizinhas para o ar circular entre elas.",
+      "por_que": "",
+      "materiais": [
+        "Regador de bico fino"
+      ]
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Revise a planta e, se surgirem manchas novas, aplique fungicida à base de cobre.",
+      "tipo": "organico",
+      "dia_inicio": 7,
+      "como_fazer": "Dilua conforme o rótulo e borrife as folhas dos dois lados ao fim da tarde, com luvas, repetindo a cada 7 a 10 dias se for preciso.",
+      "por_que": "",
+      "materiais": [
+        "Calda bordalesa ou oxicloreto de cobre",
+        "Borrifador",
+        "Luvas"
+      ]
+    },
+    {
+      "etapa": "Daqui a 15 dias",
+      "acao": "Se a doença avançar pelos caules, colha as batatas e remova a planta.",
+      "tipo": "manejo",
+      "dia_inicio": 15,
+      "como_fazer": "Corte a parte aérea rente ao chão, espere uns 10 dias e então colha os tubérculos, descartando os que tiverem manchas.",
+      "por_que": "",
+      "materiais": [
+        "Enxada pequena ou pá"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 7 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "aceitavel",
+    "problemas": [
+      "planta_cortada"
+    ],
+    "o_que_aparece": "Close de folhas de batata molhadas, uma delas com mancha marrom grande na ponta; o resto da planta e o solo não aparecem.",
+    "dica_proxima_foto": "Fotografe a planta inteira de dia, incluindo os caules e o verso das folhas manchadas, para conferir se há mofo esbranquiçado."
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "Mancha marrom-acinzentada grande na ponta de uma folha, com borda verde-clara encharcada ao redor.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "folhas",
+      "observacao": "Folhas cobertas de gotas de água, sinal de umidade alta no ambiente.",
+      "sinal": "atencao"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Caules e folhas novas verdes e firmes, sem manchas visíveis.",
+      "sinal": "bom"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "alta",
+    "como_reconheci": "Folhas compostas de folíolos ovais, verde-escuros, com nervuras marcadas e superfície levemente pilosa, típicas da batata.",
+    "outros_nomes": [
+      "Batata-inglesa",
+      "Batatinha"
+    ],
+    "alternativas": []
+  },
+  "acompanhamento": {
+    "prazo_melhora": "Em 1 a 2 semanas você deve notar que não surgem manchas novas; as folhas já marcadas não se recuperam.",
+    "sinais_melhora": [
+      "Folhas novas saem verdes e limpas",
+      "As manchas antigas param de crescer"
+    ],
+    "sinais_piora": [
+      "Manchas escuras aparecendo nos caules",
+      "Várias folhas murchando e escurecendo em poucos dias"
+    ],
+    "retorno_em_dias": 7,
+    "como_evitar": "Regue só o pé pela manhã, deixe espaço entre as plantas e não plante batata no mesmo lugar no ano seguinte."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "moderada",
+    "afeta": [
+      "caes",
+      "gatos",
+      "criancas",
+      "adultos"
+    ],
+    "partes_toxicas": "Folhas, caules, frutinhos verdes e batatas esverdeadas ou brotadas.",
+    "sintomas": "Vômito, diarreia, salivação, fraqueza e sonolência.",
+    "o_que_fazer": "Mantenha a horta fora do alcance de pets e crianças e, em caso de ingestão, procure veterinário ou atendimento médico levando o nome da planta."
+  },
+  "cuidados": {
+    "rega": "Enfie o dedo 3 cm na terra e regue quando estiver quase seca, mantendo o solo úmido sem encharcar.",
+    "luz_e_local": "Sol direto por boa parte do dia, em área externa ou janela bem ensolarada.",
+    "solo_e_vaso": "Prefere terra fofa, rica em matéria orgânica e bem drenada, em canteiro ou saco de cultivo fundo.",
+    "adubacao": "Misture composto ou esterco curtido no plantio e reforce com um pouco de composto ao fazer a amontoa.",
+    "poda_e_limpeza": "Não precisa de poda, apenas retire folhas doentes e amontoe terra no pé para cobrir os tubérculos.",
+    "como_fazer_mudas": "Plante batatas inteiras ou pedaços com brotos, deixando secar o corte por um dia antes.",
+    "erros_comuns": [
+      "Molhar as folhas à tarde ou à noite, o que favorece doenças como a requeima."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "A batata é originária dos Andes, onde povos nativos a cultivam há milhares de anos."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG088",
+      "motivo": "Sua planta é uma batata, e este guia trata justamente do cultivo da batata até a colheita.",
+      "titulo": "Batata e Inhame",
+      "capa": "https://terragentil.com.br/guias/batata-e-inhame/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG088.pdf",
+      "tema": "horta",
+      "emoji": "🥬"
+    },
+    {
+      "id": "TG111",
+      "motivo": "A mancha nas folhas indica doença, e este guia ajuda a reconhecer e tratar fungos sem veneno.",
+      "titulo": "Pulgão e Cochonilha",
+      "capa": "https://terragentil.com.br/guias/pulgao-e-cochonilha/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG111.pdf",
+      "tema": "cuidados",
+      "emoji": "💧"
+    }
+  ],
+  "rega_ml": 0,
+  "vaso_estimado_cm": 0
+}

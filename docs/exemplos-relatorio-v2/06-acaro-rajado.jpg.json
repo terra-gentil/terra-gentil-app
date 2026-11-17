@@ -1,0 +1,172 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Fragaria × ananassa",
+  "nome_popular": "Morangueiro",
+  "confianca": 0.9,
+  "estado_saude": "doente",
+  "toxica_para_pets": false,
+  "toxicidade_detalhes": "",
+  "nivel_luz": "sol_pleno",
+  "rega_dias": 2,
+  "rega_condicao": "Regue quando os primeiros 2 cm de terra estiverem secos ao toque, molhando o solo e não os frutos.",
+  "temperatura_ideal": "15 a 26 graus",
+  "nivel_dificuldade": "medio",
+  "luz_porcentagem": 70,
+  "luz_veredito": "A planta parece estar ao ar livre com boa claridade, o que combina com o sol que o morangueiro pede.",
+  "diagnostico_titulo": "Ataque forte de ácaro-rajado",
+  "diagnostico_explicacao": "As teias finas e os pontinhos claros espalhados pelas folhas indicam uma infestação avançada de ácaros, bichinhos minúsculos que sugam a seiva. Eles se multiplicam rápido no tempo quente e seco de novembro, mas o morangueiro se recupera bem quando o tratamento começa logo.",
+  "problemas_detectados": [
+    {
+      "descricao": "Infestação de ácaro-rajado",
+      "gravidade": "alta",
+      "causa_provavel": "Ácaros (Tetranychus urticae) favorecidos por calor, tempo seco e pouca umidade nas folhas.",
+      "categoria": "praga",
+      "evidencia_visual": "Teias entre as folhas e centenas de pontinhos claros sobre a superfície das folhas.",
+      "como_confirmar": "Bata uma folha sobre um papel branco e veja se aparecem pontinhos que andam, ou olhe o verso da folha com uma lupa.",
+      "contagioso": true
+    }
+  ],
+  "plano_tratamento": "Remova as folhas mais atacadas, lave a planta com jato de água e aplique sabão neutro diluído a cada 3 dias. Se não resolver em duas semanas, passe para óleo de neem.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Corte as folhas mais tomadas de teia e lave as demais com jato suave de água.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Corte rente à base as folhas muito manchadas e jogue no lixo fechado, longe da horta. Depois molhe bem o verso e a frente das folhas restantes, pela manhã.",
+      "por_que": "A água desfaz as teias e derruba boa parte dos ácaros de uma vez.",
+      "materiais": [
+        "Tesoura limpa",
+        "Saco plástico",
+        "Mangueira ou borrifador"
+      ]
+    },
+    {
+      "etapa": "Próximos 3 dias",
+      "acao": "Pulverize sabão neutro diluído em toda a planta, principalmente no verso das folhas.",
+      "tipo": "caseiro",
+      "dia_inicio": 1,
+      "como_fazer": "Misture 1 colher de sopa de sabão neutro líquido em 1 litro de água e borrife no fim da tarde, até molhar bem. Repita a cada 3 dias, por 3 vezes.",
+      "por_que": "",
+      "materiais": [
+        "Sabão neutro líquido",
+        "Borrifador",
+        "Água"
+      ]
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Mantenha o ar úmido ao redor e revise o verso das folhas.",
+      "tipo": "manejo",
+      "dia_inicio": 7,
+      "como_fazer": "Borrife só água nas folhas nos dias quentes, de manhã cedo, e confira se ainda há teias. Ácaros odeiam umidade.",
+      "por_que": "",
+      "materiais": [
+        "Borrifador"
+      ]
+    },
+    {
+      "etapa": "Daqui a 15 dias",
+      "acao": "Se ainda houver teias, aplique óleo de neem.",
+      "tipo": "organico",
+      "dia_inicio": 15,
+      "como_fazer": "Dilua conforme o rótulo, geralmente 5 ml por litro com uma gota de sabão, e aplique no fim da tarde a cada 5 dias. Respeite o prazo de carência do rótulo antes de colher frutos.",
+      "por_que": "",
+      "materiais": [
+        "Óleo de neem",
+        "Sabão neutro",
+        "Borrifador"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 10 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "boa",
+    "problemas": [],
+    "o_que_aparece": "",
+    "dica_proxima_foto": ""
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "folhas",
+      "observacao": "Folhas cobertas por muitos pontinhos claros, com aspecto empoeirado e opaco.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Teias finas visíveis entre as folhas e os talos no centro da planta.",
+      "sinal": "ruim"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "alta",
+    "como_reconheci": "Folhas divididas em três folíolos com bordas serrilhadas e nervuras marcadas, crescendo em roseta baixa sobre plástico de canteiro.",
+    "outros_nomes": [
+      "Morango"
+    ],
+    "alternativas": []
+  },
+  "acompanhamento": {
+    "prazo_melhora": "Em 2 a 3 semanas, com folhas novas limpas e sem teias; as folhas manchadas não voltam ao normal.",
+    "sinais_melhora": [
+      "Folhas novas saindo verdes e brilhantes, sem pontinhos.",
+      "Nenhuma teia nova entre os talos."
+    ],
+    "sinais_piora": [
+      "Folhas ficando amareladas, bronzeadas ou secando.",
+      "Teias cobrindo flores e frutos."
+    ],
+    "retorno_em_dias": 10,
+    "como_evitar": "Olhe o verso das folhas toda semana no calor e mantenha a planta bem regada, sem deixar o ar secar demais."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "nao_toxica",
+    "afeta": [],
+    "partes_toxicas": "Nenhuma parte é considerada tóxica para cães e gatos.",
+    "sintomas": "Ingestão de muitas folhas pode causar leve desconforto no estômago.",
+    "o_que_fazer": "Mesmo sendo segura, evite que pets mastiguem a planta logo após aplicar sabão ou neem; se houver sintomas, procure um veterinário."
+  },
+  "cuidados": {
+    "rega": "Regue quando os primeiros 2 cm de terra estiverem secos ao toque, molhando o solo e não os frutos.",
+    "luz_e_local": "Sol direto por boa parte do dia, em área externa ou janela bem ensolarada.",
+    "solo_e_vaso": "Prefere terra fofa, rica em matéria orgânica e que escoa bem, em vaso de ao menos 20 cm com furos.",
+    "adubacao": "Adube a cada 30 dias com composto ou húmus de minhoca, e reforce com adubo rico em potássio na época de frutos.",
+    "poda_e_limpeza": "Retire folhas velhas e secas e corte os estolões se quiser frutos maiores.",
+    "como_fazer_mudas": "Enterre a ponta dos estolões, os ramos finos que saem da planta, num vasinho e corte quando enraizarem.",
+    "erros_comuns": [
+      "Deixar os frutos encostados na terra molhada, o que faz apodrecer."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "O morango que comemos surgiu na França do século 18, do cruzamento de uma espécie americana com uma chilena."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG111",
+      "motivo": "Seu morangueiro está tomado por ácaros, e este guia ajuda a reconhecer e tratar pragas sem veneno.",
+      "titulo": "Pulgão e Cochonilha",
+      "capa": "https://terragentil.com.br/guias/pulgao-e-cochonilha/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG111.pdf",
+      "tema": "cuidados",
+      "emoji": "💧"
+    },
+    {
+      "id": "TG039",
+      "motivo": "Este guia é dedicado ao cultivo do morango, ajudando a manter sua planta forte depois da recuperação.",
+      "titulo": "Morango no Vaso",
+      "capa": "https://terragentil.com.br/guias/morango-no-vaso/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG039.pdf",
+      "tema": "horta",
+      "emoji": "🥬"
+    }
+  ],
+  "rega_ml": 300,
+  "vaso_estimado_cm": 0
+}

@@ -19,7 +19,9 @@ from app.services.claude_service import (
     ClaudeService,
     MAX_EBOOKS,
     ClaudeServiceError,
+    TEXTO_TOXICIDADE_DESCONHECIDA,
     carregar_catalogo,
+    completar_campos_derivados,
     linhas_catalogo,
     preparar_imagem,
     resolver_ebooks,
@@ -254,3 +256,126 @@ class TestResolverEbooks:
 
     def test_lista_vazia(self):
         assert resolver_ebooks([]) == []
+
+
+def _relatorio(**mudancas) -> DiagnosticoV2Response:
+    return DiagnosticoV2Response(**(resposta_v2_planta() | mudancas))
+
+
+class TestCamposNovos:
+    def test_campos_novos_chegam_ao_relatorio(self):
+        rel = _relatorio()
+        assert rel.rega_ml == 300 and rel.vaso_estimado_cm == 20
+        assert rel.plano_timeline[0].tipo == "manejo"
+        assert rel.acompanhamento.como_evitar.startswith("Regue")
+
+    def test_campos_novos_ausentes_viram_padrao(self):
+        dados = resposta_v2_planta()
+        for campo in ("rega_ml", "vaso_estimado_cm"):
+            dados.pop(campo)
+        dados["plano_timeline"][0].pop("tipo")
+        dados["acompanhamento"].pop("como_evitar")
+        rel = DiagnosticoV2Response(**dados)
+        assert (rel.rega_ml, rel.vaso_estimado_cm) == (0, 0)
+        assert rel.plano_timeline[0].tipo == "manejo"
+        assert rel.acompanhamento.como_evitar == ""
+
+    def test_numeros_novos_fora_da_faixa_sao_ajustados(self):
+        rel = _relatorio(rega_ml=-50, vaso_estimado_cm=999)
+        assert (rel.rega_ml, rel.vaso_estimado_cm) == (0, 300)
+
+    @pytest.mark.parametrize("tipo", ["manejo", "caseiro", "organico", "quimico"])
+    def test_tipos_aceitos(self, tipo):
+        dados = resposta_v2_planta()
+        dados["plano_timeline"][0]["tipo"] = tipo
+        assert DiagnosticoV2Response(**dados).plano_timeline[0].tipo == tipo
+
+    def test_tipo_desconhecido_e_fora_do_schema(self):
+        dados = resposta_v2_planta()
+        dados["plano_timeline"][0]["tipo"] = "marca_x"
+        with pytest.raises(ValueError):
+            DiagnosticoV2Response(**dados)
+
+    def test_schema_do_prompt_pede_os_novos_e_nao_pede_os_cortados(self):
+        props = DIAGNOSTICO_V2_JSON_SCHEMA["properties"]
+        assert {"rega_ml", "vaso_estimado_cm"} <= set(DIAGNOSTICO_V2_JSON_SCHEMA["required"])
+        assert "tipo" in props["plano_timeline"]["items"]["required"]
+        assert "como_evitar" in props["acompanhamento"]["required"]
+        for cortado in ("calendario_cuidados", "toxicidade_detalhes", "precisa_retorno",
+                        "mensagem_retorno"):
+            assert cortado not in props
+        assert not {"rega", "luz_e_local"} & set(props["cuidados"]["properties"])
+
+
+class TestCamposDerivados:
+    def test_toxicidade_detalhes_vem_de_partes_e_sintomas(self):
+        rel = completar_campos_derivados(_relatorio())
+        assert rel.toxica_para_pets is True
+        assert rel.toxicidade_detalhes == "Partes tóxicas: folhas e caule. Sintomas: salivação."
+
+    def test_toxicidade_desconhecida_sem_detalhes_tem_texto_padrao(self):
+        tox = {"nivel": "desconhecida", "afeta": [], "partes_toxicas": "", "sintomas": "",
+               "o_que_fazer": ""}
+        rel = completar_campos_derivados(_relatorio(toxicidade=tox, toxica_para_pets=False))
+        assert rel.toxica_para_pets is True
+        assert rel.toxicidade_detalhes == TEXTO_TOXICIDADE_DESCONHECIDA
+
+    def test_planta_segura_fica_sem_detalhes(self):
+        tox = {"nivel": "nao_toxica", "afeta": [], "partes_toxicas": "", "sintomas": "",
+               "o_que_fazer": ""}
+        rel = completar_campos_derivados(_relatorio(toxicidade=tox, toxica_para_pets=False))
+        assert rel.toxica_para_pets is False and rel.toxicidade_detalhes == ""
+
+    def test_detalhes_escritos_pelo_modelo_sao_mantidos(self):
+        rel = completar_campos_derivados(_relatorio(toxicidade_detalhes="Texto do modelo."))
+        assert rel.toxicidade_detalhes == "Texto do modelo."
+
+    @pytest.mark.parametrize(
+        "dias, precisa, trecho",
+        [(7, True, "daqui a 7 dias"), (1, True, "amanhã"), (0, False, "")],
+    )
+    def test_retorno_derivado_de_retorno_em_dias(self, dias, precisa, trecho):
+        dados = resposta_v2_planta()
+        dados["acompanhamento"]["retorno_em_dias"] = dias
+        rel = completar_campos_derivados(DiagnosticoV2Response(**dados))
+        assert rel.precisa_retorno is precisa
+        assert trecho in rel.mensagem_retorno
+        assert (rel.mensagem_retorno == "") is (not precisa)
+
+    def test_retorno_do_modelo_e_sobrescrito_para_ficar_coerente(self):
+        dados = resposta_v2_planta() | {"precisa_retorno": True, "mensagem_retorno": "Volte."}
+        dados["acompanhamento"]["retorno_em_dias"] = 0
+        rel = completar_campos_derivados(DiagnosticoV2Response(**dados))
+        assert rel.precisa_retorno is False and rel.mensagem_retorno == ""
+
+    def test_cuidados_rega_e_luz_vem_da_grade(self):
+        rel = completar_campos_derivados(_relatorio())
+        assert rel.cuidados.rega == "Quando o solo estiver seco a 2 cm."
+        assert "indireta" in rel.cuidados.luz_e_local.lower()
+        assert rel.calendario_cuidados == []
+
+    def test_nao_planta_fica_sem_retorno_e_sem_cuidados(self):
+        dados = resposta_v2_planta() | {"eh_planta": False, "nivel_luz": "nao_aplicavel",
+                                        "rega_condicao": ""}
+        dados["toxicidade"] = {"nivel": "nao_aplicavel", "afeta": [], "partes_toxicas": "",
+                               "sintomas": "", "o_que_fazer": ""}
+        dados["toxica_para_pets"] = False
+        rel = completar_campos_derivados(DiagnosticoV2Response(**dados))
+        assert rel.precisa_retorno is False and rel.mensagem_retorno == ""
+        assert rel.cuidados.rega == "" and rel.cuidados.luz_e_local == ""
+        assert rel.toxicidade_detalhes == ""
+
+    async def test_diagnosticar_aplica_as_derivacoes(self):
+        rel = await ClaudeService(client=cliente_mock()).diagnosticar(_imagem(100, 100))
+        assert rel.precisa_retorno is True and rel.mensagem_retorno
+        assert rel.toxicidade_detalhes and rel.cuidados.rega
+        assert rel.ebooks_recomendados[0].titulo
+
+    def test_leitura_foto_sem_neutros_e_com_no_maximo_3(self):
+        leituras = [
+            {"aspecto": a, "observacao": "x", "sinal": sinal}
+            for a, sinal in [("folhas", "ruim"), ("solo", "neutro"), ("vaso", "bom"),
+                             ("caule_e_ramos", "atencao"), ("ambiente_e_luz", "bom")]
+        ]
+        rel = completar_campos_derivados(_relatorio(leitura_foto=leituras))
+        assert [i.aspecto for i in rel.leitura_foto] == ["folhas", "vaso", "caule_e_ramos"]

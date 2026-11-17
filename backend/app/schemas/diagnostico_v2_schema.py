@@ -1,7 +1,10 @@
 """
-Schema JSON do relatorio v2, usado na saida estruturada do Claude (output_config.format).
+Schema JSON do relatorio v2, enviado como texto no system (nao e saida estruturada).
 
-Copiado da secao 3 de docs/PROPOSTA-DIAGNOSTICO-V2.md. Para atualizar, cole o JSON novo
+Base: secao 3 de docs/PROPOSTA-DIAGNOSTICO-V2.md, enxugado conforme as secoes B e C de
+docs/PESQUISA-CONCORRENTES.md (17/11/2026). Campos v1 que o modelo nao escreve mais
+(toxicidade_detalhes, precisa_retorno, mensagem_retorno, calendario_cuidados,
+cuidados.rega e cuidados.luz_e_local) sao preenchidos pelo backend. Para atualizar, cole o JSON novo
 no bloco abaixo sem mexer na formatacao: o texto precisa ser estavel entre chamadas
 para nao invalidar o cache de prompt e o cache de compilacao do schema.
 """
@@ -51,7 +54,7 @@ _SCHEMA_V2_JSON = r"""
         },
         "o_que_aparece": {
           "type": "string",
-          "description": "Uma frase dizendo o que se ve na imagem. Se nao for planta, diga o que e."
+          "description": "Uma frase dizendo o que se ve na imagem, so quando a qualidade nao for boa, quando houver varias plantas ou quando nao for planta. Vazio nos demais casos."
         },
         "dica_proxima_foto": {
           "type": "string",
@@ -62,7 +65,7 @@ _SCHEMA_V2_JSON = r"""
     },
     "leitura_foto": {
       "type": "array",
-      "description": "O que foi observado na foto, um item por aspecto visivel. Aspectos que nao aparecem na foto ficam de fora.",
+      "description": "Ate 3 observacoes da foto que importam, um item por aspecto, so com sinal bom, atencao ou ruim. Aspectos neutros ou que nao aparecem ficam de fora.",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -80,7 +83,7 @@ _SCHEMA_V2_JSON = r"""
           },
           "observacao": {
             "type": "string",
-            "description": "O que se ve, de forma concreta e especifica desta foto."
+            "description": "O que se ve, em uma frase curta e especifica desta foto."
           },
           "sinal": {
             "type": "string",
@@ -230,6 +233,11 @@ _SCHEMA_V2_JSON = r"""
             "type": "string",
             "description": "O que fazer, em uma frase curta."
           },
+          "tipo": {
+            "type": "string",
+            "enum": ["manejo", "caseiro", "organico", "quimico"],
+            "description": "manejo: ajuste de rega, luz, lugar, poda, limpeza ou vaso. caseiro: receita com o que se tem em casa. organico: produto natural de loja. quimico: defensivo sintetico de uso domestico, citado so pelo principio ativo, nunca por marca."
+          },
           "dia_inicio": {
             "type": "integer",
             "description": "Em quantos dias a partir de hoje este passo comeca. 0 significa hoje."
@@ -240,7 +248,7 @@ _SCHEMA_V2_JSON = r"""
           },
           "por_que": {
             "type": "string",
-            "description": "Motivo do passo, em uma frase."
+            "description": "Motivo do passo, em uma frase, so no primeiro passo. Vazio nos demais."
           },
           "materiais": {
             "type": "array",
@@ -248,7 +256,7 @@ _SCHEMA_V2_JSON = r"""
             "items": {"type": "string"}
           }
         },
-        "required": ["etapa", "acao", "dia_inicio", "como_fazer", "por_que", "materiais"]
+        "required": ["etapa", "acao", "tipo", "dia_inicio", "como_fazer", "por_que", "materiais"]
       }
     },
     "acompanhamento": {
@@ -272,17 +280,13 @@ _SCHEMA_V2_JSON = r"""
         "retorno_em_dias": {
           "type": "integer",
           "description": "Em quantos dias tirar nova foto para reavaliar. 0 se nao for necessario."
+        },
+        "como_evitar": {
+          "type": "string",
+          "description": "Uma frase curta, de ate 140 caracteres, dizendo como evitar que o problema volte. Para planta saudavel, o cuidado que mais previne problemas."
         }
       },
-      "required": ["prazo_melhora", "sinais_melhora", "sinais_piora", "retorno_em_dias"]
-    },
-    "precisa_retorno": {
-      "type": "boolean",
-      "description": "true se ha problema a acompanhar."
-    },
-    "mensagem_retorno": {
-      "type": "string",
-      "description": "Frase convidando a voltar e dizendo o que sera conferido. Vazio se precisa_retorno for false."
+      "required": ["prazo_melhora", "sinais_melhora", "sinais_piora", "retorno_em_dias", "como_evitar"]
     },
     "ajuda_profissional": {
       "type": "object",
@@ -299,10 +303,6 @@ _SCHEMA_V2_JSON = r"""
     "toxica_para_pets": {
       "type": "boolean",
       "description": "true se a planta oferece risco para caes ou gatos, ou se o risco e desconhecido."
-    },
-    "toxicidade_detalhes": {
-      "type": "string",
-      "description": "Explicacao breve do risco. Vazio se nao for toxica."
     },
     "toxicidade": {
       "type": "object",
@@ -343,6 +343,14 @@ _SCHEMA_V2_JSON = r"""
       "type": "integer",
       "description": "Intervalo medio de rega em dias, de 1 a 60. 0 se nao for planta."
     },
+    "rega_ml": {
+      "type": "integer",
+      "description": "Quantidade aproximada de agua por rega, em ml, para esta planta neste vaso. 0 se nao se aplica."
+    },
+    "vaso_estimado_cm": {
+      "type": "integer",
+      "description": "Diametro aproximado da boca do vaso visto na foto, em cm. 0 se o vaso nao aparece ou nao da para estimar."
+    },
     "rega_condicao": {
       "type": "string",
       "description": "Como saber a hora de regar, olhando o solo ou a planta."
@@ -366,26 +374,19 @@ _SCHEMA_V2_JSON = r"""
     "cuidados": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Ficha de cuidados da especie.",
+      "description": "Ficha de cuidados da especie. Rega e luz ja estao na grade e nao entram aqui.",
       "properties": {
-        "rega": {"type": "string"},
-        "luz_e_local": {
-          "type": "string",
-          "description": "Luz ideal e o melhor lugar da casa para a planta."
-        },
         "solo_e_vaso": {"type": "string"},
         "adubacao": {"type": "string"},
         "poda_e_limpeza": {"type": "string"},
         "como_fazer_mudas": {"type": "string"},
         "erros_comuns": {
           "type": "array",
-          "description": "Erros frequentes com esta especie.",
+          "description": "O erro mais frequente com esta especie, em 1 item.",
           "items": {"type": "string"}
         }
       },
       "required": [
-        "rega",
-        "luz_e_local",
         "solo_e_vaso",
         "adubacao",
         "poda_e_limpeza",
@@ -393,33 +394,9 @@ _SCHEMA_V2_JSON = r"""
         "erros_comuns"
       ]
     },
-    "calendario_cuidados": {
-      "type": "array",
-      "description": "Rotina de cuidados da especie, da tarefa mais frequente para a menos frequente.",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "frequencia": {
-            "type": "string",
-            "enum": [
-              "semanal",
-              "quinzenal",
-              "mensal",
-              "trimestral",
-              "semestral",
-              "anual",
-              "quando_necessario"
-            ]
-          },
-          "tarefa": {"type": "string"}
-        },
-        "required": ["frequencia", "tarefa"]
-      }
-    },
     "curiosidades": {
       "type": "array",
-      "description": "Fatos interessantes sobre a especie.",
+      "description": "Exatamente 1 fato interessante e verdadeiro sobre a especie. Lista vazia se nao tiver certeza.",
       "items": {"type": "string"}
     },
     "ebooks_recomendados": {
@@ -458,21 +435,19 @@ _SCHEMA_V2_JSON = r"""
     "plano_tratamento",
     "plano_timeline",
     "acompanhamento",
-    "precisa_retorno",
-    "mensagem_retorno",
     "ajuda_profissional",
     "toxica_para_pets",
-    "toxicidade_detalhes",
     "toxicidade",
     "nivel_luz",
     "rega_dias",
+    "rega_ml",
+    "vaso_estimado_cm",
     "rega_condicao",
     "temperatura_ideal",
     "nivel_dificuldade",
     "luz_porcentagem",
     "luz_veredito",
     "cuidados",
-    "calendario_cuidados",
     "curiosidades",
     "ebooks_recomendados"
   ]

@@ -1,0 +1,193 @@
+{
+  "eh_planta": true,
+  "especie_identificada": "Phalaenopsis sp.",
+  "nome_popular": "Orquídea-borboleta",
+  "confianca": 0.8,
+  "estado_saude": "doente",
+  "toxica_para_pets": false,
+  "toxicidade_detalhes": "",
+  "nivel_luz": "indireta_brilhante",
+  "rega_dias": 7,
+  "rega_condicao": "Regue quando as raízes ficarem prateadas e o substrato estiver quase seco; raiz verde ainda tem água.",
+  "temperatura_ideal": "18 a 30 graus",
+  "nivel_dificuldade": "facil",
+  "luz_porcentagem": 40,
+  "luz_veredito": "A foto não mostra o ambiente, mas ela gosta de luz clara perto de uma janela, sem sol forte direto.",
+  "diagnostico_titulo": "Raízes podres, mas a planta ainda reage",
+  "diagnostico_explicacao": "Grande parte das raízes morreu, o que costuma acontecer quando o substrato fica molhado por muito tempo ou está velho e compactado. A boa notícia é que as folhas estão firmes e há raiz nova saudável e uma brotação, então a recuperação é bem possível. Uma foto da planta inteira fora do vaso permitiria uma análise mais segura.",
+  "problemas_detectados": [
+    {
+      "descricao": "Apodrecimento de raízes",
+      "gravidade": "alta",
+      "causa_provavel": "O mais provável é excesso de água ou substrato velho que segura umidade e sufoca as raízes.",
+      "categoria": "rega_excesso",
+      "evidencia_visual": "Raízes marrons, achatadas e com a capa soltando como papel.",
+      "como_confirmar": "Aperte cada raiz: se murchar, soltar a casca ou mostrar só um fio por dentro, está morta.",
+      "contagioso": false
+    },
+    {
+      "descricao": "Substrato possivelmente vencido",
+      "gravidade": "media",
+      "causa_provavel": "Casca de pinus com mais de dois anos se decompõe e vira uma massa úmida que apodrece raízes.",
+      "categoria": "raiz_ou_vaso",
+      "evidencia_visual": "Material escuro e esfarelado ao redor das raízes.",
+      "como_confirmar": "Tire a planta do vaso e veja se o substrato está mole, escuro ou com cheiro azedo.",
+      "contagioso": false
+    }
+  ],
+  "plano_tratamento": "Limpe as raízes mortas, replante em substrato novo e arejado e regue com menos frequência até as raízes novas crescerem.",
+  "plano_timeline": [
+    {
+      "etapa": "Hoje",
+      "acao": "Tire a orquídea do vaso e corte todas as raízes podres.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Remova o substrato velho com cuidado e corte rente à base toda raiz mole ou oca, preservando as firmes, verdes ou prateadas. Polvilhe canela em pó nos cortes.",
+      "por_que": "Raiz podre não volta e espalha a podridão para as saudáveis.",
+      "materiais": [
+        "Tesoura limpa com álcool",
+        "Canela em pó",
+        "Jornal"
+      ]
+    },
+    {
+      "etapa": "Hoje",
+      "acao": "Replante em vaso pequeno com furos e substrato novo.",
+      "tipo": "manejo",
+      "dia_inicio": 0,
+      "como_fazer": "Use um vaso só um pouco maior que o conjunto de raízes, com casca de pinus nova ou fibra de coco em pedaços. Não enterre o colo da planta.",
+      "por_que": "",
+      "materiais": [
+        "Vaso com furos",
+        "Casca de pinus nova"
+      ]
+    },
+    {
+      "etapa": "Em 1 semana",
+      "acao": "Faça a primeira rega só depois de alguns dias.",
+      "tipo": "manejo",
+      "dia_inicio": 7,
+      "como_fazer": "Regue deixando a água escorrer bem e só repita quando as raízes visíveis ficarem prateadas. Até lá, borrife levemente as raízes se o tempo estiver seco.",
+      "por_que": "",
+      "materiais": [
+        "Regador"
+      ]
+    },
+    {
+      "etapa": "Daqui a 30 dias",
+      "acao": "Retome adubação fraca quando as raízes novas crescerem.",
+      "tipo": "organico",
+      "dia_inicio": 30,
+      "como_fazer": "Use adubo para orquídeas na metade da dose indicada, a cada 15 dias. Pare se surgirem pontas de raiz escuras.",
+      "por_que": "",
+      "materiais": [
+        "Adubo para orquídeas"
+      ]
+    }
+  ],
+  "precisa_retorno": true,
+  "mensagem_retorno": "Tire uma nova foto daqui a 21 dias para conferir como a planta está reagindo.",
+  "versao_relatorio": "v2",
+  "foto": {
+    "qualidade": "aceitavel",
+    "problemas": [
+      "perto_demais",
+      "planta_cortada"
+    ],
+    "o_que_aparece": "Close da base de uma orquídea, com folhas, uma raiz nova e várias raízes secas e escuras.",
+    "dica_proxima_foto": "Fotografe a planta inteira com o vaso, de dia perto de uma janela, e outra foto das raízes fora do vaso."
+  },
+  "leitura_foto": [
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Muitas raízes marrons, ocas e com casca soltando na base da planta.",
+      "sinal": "ruim"
+    },
+    {
+      "aspecto": "caule_e_ramos",
+      "observacao": "Uma raiz prateada firme e uma ponta verde nova saindo da base.",
+      "sinal": "bom"
+    },
+    {
+      "aspecto": "folhas",
+      "observacao": "Folhas verdes, firmes e sem manchas.",
+      "sinal": "bom"
+    }
+  ],
+  "identificacao": {
+    "nivel_confianca": "media",
+    "como_reconheci": "Folhas largas e carnudas saindo de um caule curto, com raízes aéreas grossas cobertas de uma capa prateada, típicas da Phalaenopsis.",
+    "outros_nomes": [
+      "Falenópsis",
+      "Orquídea-mariposa"
+    ],
+    "alternativas": [
+      {
+        "nome_popular": "Doritaenopsis",
+        "especie": "Doritaenopsis sp.",
+        "como_diferenciar": "É um híbrido muito parecido, e só a etiqueta ou a flor ajudam a separar, mas os cuidados são os mesmos."
+      }
+    ]
+  },
+  "acompanhamento": {
+    "prazo_melhora": "Raízes novas devem aparecer em 3 a 6 semanas, e a planta pode levar meses para firmar.",
+    "sinais_melhora": [
+      "Pontas verdes novas crescendo nas raízes",
+      "Folhas continuam firmes e brilhantes"
+    ],
+    "sinais_piora": [
+      "Folhas ficando moles, enrugadas ou amarelas",
+      "Base da planta escurecendo ou ficando mole"
+    ],
+    "retorno_em_dias": 21,
+    "como_evitar": "Regue só quando as raízes ficarem prateadas e troque o substrato a cada 2 anos."
+  },
+  "ajuda_profissional": {
+    "recomendada": false,
+    "motivo": ""
+  },
+  "toxicidade": {
+    "nivel": "nao_toxica",
+    "afeta": [],
+    "partes_toxicas": "Nenhuma parte é considerada tóxica para pets ou pessoas.",
+    "sintomas": "Se mastigada em quantidade, pode causar apenas um leve desconforto no estômago.",
+    "o_que_fazer": "Mesmo assim, evite que o pet mastigue a planta, e se houver sintomas procure um veterinário levando o nome da planta."
+  },
+  "cuidados": {
+    "rega": "Regue quando as raízes ficarem prateadas e o substrato estiver quase seco; raiz verde ainda tem água.",
+    "luz_e_local": "Luz indireta e clara, perto de uma janela, sem sol forte direto nas folhas.",
+    "solo_e_vaso": "Use casca de pinus ou fibra de coco em pedaços, nunca terra comum, em vaso com muitos furos.",
+    "adubacao": "Adubo para orquídeas diluído a cada 15 dias na fase de crescimento, sempre com o substrato úmido.",
+    "poda_e_limpeza": "Corte a haste seca depois da floração e limpe as folhas com pano úmido.",
+    "como_fazer_mudas": "Separe o keiki, a mudinha que nasce na haste, quando ele tiver três raízes de uns 5 cm.",
+    "erros_comuns": [
+      "Regar demais ou deixar água acumulada no cachepô ou no prato."
+    ]
+  },
+  "calendario_cuidados": [],
+  "curiosidades": [
+    "O nome Phalaenopsis significa parecida com mariposa, pelo formato das flores."
+  ],
+  "ebooks_recomendados": [
+    {
+      "id": "TG017",
+      "motivo": "Sua orquídea está com raízes podres, e este guia ajuda a reconhecer e tratar problemas de orquídea doente.",
+      "titulo": "Orquídea Doente",
+      "capa": "https://terragentil.com.br/guias/orquidea-doente/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG017.pdf",
+      "tema": "orquideas",
+      "emoji": "🌸"
+    },
+    {
+      "id": "TG018",
+      "motivo": "Ela precisa de vaso e substrato novos, e este guia trata da escolha certa com boa drenagem.",
+      "titulo": "Vaso de Orquídea",
+      "capa": "https://terragentil.com.br/guias/vaso-de-orquidea/capa.webp",
+      "pdf": "https://terra-gentil-pdfs.canalterragentil.workers.dev/TG018.pdf",
+      "tema": "orquideas",
+      "emoji": "🌸"
+    }
+  ],
+  "rega_ml": 200,
+  "vaso_estimado_cm": 12
+}
