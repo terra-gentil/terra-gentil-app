@@ -1,6 +1,7 @@
 export const API_BASE_URL = "https://terra-gentil-app-production.up.railway.app";
 export const FORUM_API_URL = "https://perpetual-energy-production-1a69.up.railway.app";
-export const API_TIMEOUT_MS = 60000;
+// Opus leva de 25 a 35 s; se o Claude falhar, o backend ainda tenta o Gemini. Folga para os dois.
+export const API_TIMEOUT_MS = 100000;
 // Limite das leituras (GET) do forum e das notificacoes. Sem ele uma conexao
 // travada deixava a lista da Comunidade presa em "carregando" pra sempre.
 export const LEITURA_TIMEOUT_MS = 25000;

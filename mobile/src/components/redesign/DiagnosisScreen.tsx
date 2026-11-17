@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  Linking,
   ScrollView,
   Share,
   StyleSheet,
@@ -14,7 +15,10 @@ import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/
 import StatCard from "./StatCard";
 import SectionTitle from "./SectionTitle";
 import { EbookCard } from "../EbookCard";
-import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Camera, MessageSquare } from "lucide-react-native";
+import { consumirLembrarCanal } from "../../storage/preferencias";
+import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Camera, MessageSquare, PlayCircle } from "lucide-react-native";
+
+const YOUTUBE_CANAL = "https://www.youtube.com/@TerraGentil";
 
 const NIVEL_LUZ_LABEL: Record<string, string> = {
   sol_pleno: "Sol pleno",
@@ -53,6 +57,18 @@ interface Props {
 
 export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaConsulta }: Props) {
   const confiancaPct = Math.round(resultado.confianca * 100);
+  // Lembrete pedido na tela de espera; aparece so neste relatorio
+  const [lembrarCanal, setLembrarCanal] = useState(false);
+
+  useEffect(() => {
+    let ativo = true;
+    consumirLembrarCanal().then((v) => {
+      if (ativo) setLembrarCanal(v);
+    });
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   function handleSalvarFeedback() {
     Alert.alert(
@@ -204,6 +220,22 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
 
       <EbookCard nomePopular={resultado.nome_popular} />
 
+      {lembrarCanal && (
+        <TouchableOpacity
+          style={styles.canalCard}
+          onPress={() => Linking.openURL(YOUTUBE_CANAL)}
+          activeOpacity={0.85}
+          accessibilityRole="link"
+          testID="cartao-lembrete-canal"
+        >
+          <PlayCircle size={32} color="#dc2626" strokeWidth={2.2} />
+          <View style={styles.giftTextWrap}>
+            <Text style={styles.giftTitle}>Você pediu para lembrar</Text>
+            <Text style={styles.giftDesc}>Conheça o canal Terra Gentil no YouTube, com vídeos novos toda semana.</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
       {/* Botoes de acao */}
       <View style={styles.actionButtons}>
         <TouchableOpacity style={styles.actionOutline} onPress={handleSegundaOpiniao} activeOpacity={0.8}>
@@ -226,6 +258,19 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
 }
 
 const styles = StyleSheet.create({
+  canalCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 16,
+    marginBottom: 14,
+    padding: 16,
+    borderRadius: 22,
+    backgroundColor: COLORS.card,
+    borderWidth: 2,
+    borderColor: "#fecaca",
+    ...shadowSoft(),
+  },
   screen: {
     flex: 1,
     backgroundColor: COLORS.bg,

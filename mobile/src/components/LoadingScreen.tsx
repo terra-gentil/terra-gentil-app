@@ -5,6 +5,7 @@ import {
   Easing,
   Image,
   LayoutChangeEvent,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,30 +15,79 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
+  BellRing,
+  BookOpen,
   Bug,
   Check,
+  ClipboardList,
   Clock,
   Droplets,
+  Heart,
   ImageUp,
   Leaf,
   Lightbulb,
+  PawPrint,
+  PlayCircle,
+  Search,
+  Sparkles,
   Stethoscope,
+  Users,
 } from "lucide-react-native";
 import { MASCOT_ANALYZING, MASCOT_POSES } from "../assets/mascot";
 import { COLORS, FONTS, RADIUS, shadowChunky, shadowSoft } from "../constants/theme";
+import { marcarLembrarCanal } from "../storage/preferencias";
 
 // Etapas sao ilusao de progresso: avancam por tempo, nao pelo backend.
+// Calibradas no Opus 5.5 (fase 2: 25 a 35 s, media 27 s). Roteiro em docs/ROTEIRO-ESPERA-V2.md.
 export const ETAPAS = [
   { texto: "Recebendo a sua foto", Icone: ImageUp },
-  { texto: "Olhando as folhas de perto", Icone: Leaf },
-  { texto: "Conferindo sinais de pragas e fungos", Icone: Bug },
-  { texto: "Verificando rega e luz", Icone: Droplets },
-  { texto: "Preparando as dicas do Doutor", Icone: Stethoscope },
+  { texto: "Descobrindo qual é a planta", Icone: Search },
+  { texto: "Olhando folhas e caule de perto", Icone: Leaf },
+  { texto: "Procurando pragas e fungos", Icone: Bug },
+  { texto: "Avaliando luz e rega", Icone: Droplets },
+  { texto: "Conferindo se é segura para pets e crianças", Icone: PawPrint },
+  { texto: "Montando o seu plano de cuidados", Icone: ClipboardList },
+  { texto: "Caprichando nos últimos detalhes", Icone: Sparkles },
 ] as const;
 
 // Momento (ms desde a montagem) em que cada etapa seguinte comeca.
 // A ultima fica ativa ate a resposta chegar.
-export const INICIO_ETAPAS_MS = [0, 3000, 10000, 19000, 28000];
+export const INICIO_ETAPAS_MS = [0, 3000, 8000, 14000, 20000, 25000, 30000, 35000];
+
+// Tempo tipico mostrado na contagem. Abaixo de 5 s restantes vira "quase pronto".
+export const TEMPO_TIPICO_S = 30;
+const CONTAGEM_PASSO_MS = 5000;
+
+// Carrossel "Conheca o Terra Gentil". O ultimo cartao e uma dica "Voce sabia?".
+export const CARTAO_INTERVALO_MS = 8000;
+export const CARTOES = [
+  {
+    id: "quem-somos",
+    Icone: Heart,
+    titulo: "Seja gentil com a terra",
+    texto:
+      "O Terra Gentil nasceu em 2022 para ajudar quem quer cuidar de planta sem complicação. Aqui quintais esquecidos viram jardins, e tudo o que a gente ensina é de graça.",
+  },
+  {
+    id: "canal",
+    Icone: PlayCircle,
+    titulo: "Vídeos novos toda semana",
+    texto: "Transformações de quintais e tutoriais de jardinagem sem pressa, no canal Terra Gentil do YouTube.",
+  },
+  {
+    id: "ebooks",
+    Icone: BookOpen,
+    titulo: "Mais de 100 guias grátis",
+    texto: "Do vaso da sala à horta do quintal. Estão na aba Ebooks, prontos para ler no app.",
+  },
+  {
+    id: "comunidade",
+    Icone: Users,
+    titulo: "Você não cuida sozinho",
+    texto: "Na aba Comunidade, outros cultivadores trocam dicas e fotos. Mostre a sua planta lá depois do diagnóstico.",
+  },
+  { id: "dica", Icone: Lightbulb, titulo: "Você sabia?", texto: "" },
+] as const;
 
 export const DICAS = [
   "Regue de manhã cedinho. A planta aproveita a água durante o dia e as folhas secam antes da noite, o que afasta os fungos.",
@@ -57,15 +107,23 @@ export const DICAS = [
   "Adubo demais queima a raiz. Na dúvida, use menos do que diz a embalagem e com a terra úmida.",
 ];
 
-export const DICA_INTERVALO_MS = 6500;
-export const DEMORA_MS = 45000;
+// Aviso de demora so depois do pior caso medido (35 s) com folga. O app desiste em 100 s.
+export const DEMORA_MS = 60000;
 
-// Curva da barra: p(s) = 0,95 x (1 - e^(-s/18)), s em segundos.
-// Avanca rapido no comeco, desacelera e nunca chega a 100%.
+// Curva da barra: p(s) = 0,95 x (1 - e^(-s/13)), s em segundos.
+// Avanca rapido no comeco, passa de 80% perto dos 27 s tipicos e nunca chega a 100%.
 const BARRA_DURACAO_MS = 300000;
-const BARRA_PONTOS_S = [0, 2, 5, 10, 15, 20, 30, 40, 50, 60, 90, 120, 180, 300];
+const BARRA_PONTOS_S = [0, 2, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120, 180, 300];
 const BARRA_INPUT = BARRA_PONTOS_S.map((s) => (s * 1000) / BARRA_DURACAO_MS);
-export const BARRA_OUTPUT = BARRA_PONTOS_S.map((s) => 0.95 * (1 - Math.exp(-s / 18)));
+export const BARRA_OUTPUT = BARRA_PONTOS_S.map((s) => 0.95 * (1 - Math.exp(-s / 13)));
+
+// Texto da contagem a partir do tempo decorrido.
+export function textoContagem(decorridoMs: number, demorando: boolean): string {
+  if (demorando) return "Ainda cuidando da sua planta com carinho.";
+  const restante = TEMPO_TIPICO_S - Math.floor(decorridoMs / 1000);
+  if (restante <= 5) return "Quase pronto...";
+  return `Cerca de ${Math.ceil(restante / 5) * 5} segundos`;
+}
 
 const LASER_CORES = ["rgba(34,197,94,0)", "rgba(34,197,94,0.35)", "rgba(34,197,94,0)"] as const;
 const BARRA_CORES = [COLORS.green, COLORS.greenLeaf] as const;
@@ -107,7 +165,11 @@ export function LoadingScreen({ imageUri }: Props = {}) {
   const reduzir = useReduzirMovimento();
 
   const [etapa, setEtapa] = useState(0);
-  const [dica, setDica] = useState(0);
+  const [cartao, setCartao] = useState(0);
+  // Uma dica sorteada por espera, mostrada no ultimo cartao do carrossel
+  const [dica] = useState(() => Math.floor(Math.random() * DICAS.length));
+  const [decorridoMs, setDecorridoMs] = useState(0);
+  const [lembrarCanal, setLembrarCanal] = useState(false);
   const [demorando, setDemorando] = useState(false);
   const [larguraBarra, setLarguraBarra] = useState(0);
 
@@ -121,21 +183,31 @@ export function LoadingScreen({ imageUri }: Props = {}) {
   const larguraCartao = Math.min(larguraTela - 40, 360);
   const alturaFoto = Math.round(Math.min(larguraCartao * 0.72, 250));
 
-  // Etapas, dicas e aviso de demora. Tudo em baixa frequencia e limpo no unmount.
+  // Etapas, cartoes, contagem e aviso de demora. Tudo em baixa frequencia e limpo no unmount.
   useEffect(() => {
     const timeouts = INICIO_ETAPAS_MS.slice(1).map((ms, i) =>
       setTimeout(() => setEtapa(i + 1), ms),
     );
     const demora = setTimeout(() => setDemorando(true), DEMORA_MS);
-    const intervaloDica = setInterval(() => {
-      setDica((d) => (d + 1) % DICAS.length);
-    }, DICA_INTERVALO_MS);
+    const intervaloCartao = setInterval(() => {
+      setCartao((c) => (c + 1) % CARTOES.length);
+    }, CARTAO_INTERVALO_MS);
+    const intervaloContagem = setInterval(() => {
+      setDecorridoMs((ms) => ms + CONTAGEM_PASSO_MS);
+    }, CONTAGEM_PASSO_MS);
     return () => {
       timeouts.forEach(clearTimeout);
       clearTimeout(demora);
-      clearInterval(intervaloDica);
+      clearInterval(intervaloCartao);
+      clearInterval(intervaloContagem);
     };
   }, []);
+
+  function aoLembrarCanal() {
+    if (lembrarCanal) return;
+    setLembrarCanal(true);
+    marcarLembrarCanal();
+  }
 
   // Barra de progresso: um unico timing linear no driver nativo, a curva vem do interpolate.
   useEffect(() => {
@@ -149,7 +221,7 @@ export function LoadingScreen({ imageUri }: Props = {}) {
     return () => anim.stop();
   }, [relogioBarra]);
 
-  // Fade suave a cada dica nova (sem fade com reduzir movimento).
+  // Fade suave a cada cartao novo (sem fade com reduzir movimento).
   useEffect(() => {
     if (reduzir) {
       opacidadeDica.setValue(1);
@@ -164,7 +236,7 @@ export function LoadingScreen({ imageUri }: Props = {}) {
     });
     anim.start();
     return () => anim.stop();
-  }, [dica, reduzir, opacidadeDica]);
+  }, [cartao, reduzir, opacidadeDica]);
 
   // Animacoes decorativas em loop: laser, respiro do mascote, pulso da etapa atual, brilho da barra.
   useEffect(() => {
@@ -234,9 +306,10 @@ export function LoadingScreen({ imageUri }: Props = {}) {
   });
 
   const etapaAtual = ETAPAS[etapa];
-  const legendaBarra = demorando
-    ? "Ainda cuidando da sua planta com carinho."
-    : "Costuma levar de 15 a 40 segundos.";
+  const legendaBarra = textoContagem(decorridoMs, demorando);
+  const cartaoAtual = CARTOES[cartao];
+  const { Icone: IconeCartao } = cartaoAtual;
+  const textoCartao = cartaoAtual.id === "dica" ? DICAS[dica] : cartaoAtual.texto;
 
   return (
     <View
@@ -260,6 +333,13 @@ export function LoadingScreen({ imageUri }: Props = {}) {
         <Text style={styles.titulo} accessibilityRole="header">
           Analisando a sua planta
         </Text>
+        <View style={[styles.avisoEntrada, { width: larguraCartao }]}>
+          <Clock size={18} color={COLORS.greenDeep} strokeWidth={2.5} />
+          <Text style={styles.avisoEntradaTexto}>
+            <Text style={styles.avisoEntradaForte}>O Doutor vai examinar com calma.</Text> Leva uns 30
+            segundos. Enquanto isso, conheça o Terra Gentil.
+          </Text>
+        </View>
 
         {/* Foto com varredura */}
         <View style={[styles.cartaoFoto, { width: larguraCartao, height: alturaFoto }]}>
@@ -297,16 +377,43 @@ export function LoadingScreen({ imageUri }: Props = {}) {
           >
             <Image source={MASCOT_POSES[1]} style={styles.avatarImg} />
           </Animated.View>
-          <View style={styles.balao}>
+          <View style={styles.balao} testID={`cartao-${cartaoAtual.id}`}>
             <View style={styles.balaoBico} />
-            <View style={styles.balaoTopo}>
-              <Lightbulb size={18} color={COLORS.amber} strokeWidth={2.5} />
-              <Text style={styles.balaoRotulo}>Você sabia?</Text>
-            </View>
-            <Animated.Text style={[styles.dica, { opacity: opacidadeDica }]} testID="dica">
-              {DICAS[dica]}
-            </Animated.Text>
+            <Animated.View style={{ opacity: opacidadeDica }}>
+              <View style={styles.balaoTopo}>
+                <IconeCartao size={18} color={COLORS.amber} strokeWidth={2.5} />
+                <Text style={styles.balaoRotulo}>{cartaoAtual.titulo}</Text>
+              </View>
+              <Text style={styles.dica} testID="dica">
+                {textoCartao}
+              </Text>
+              {cartaoAtual.id === "canal" && (
+                <Pressable
+                  onPress={aoLembrarCanal}
+                  style={[styles.botaoCanal, lembrarCanal && styles.botaoCanalFeito]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: lembrarCanal }}
+                  testID="lembrar-canal"
+                >
+                  {lembrarCanal ? (
+                    <Check size={16} color={COLORS.greenDeep} strokeWidth={3} />
+                  ) : (
+                    <BellRing size={16} color="#fff" strokeWidth={2.5} />
+                  )}
+                  <Text style={[styles.botaoCanalTexto, lembrarCanal && styles.botaoCanalTextoFeito]}>
+                    {lembrarCanal ? "Combinado! O link vai no seu relatório" : "Lembrar de ver o canal"}
+                  </Text>
+                </Pressable>
+              )}
+            </Animated.View>
           </View>
+        </View>
+
+        {/* Pontinhos do carrossel */}
+        <View style={styles.pontos} accessible={false}>
+          {CARTOES.map((c, i) => (
+            <View key={c.id} style={[styles.ponto, i === cartao && styles.pontoAtivo]} />
+          ))}
         </View>
 
         {/* Etapas */}
@@ -354,7 +461,7 @@ export function LoadingScreen({ imageUri }: Props = {}) {
           <View style={[styles.aviso, { width: larguraCartao }]} accessibilityLiveRegion="polite">
             <Clock size={22} color="#92400e" strokeWidth={2.5} />
             <Text style={styles.avisoTexto}>
-              Está demorando um pouquinho mais que o normal. Já já o Doutor termina, não feche o app.
+              Hoje o consultório está movimentado. Mais uns segundinhos, não feche o app.
             </Text>
           </View>
         )}
@@ -511,7 +618,8 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    minHeight: AVATAR,
+    // Altura do cartao mais longo (canal com botao): sem pulo das etapas a cada troca
+    minHeight: 200,
     ...shadowSoft(),
   },
   balaoBico: {
@@ -539,6 +647,64 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
     color: COLORS.ink,
+  },
+  avisoEntrada: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    backgroundColor: COLORS.greenSoft,
+    borderRadius: RADIUS.md,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  avisoEntradaTexto: {
+    flex: 1,
+    fontFamily: FONTS.bodyMedium,
+    fontSize: 15,
+    lineHeight: 21,
+    color: COLORS.greenDark,
+  },
+  avisoEntradaForte: {
+    fontFamily: FONTS.bodySemiBold,
+  },
+  botaoCanal: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 8,
+    marginTop: 10,
+    backgroundColor: COLORS.green,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  botaoCanalFeito: {
+    backgroundColor: COLORS.greenSoft,
+  },
+  botaoCanalTexto: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 14,
+    color: "#fff",
+  },
+  botaoCanalTextoFeito: {
+    color: COLORS.greenDeep,
+  },
+  pontos: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 12,
+  },
+  ponto: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#d6d3d1",
+  },
+  pontoAtivo: {
+    width: 20,
+    backgroundColor: COLORS.green,
   },
   cartaoEtapas: {
     marginTop: 18,

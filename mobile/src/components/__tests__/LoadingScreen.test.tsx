@@ -8,15 +8,23 @@ jest.mock("expo-linear-gradient", () => {
   return { LinearGradient: (props: any) => <View {...props} /> };
 });
 
+jest.mock("../../storage/preferencias", () => ({ marcarLembrarCanal: jest.fn(() => Promise.resolve()) }));
+
 import {
   BARRA_OUTPUT,
+  CARTAO_INTERVALO_MS,
+  CARTOES,
   DEMORA_MS,
   DICAS,
-  DICA_INTERVALO_MS,
   ETAPAS,
   INICIO_ETAPAS_MS,
   LoadingScreen,
+  textoContagem,
 } from "../LoadingScreen";
+import { marcarLembrarCanal } from "../../storage/preferencias";
+
+const INDICE_CANAL = CARTOES.findIndex((c) => c.id === "canal");
+const INDICE_DICA = CARTOES.findIndex((c) => c.id === "dica");
 
 const METRICAS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -43,21 +51,27 @@ describe("LoadingScreen", () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    // Dica sorteada: com random 0 sai sempre a primeira
+    jest.spyOn(Math, "random").mockReturnValue(0);
+    (marcarLembrarCanal as jest.Mock).mockClear();
     reduzirSpy = jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(false);
   });
 
   afterEach(() => {
     reduzirSpy.mockRestore();
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
-  it("renderiza titulo, foto da planta, primeira etapa e primeira dica", async () => {
+  it("renderiza titulo, aviso de 30 segundos, foto, primeira etapa e o cartao quem somos", async () => {
     const tela = montar({ imageUri: "file:///planta.jpg" });
     await esperarAcessibilidade();
     expect(tela.getByText("Analisando a sua planta")).toBeTruthy();
     expect(tela.getByLabelText("Foto da sua planta")).toBeTruthy();
     expect(tela.getByTestId("etapa-atual").props.children.join("")).toBe(`${ETAPAS[0].texto}...`);
-    expect(tela.getByText(DICAS[0])).toBeTruthy();
+    expect(tela.getByText(/Leva uns 30\s+segundos/)).toBeTruthy();
+    expect(tela.getByText(CARTOES[0].titulo)).toBeTruthy();
+    expect(tela.getByText("Cerca de 30 segundos")).toBeTruthy();
     expect(tela.getByTestId("laser")).toBeTruthy();
     const raiz = tela.getByTestId("loading-diagnostico");
     expect(raiz.props.accessibilityRole).toBe("progressbar");
@@ -79,7 +93,7 @@ describe("LoadingScreen", () => {
     expect(tela.getByLabelText(`${ETAPAS[0].texto}, concluído`)).toBeTruthy();
     expect(tela.getByLabelText(`${ETAPAS[1].texto}, em andamento`)).toBeTruthy();
 
-    act(() => { jest.advanceTimersByTime(INICIO_ETAPAS_MS[4]); });
+    act(() => { jest.advanceTimersByTime(INICIO_ETAPAS_MS[INICIO_ETAPAS_MS.length - 1]); });
     const ultima = ETAPAS.length - 1;
     expect(tela.getByTestId("etapa-atual").props.children.join("")).toBe(`${ETAPAS[ultima].texto}...`);
 
@@ -88,18 +102,32 @@ describe("LoadingScreen", () => {
     expect(tela.getByLabelText(`${ETAPAS[ultima].texto}, em andamento`)).toBeTruthy();
   });
 
-  it("dicas trocam a cada intervalo", async () => {
+  it("cartoes trocam a cada intervalo e o ultimo mostra uma dica", async () => {
     const tela = montar();
     await esperarAcessibilidade();
-    act(() => { jest.advanceTimersByTime(DICA_INTERVALO_MS + 10); });
-    expect(tela.getByText(DICAS[1])).toBeTruthy();
-    expect(tela.queryByText(DICAS[0])).toBeNull();
+    act(() => { jest.advanceTimersByTime(CARTAO_INTERVALO_MS + 10); });
+    expect(tela.getByText(CARTOES[1].titulo)).toBeTruthy();
+    expect(tela.queryByText(CARTOES[0].titulo)).toBeNull();
+    act(() => { jest.advanceTimersByTime(CARTAO_INTERVALO_MS * (INDICE_DICA - 1)); });
+    expect(tela.getByText("Você sabia?")).toBeTruthy();
+    expect(tela.getByText(DICAS[0])).toBeTruthy();
   });
 
-  it("mostra a mensagem de demora so depois de 45 segundos", async () => {
+  it("botao do canal guarda o lembrete uma vez e confirma", async () => {
     const tela = montar();
     await esperarAcessibilidade();
-    const aviso = /demorando um pouquinho mais que o normal/;
+    act(() => { jest.advanceTimersByTime(CARTAO_INTERVALO_MS * INDICE_CANAL + 10); });
+    fireEvent.press(tela.getByTestId("lembrar-canal"));
+    fireEvent.press(tela.getByTestId("lembrar-canal"));
+    expect(marcarLembrarCanal).toHaveBeenCalledTimes(1);
+    expect(tela.getByText("Combinado! O link vai no seu relatório")).toBeTruthy();
+  });
+
+  it("mostra a mensagem de demora so depois de 60 segundos", async () => {
+    const tela = montar();
+    await esperarAcessibilidade();
+    expect(DEMORA_MS).toBe(60000);
+    const aviso = /consultório está movimentado/;
     act(() => { jest.advanceTimersByTime(DEMORA_MS - 1000); });
     expect(tela.queryByText(aviso)).toBeNull();
     act(() => { jest.advanceTimersByTime(1500); });
@@ -123,12 +151,23 @@ describe("LoadingScreen", () => {
     const tela = montar({ imageUri: "file:///planta.jpg" });
     await esperarAcessibilidade();
     expect(tela.queryByTestId("laser")).toBeNull();
-    expect(tela.getByText(DICAS[0])).toBeTruthy();
+    expect(tela.getByText(CARTOES[0].titulo)).toBeTruthy();
     act(() => { jest.advanceTimersByTime(INICIO_ETAPAS_MS[2] + 10); });
     expect(tela.getByTestId("etapa-atual").props.children.join("")).toBe(`${ETAPAS[2].texto}...`);
     tela.unmount();
     act(() => { jest.advanceTimersByTime(60000); });
     expect(jest.getTimerCount()).toBe(0);
+  });
+});
+
+describe("textoContagem", () => {
+  it("desce de 5 em 5, vira quase pronto no fim e respeita a demora", () => {
+    expect(textoContagem(0, false)).toBe("Cerca de 30 segundos");
+    expect(textoContagem(7000, false)).toBe("Cerca de 25 segundos");
+    expect(textoContagem(20000, false)).toBe("Cerca de 10 segundos");
+    expect(textoContagem(25000, false)).toBe("Quase pronto...");
+    expect(textoContagem(50000, false)).toBe("Quase pronto...");
+    expect(textoContagem(61000, true)).toBe("Ainda cuidando da sua planta com carinho.");
   });
 });
 

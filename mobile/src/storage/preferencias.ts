@@ -58,3 +58,26 @@ export async function resetarTutorial(): Promise<void> {
     console.log("[preferencias] erro ao resetar tutorial:", err);
   }
 }
+
+// Lembrete pedido na tela de espera: o link do canal aparece no fim do proximo relatorio.
+const KEY_LEMBRAR_CANAL = "@terragentil:lembrar_canal";
+
+export async function marcarLembrarCanal(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(KEY_LEMBRAR_CANAL, "true");
+  } catch (err) {
+    console.log("[preferencias] erro ao marcar lembrete do canal:", err);
+  }
+}
+
+// Le e apaga o lembrete: aparece uma vez so, no relatorio seguinte.
+export async function consumirLembrarCanal(): Promise<boolean> {
+  try {
+    const valor = await AsyncStorage.getItem(KEY_LEMBRAR_CANAL);
+    if (valor === "true") await AsyncStorage.removeItem(KEY_LEMBRAR_CANAL);
+    return valor === "true";
+  } catch (err) {
+    console.log("[preferencias] erro ao ler lembrete do canal:", err);
+    return false;
+  }
+}
