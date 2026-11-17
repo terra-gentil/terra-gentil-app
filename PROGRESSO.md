@@ -1,5 +1,22 @@
 # PROGRESSO - Terra Gentil
 
+## Atualizado: 2026-11-17 (diagnostico v2 com Claude Opus 5.5)
+
+### Feito
+- Proposta completa em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/PROPOSTA-DIAGNOSTICO-V2.md (Fable): notas hoje vs v2, momentos de encantamento, schema e prompt v2, tela v2 em 19 blocos, ebooks "Leia de graca", custo (recomendado US$ 0,087 por diagnostico, uns 1.040 por mes).
+- Fase 0 (seguranca) concluida no Console da Anthropic: sem cartao cadastrado (so o credito de US$ 100/mes), workspace terra-gentil-prod com limite de US$ 100/mes e alertas em US$ 50 e 80, chave terra-gentil-backend com escopo nesse workspace, vence em 15/02/2027. Chave salva so no Railway (ANTHROPIC_API_KEY, servico terra-gentil-app).
+- Fase 1 (backend) no ar, commit 7219760, DESLIGADA: claude_service (Opus 5.5, schema v2, cache 1h, foto 1568 px, 40 s sem retry), Gemini v1 como reserva para qualquer falha, trava diaria em memoria (100/dia), 308 testes passando.
+- Variaveis novas (padroes): CLAUDE_MODEL=claude-opus-5-5, CLAUDE_ROLLOUT_PERCENT=0, CLAUDE_DAILY_LIMIT=100, CLAUDE_EFFORT=low, CLAUDE_TIMEOUT_S=40, CLAUDE_MAX_TOKENS=8000.
+
+### Proximo passo
+1. Fase 2: teste real com fotos (custo, tempo, qualidade, cache_read no log) comparando com o Gemini.
+2. Fase 3: levar proposta ao Claude Design (/enviar-design), implementar DiagnosisV1/DiagnosisV2 no app e subir timeout do app para 100 s via OTA ANTES de liberar.
+3. Ebooks: rodar scripts/gerar-colecao.py (app 28 livros atras do site, 133 guias) e ligar resolver_ebooks().
+4. Fase 4: politica de privacidade e Data Safety citando a Anthropic. Fase 5: liberacao gradual (10, 50, 100%).
+
+### Decisoes
+- Opus = relatorio v2; Gemini = relatorio v1 de hoje. Aviso de cautela de pets quando a identificacao for incerta. Historico completo e lembrete local ficam para segunda etapa.
+
 ## Atualizado: 2026-11-12 (sessao de ebooks, performance e barra de abas)
 
 ### Estado atual (tudo publicado via eas update no canal production)
