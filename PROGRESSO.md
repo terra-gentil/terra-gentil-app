@@ -1,5 +1,11 @@
 # PROGRESSO - Terra Gentil
 
+## PEDIDO DO ANDRE PARA A PROXIMA SESSAO (2026-11-17, depois de testar no celular)
+Redesenhar a TELA DE RESULTADO para o relatorio v2 do Opus, via Claude Design (mesmo fluxo da tela de espera):
+- Hoje a tela segue o padrao do Gemini (so campos v1). Mostrar os blocos v2: leitura_foto, identificacao (confianca, como reconheci, alternativas), problemas com evidencia visual, plano_timeline, acompanhamento, ajuda_profissional, toxicidade completa, cuidados, calendario_cuidados, curiosidades. Proposta de 19 blocos em docs/PROPOSTA-DIAGNOSTICO-V2.md secao 5.
+- PRESENTE: o cartao "Presente do Doutor" hoje e generico e pede e-mail. Deve mostrar a CAPA do ebook certo (ex.: orquidea -> livro da orquidea) e, ao tocar, abrir direto no leitor do app (EbookViewerModal), sem e-mail. Para isso ligar o catalogo no Opus: rodar mobile/scripts/gerar-colecao.py e ligar resolver_ebooks() em backend/app/services/claude_service.py (hoje ebooks_recomendados vem vazio). Dados dos livros em mobile/src/data/colecao.ts e ebooks.ts.
+- Fluxo: /enviar-design com DiagnosisScreen.tsx + exemplos reais de JSON v2 (backend/fase2-resultados/*.claude.json), Andre aprova, agente porta para React Native, jest + tsc, commit, eas update --branch production.
+
 ## Atualizado: 2026-11-17 noite, parte 2 (CLAUDE LIGADO EM PRODUCAO)
 
 ### Feito
