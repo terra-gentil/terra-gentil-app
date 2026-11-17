@@ -1,5 +1,22 @@
 # PROGRESSO - Terra Gentil
 
+## Atualizado: 2026-11-17 noite, parte 2 (CLAUDE LIGADO EM PRODUCAO)
+
+### Feito
+- Claude Opus LIGADO em producao: variavel CLAUDE_ROLLOUT_PERCENT=100 criada no Railway (servico terra-gentil-app). Motivo: o Gemini estava fora (503 e timeout de 60 s). Teste real em /v1/diagnostico: HTTP 200 em 30 s, relatorio v2 (lirio-da-paz murcho). Travas: 100 diagnosticos por dia (CLAUDE_DAILY_LIMIT) e US$ 100 por mes no workspace; se o Claude falhar, cai no Gemini.
+- O app atual so mostra os campos v1 do relatorio (o v2 e um superconjunto, entao funciona).
+- Tela de espera com o design do Claude Design (commit a4813d4) PUBLICADA por OTA no canal production (update group 8cc5ddef). Inclui tempo limite de 100 s e lembrete do canal.
+- EAS logado neste Mac como terra-gentil (login por dispositivo: eas login --device --non-interactive, depois --resume ID --match NUMERO).
+- Projeto no Claude Design: "Terra Gentil Loading Screen" (claude.ai/design). Claude Design muda para o Claude em 14/12/2026.
+
+### Proximo passo (urgente primeiro)
+1. Politica de privacidade e Data Safety da Play: citar que a foto vai para a Anthropic (Claude ja esta processando fotos).
+2. Tela do relatorio v2 no Claude Design (mesmo fluxo: /enviar-design, depois porte por agente) e publicar por OTA.
+3. Ligar o catalogo de ebooks no Opus (resolver_ebooks, gerar-colecao.py).
+4. Momento "Pronto!" de 1,8 s da tela de espera (precisa callback no App.tsx).
+5. Acompanhar custo no Console da Anthropic nos primeiros dias.
+6. Revogar a chave teste-local-fase2 ao terminar os testes locais.
+
 ## Atualizado: 2026-11-17 noite (fase 2 do diagnostico v2 e tela de espera)
 
 ### Feito
