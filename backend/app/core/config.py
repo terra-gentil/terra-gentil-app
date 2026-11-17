@@ -30,6 +30,31 @@ class Settings(BaseSettings):
         description="Modelo do Gemini a usar (o 2.5 nao esta mais disponivel para projetos novos): gemini-3.8-flash",
     )
 
+    # Diagnostico v2 no Claude. Sem chave ou com liberacao em 0, tudo segue no Gemini.
+    ANTHROPIC_API_KEY: str = Field(default="", description="API key da Anthropic (vazio desliga o Claude)")
+    CLAUDE_MODEL: str = Field(default="claude-opus-5-5", description="Modelo do Claude no diagnostico v2")
+    CLAUDE_ROLLOUT_PERCENT: int = Field(
+        default=0, ge=0, le=100,
+        description="Porcentagem dos diagnosticos enviados ao Claude, de 0 a 100",
+    )
+    CLAUDE_DAILY_LIMIT: int = Field(
+        default=100, ge=0,
+        description="Maximo de diagnosticos no Claude por dia (horario de Brasilia); depois, Gemini",
+    )
+    CLAUDE_EFFORT: str = Field(
+        default="low",
+        pattern="^(low|medium|high|xhigh|max)$",
+        description="Esforco de raciocinio do Claude (output_config.effort). Fixo para nao invalidar o cache",
+    )
+    CLAUDE_TIMEOUT_S: float = Field(
+        default=40.0, gt=0,
+        description="Limite de tempo da chamada ao Claude, sem nova tentativa",
+    )
+    CLAUDE_MAX_TOKENS: int = Field(
+        default=8000, gt=0,
+        description="Teto de tokens de saida (raciocinio mais JSON) do Claude",
+    )
+
     GOOGLE_CLIENT_ID: str = Field(default="", description="Google OAuth client ID")
     GOOGLE_CLIENT_SECRET: str = Field(default="", description="Google OAuth client secret")
     JWT_SECRET: str = Field(default="", description="Segredo para assinar JWTs do fórum")

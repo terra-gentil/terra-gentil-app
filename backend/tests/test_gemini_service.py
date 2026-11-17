@@ -145,3 +145,15 @@ class TestRetry:
             gemini_service.diagnosticar(imagem_jpeg_valida)
 
         assert gemini_service.model.generate_content.call_count == 1
+
+    def test_reserva_do_claude_faz_uma_tentativa_so(
+        self, gemini_service, imagem_jpeg_valida
+    ):
+        mock_ruim = MagicMock()
+        mock_ruim.text = "json truncado {"
+        gemini_service.model.generate_content.return_value = mock_ruim
+
+        with pytest.raises(GeminiInvalidResponseError):
+            gemini_service.diagnosticar(imagem_jpeg_valida, tentativas=1)
+
+        assert gemini_service.model.generate_content.call_count == 1

@@ -147,7 +147,8 @@ class GeminiService:
         )
         return response.text.strip()
 
-    def diagnosticar(self, image_bytes: bytes) -> DiagnosticoResponse:
+    def diagnosticar(self, image_bytes: bytes, tentativas: int = 2) -> DiagnosticoResponse:
+        """tentativas=1 quando o Gemini e reserva do Claude, para caber no tempo da rota."""
         start = time.time()
 
         try:
@@ -173,7 +174,7 @@ class GeminiService:
         )
 
         last_error = None
-        for attempt in range(2):
+        for attempt in range(tentativas):
             try:
                 response = self.model.generate_content(
                     [PROMPT_DIAGNOSTICO_V1, pil_image],
@@ -202,7 +203,7 @@ class GeminiService:
                 )
                 logger.warning("Tentativa %s falhou: %s", attempt + 1, exc)
                 last_error = exc
-                if attempt == 0:
+                if attempt + 1 < tentativas:
                     logger.info("Retry automatico...")
                     continue
                 raise GeminiInvalidResponseError(
@@ -215,7 +216,7 @@ class GeminiService:
                 logger.error("Resposta nao bate com schema: %s", data)
                 logger.warning("Tentativa %s falhou: %s", attempt + 1, exc)
                 last_error = exc
-                if attempt == 0:
+                if attempt + 1 < tentativas:
                     logger.info("Retry automatico...")
                     continue
                 raise GeminiInvalidResponseError(
@@ -223,5 +224,5 @@ class GeminiService:
                 ) from exc
 
         raise GeminiInvalidResponseError(
-            f"Falha apos 2 tentativas: {last_error}"
+            f"Falha apos {tentativas} tentativas: {last_error}"
         )
