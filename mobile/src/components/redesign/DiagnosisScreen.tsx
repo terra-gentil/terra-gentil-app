@@ -8,17 +8,24 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
+import { MASCOT_POSES } from "../../assets/mascot";
 import { DiagnosticoResponse } from "../../api/diagnostico";
 import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
 import StatCard from "./StatCard";
 import SectionTitle from "./SectionTitle";
 import { EbookCard } from "../EbookCard";
 import { consumirLembrarCanal } from "../../storage/preferencias";
-import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Camera, MessageSquare, PlayCircle } from "lucide-react-native";
+import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Camera, MessageSquare, BellRing, Play, ExternalLink } from "lucide-react-native";
 
 const YOUTUBE_CANAL = "https://www.youtube.com/@TerraGentil";
+
+// Capa do cartao do canal: arte paisagem do Doutor, enquadrada como object-position 70% 35%.
+const CANAL_CAPA_ALTURA = 150;
+const CANAL_CAPA_PROPORCAO = 1365 / 768;
+const CANAL_CAPA_FOCO_Y = 0.35;
 
 const NIVEL_LUZ_LABEL: Record<string, string> = {
   sol_pleno: "Sol pleno",
@@ -59,6 +66,11 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
   const confiancaPct = Math.round(resultado.confianca * 100);
   // Lembrete pedido na tela de espera; aparece so neste relatorio
   const [lembrarCanal, setLembrarCanal] = useState(false);
+  // Largura da capa: tela menos margens (16 x 2) e padding do cartao (14 x 2)
+  const { width: larguraTela } = useWindowDimensions();
+  const capaLargura = larguraTela - 60;
+  const capaAlturaImg = Math.max(capaLargura / CANAL_CAPA_PROPORCAO, CANAL_CAPA_ALTURA);
+  const capaTopo = -(capaAlturaImg - CANAL_CAPA_ALTURA) * CANAL_CAPA_FOCO_Y;
 
   useEffect(() => {
     let ativo = true;
@@ -226,12 +238,37 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
           onPress={() => Linking.openURL(YOUTUBE_CANAL)}
           activeOpacity={0.85}
           accessibilityRole="link"
+          accessibilityLabel="Você pediu para lembrar. Abrir o canal Terra Gentil no YouTube"
           testID="cartao-lembrete-canal"
         >
-          <PlayCircle size={32} color="#dc2626" strokeWidth={2.2} />
-          <View style={styles.giftTextWrap}>
-            <Text style={styles.giftTitle}>Você pediu para lembrar</Text>
-            <Text style={styles.giftDesc}>Conheça o canal Terra Gentil no YouTube, com vídeos novos toda semana.</Text>
+          <View style={styles.canalTopo}>
+            <View style={styles.canalSino}>
+              <BellRing size={18} color={COLORS.coralDeep} strokeWidth={2.5} />
+            </View>
+            <Text style={styles.canalRotulo}>VOCÊ PEDIU PARA LEMBRAR</Text>
+          </View>
+          <View style={styles.canalCapa}>
+            <Image
+              source={MASCOT_POSES[1]}
+              style={[styles.canalCapaImg, { width: capaLargura, height: capaAlturaImg, top: capaTopo }]}
+              accessible={false}
+            />
+            <View style={styles.canalPlay}>
+              <Play size={24} color="#fff" fill="#fff" strokeWidth={0} />
+            </View>
+            <View style={styles.canalUrl}>
+              <Text style={styles.canalUrlTexto}>youtube.com/@TerraGentil</Text>
+            </View>
+          </View>
+          <View style={styles.canalTextos}>
+            <Text style={styles.canalTitulo}>Conheça o canal Terra Gentil</Text>
+            <Text style={styles.canalDesc}>
+              Vídeos novos toda semana, com transformações de quintais e tutoriais de jardinagem sem pressa.
+            </Text>
+          </View>
+          <View style={styles.canalBotao}>
+            <Text style={styles.canalBotaoTexto}>Abrir o canal no YouTube</Text>
+            <ExternalLink size={17} color="#fff" strokeWidth={2.5} />
           </View>
         </TouchableOpacity>
       )}
@@ -259,17 +296,99 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
 
 const styles = StyleSheet.create({
   canalCard: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: 12,
     marginHorizontal: 16,
     marginBottom: 14,
-    padding: 16,
-    borderRadius: 22,
+    padding: 14,
+    borderRadius: 24,
     backgroundColor: COLORS.card,
-    borderWidth: 2,
-    borderColor: "#fecaca",
-    ...shadowSoft(),
+    ...shadowChunky("rgba(251,111,146,0.35)"),
+  },
+  canalTopo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  canalSino: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.coralSoft,
+  },
+  canalRotulo: {
+    fontFamily: FONTS.bodyExtraBold,
+    fontSize: 13,
+    letterSpacing: 1.2,
+    color: COLORS.coralDeep,
+  },
+  canalCapa: {
+    height: CANAL_CAPA_ALTURA,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: COLORS.sky,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  canalCapaImg: {
+    position: "absolute",
+    left: 0,
+  },
+  canalPlay: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.coral,
+    ...shadowChunky("rgba(230,59,110,0.5)"),
+    shadowOffset: { width: 0, height: 4 },
+  },
+  canalUrl: {
+    position: "absolute",
+    left: 10,
+    bottom: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(28,25,23,0.75)",
+  },
+  canalUrlTexto: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 13,
+    color: "#fff",
+  },
+  canalTextos: {
+    gap: 4,
+  },
+  canalTitulo: {
+    fontFamily: FONTS.displayBold,
+    fontSize: 21,
+    color: COLORS.ink,
+  },
+  canalDesc: {
+    fontFamily: FONTS.body,
+    fontSize: 15,
+    lineHeight: 22,
+    color: COLORS.inkSoft,
+  },
+  canalBotao: {
+    height: 50,
+    borderRadius: 999,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: COLORS.greenDeep,
+    ...shadowChunky(COLORS.greenDark),
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  canalBotaoTexto: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 16,
+    color: "#fff",
   },
   screen: {
     flex: 1,

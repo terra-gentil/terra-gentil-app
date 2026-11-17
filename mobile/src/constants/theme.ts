@@ -18,8 +18,10 @@ export const COLORS = {
   amberSoft: '#fef3c7',
   sky: '#38bdf8',
   skySoft: '#e0f2fe',
+  skyDeep: '#0369a1', // texto sobre branco, contraste AA
   lavender: '#a78bfa',
   lavenderSoft: '#ede9fe',
+  lavenderDeep: '#6d28d9', // texto sobre branco, contraste AA
 
   // Neutros
   bg: '#f6f1e7',
