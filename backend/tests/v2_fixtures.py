@@ -48,6 +48,7 @@ def resposta_v2_planta() -> dict:
                 "evidencia_visual": "Solo brilhante e folhas inferiores amarelas.",
                 "como_confirmar": "Enfie o dedo 2 cm no solo.",
                 "contagioso": False,
+                "area_foto": {"x": 0.1, "y": 0.55, "largura": 0.5, "altura": 0.4},
             }
         ],
         "plano_tratamento": "Suspender a rega e melhorar a drenagem.",
@@ -83,6 +84,7 @@ def resposta_v2_planta() -> dict:
         "rega_ml": 300,
         "vaso_estimado_cm": 20,
         "rega_condicao": "Quando o solo estiver seco a 2 cm.",
+        "nota_estacao": "Na primavera ela cresce mais e pode pedir rega um pouco mais frequente.",
         "temperatura_ideal": "18 a 30 graus",
         "nivel_dificuldade": "facil",
         "luz_porcentagem": 60,
@@ -97,6 +99,38 @@ def resposta_v2_planta() -> dict:
         "curiosidades": ["É nativa das Ilhas Salomão."],
         "ebooks_recomendados": [{"id": "TG074", "motivo": "Ajuda na rega."}],
     }
+
+
+def resposta_v2_com_alternativas() -> dict:
+    """Identificacao media com duas alternativas e um problema sem lupa (planta toda)."""
+    dados = resposta_v2_planta()
+    dados["confianca"] = 0.7
+    dados["identificacao"]["nivel_confianca"] = "media"
+    dados["identificacao"]["alternativas"] = [
+        {
+            "nome_popular": "Filodendro-brasil",
+            "especie": "Philodendron hederaceum 'Brasil'",
+            "como_diferenciar": "Folha mais fina e pecíolo sem sulco.",
+        },
+        {
+            "nome_popular": "Singônio",
+            "especie": "Syngonium sp.",
+            "como_diferenciar": "Folha em ponta de flecha.",
+        },
+    ]
+    dados["problemas_detectados"].append(
+        {
+            "descricao": "Crescimento lento",
+            "gravidade": "baixa",
+            "causa_provavel": "Pouca luz no ambiente.",
+            "categoria": "luz_falta",
+            "evidencia_visual": "Planta inteira com poucas folhas novas.",
+            "como_confirmar": "",
+            "contagioso": False,
+            "area_foto": None,
+        }
+    )
+    return dados
 
 
 def mensagem_sdk(dados: dict | None = None, stop_reason: str = "end_turn", texto: str | None = None):

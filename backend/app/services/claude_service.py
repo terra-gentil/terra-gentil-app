@@ -1,8 +1,8 @@
 """
 Servico de diagnostico v2 com o Claude (Anthropic).
 
-Prepara a foto (orientacao EXIF, no maximo 1568 px no lado maior, JPEG), chama o modelo
-com o schema v2 no prompt e devolve um DiagnosticoV2Response.
+Prepara de 1 a 3 fotos da mesma planta (orientacao EXIF, no maximo 1568 px no lado maior,
+JPEG, cada uma), chama o modelo com o schema v2 no prompt e devolve um DiagnosticoV2Response.
 
 Sem saida estruturada (output_config.format): o schema v2 compila numa gramatica maior
 que o limite interno da API ("compiled grammar is too large", fase 2, 17/11/2026). O
@@ -14,7 +14,7 @@ Regras (secoes 6.1, 7.2 e 7.4 da proposta):
   do cliente, para a requisicao ser abortada de verdade e nao seguir sendo cobrada.
 - Qualquer falha vira ClaudeServiceError com um motivo curto; a rota cai no Gemini.
 - O system tem dois blocos (instrucoes e catalogo) e a marca de cache de 1 hora fica
-  no segundo. Data e foto vao na mensagem do usuario, depois da marca.
+  no segundo. Fotos, data, mes e estacao vao na mensagem do usuario, depois da marca.
 """
 from __future__ import annotations
 
@@ -46,6 +46,38 @@ QUALIDADE_JPEG = 85
 # Gerado por mobile/scripts/gerar-colecao.py, mesma fonte da aba Ebooks do app
 CATALOGO_EBOOKS_PATH = Path(__file__).resolve().parent.parent / "data" / "catalogo_ebooks.json"
 MAX_EBOOKS = 2
+MAX_FOTOS = 3
+
+MESES = (
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+)
+
+
+def estacao_brasil(mes: int) -> str:
+    """Estacao no hemisferio sul pelo mes (1 a 12), pelos meses inteiros que o app usa."""
+    if mes in (12, 1, 2):
+        return "verão"
+    if mes in (3, 4, 5):
+        return "outono"
+    if mes in (6, 7, 8):
+        return "inverno"
+    return "primavera"
+
+
+def texto_usuario(agora: datetime, n_fotos: int) -> str:
+    """Texto da mensagem do usuario. Muda por chamada, por isso fica fora do bloco em cache."""
+    fotos = (
+        "Foto enviada: 1."
+        if n_fotos == 1
+        else f"Fotos enviadas: {n_fotos}, ângulos da mesma planta. "
+        "A primeira é a principal e area_foto se refere sempre a ela."
+    )
+    return (
+        f"Data de hoje: {agora.strftime('%d/%m/%Y')}. País: Brasil. "
+        f"Mês: {MESES[agora.month - 1]}. Estação no Brasil: {estacao_brasil(agora.month)}. "
+        "Considere essa estação na rega e nos cuidados. " + fotos
+    )
 
 
 class ClaudeServiceError(Exception):
@@ -260,9 +292,28 @@ def extrair_json(texto: str) -> str:
     return texto[inicio : fim + 1] if inicio != -1 and fim > inicio else texto
 
 
-def _montar_requisicao(imagem_jpeg: bytes, catalogo: list[str] | tuple[str, ...] | None = None) -> dict:
-    """Parametros de messages.create. Ordem e conteudo do prefixo precisam ser estaveis."""
-    data_hoje = datetime.now(FUSO_BRASILIA).strftime("%d/%m/%Y")
+def _bloco_imagem(imagem_jpeg: bytes) -> dict:
+    return {
+        "type": "image",
+        "source": {
+            "type": "base64",
+            "media_type": "image/jpeg",
+            "data": base64.standard_b64encode(imagem_jpeg).decode("ascii"),
+        },
+    }
+
+
+def _montar_requisicao(
+    imagens_jpeg: bytes | list[bytes],
+    catalogo: list[str] | tuple[str, ...] | None = None,
+) -> dict:
+    """
+    Parametros de messages.create. Ordem e conteudo do prefixo precisam ser estaveis.
+    As imagens vao antes do texto, na ordem recebida (a primeira e a principal).
+    """
+    if isinstance(imagens_jpeg, (bytes, bytearray)):
+        imagens_jpeg = [imagens_jpeg]
+    agora = datetime.now(FUSO_BRASILIA)
     return {
         "model": settings.CLAUDE_MODEL,
         "max_tokens": settings.CLAUDE_MAX_TOKENS,
@@ -278,15 +329,8 @@ def _montar_requisicao(imagem_jpeg: bytes, catalogo: list[str] | tuple[str, ...]
             {
                 "role": "user",
                 "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/jpeg",
-                            "data": base64.standard_b64encode(imagem_jpeg).decode("ascii"),
-                        },
-                    },
-                    {"type": "text", "text": f"Data de hoje: {data_hoje}. País: Brasil."},
+                    *(_bloco_imagem(img) for img in imagens_jpeg),
+                    {"type": "text", "text": texto_usuario(agora, len(imagens_jpeg))},
                 ],
             }
         ],
@@ -331,15 +375,24 @@ class ClaudeService:
             raise ClaudeServiceError("sem_chave")
         self.client = client or _obter_cliente()
 
-    async def diagnosticar(self, image_bytes: bytes) -> DiagnosticoV2Response:
-        # Decodificar e reduzir foto de 12 MP leva centenas de ms: fora do loop de eventos
-        imagem_jpeg, original, final = await asyncio.to_thread(preparar_imagem, image_bytes)
-        logger.info(
-            "Enviando imagem ao Claude: original=%sx%s final=%sx%s bytes=%s",
-            original[0], original[1], final[0], final[1], len(imagem_jpeg),
-        )
+    async def diagnosticar(self, image_bytes: bytes | list[bytes]) -> DiagnosticoV2Response:
+        """Aceita uma foto (bytes) ou de 1 a MAX_FOTOS fotos da mesma planta (lista)."""
+        fotos = [image_bytes] if isinstance(image_bytes, (bytes, bytearray)) else list(image_bytes)
+        if not fotos:
+            raise ClaudeServiceError("imagem_invalida", "nenhuma foto")
+        fotos = fotos[:MAX_FOTOS]
 
-        params = _montar_requisicao(imagem_jpeg, linhas_catalogo())
+        # Decodificar e reduzir foto de 12 MP leva centenas de ms: fora do loop de eventos
+        preparadas = await asyncio.gather(
+            *(asyncio.to_thread(preparar_imagem, foto) for foto in fotos)
+        )
+        for i, (imagem_jpeg, original, final) in enumerate(preparadas, start=1):
+            logger.info(
+                "Enviando imagem %s/%s ao Claude: original=%sx%s final=%sx%s bytes=%s",
+                i, len(preparadas), original[0], original[1], final[0], final[1], len(imagem_jpeg),
+            )
+
+        params = _montar_requisicao([p[0] for p in preparadas], linhas_catalogo())
         inicio = time.monotonic()
         try:
             resposta = await self.client.messages.create(**params)

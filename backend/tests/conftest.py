@@ -136,3 +136,18 @@ def _zera_rate_limit():
     from app.core.limiter import limiter
     limiter.reset()
     yield
+
+
+@pytest.fixture(autouse=True)
+def _wikipedia_sem_rede(monkeypatch):
+    """Nenhum teste chama a Wikipedia de verdade: toda busca responde 404 (sem foto)."""
+    import httpx
+
+    from app.services import foto_referencia
+
+    monkeypatch.setattr(
+        foto_referencia, "_transporte", httpx.MockTransport(lambda req: httpx.Response(404))
+    )
+    foto_referencia.limpar_cache()
+    yield
+    foto_referencia.limpar_cache()

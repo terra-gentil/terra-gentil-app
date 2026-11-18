@@ -2,7 +2,10 @@
 Rota de diagnóstico de plantas.
 
 POST /v1/diagnostico
-Recebe imagem via multipart/form-data e retorna diagnóstico estruturado.
+Recebe de 1 a 3 fotos da mesma planta via multipart/form-data e retorna diagnóstico
+estruturado. Campos: file (obrigatório, foto principal, o mesmo de sempre), file2 e file3
+(opcionais, outros ângulos). Cada foto tem os mesmos limites (JPEG, PNG ou WebP, até 10 MB).
+O Claude recebe todas; o Gemini (reserva) também. A lupa (area_foto) vale para a foto de file.
 
 Provedor por chamada: Claude (relatorio v2) quando ha chave, o sorteio cai dentro de
 CLAUDE_ROLLOUT_PERCENT e a trava diaria tem vaga. Qualquer falha do Claude cai no
@@ -20,6 +23,7 @@ from app.core.limiter import limiter
 from app.schemas.diagnostico import DiagnosticoErrorResponse, DiagnosticoResponse
 from app.schemas.diagnostico_v2 import DiagnosticoV2Response
 from app.services.claude_service import ClaudeService, ClaudeServiceError
+from app.services.foto_referencia import preencher_fotos_referencia
 from app.services.gemini_service import (
     GEMINI_TIMEOUT_S,
     GeminiInvalidResponseError,
@@ -56,7 +60,9 @@ def escolher_provedor() -> tuple[str, str]:
     return "claude", "liberado"
 
 
-async def _diagnosticar_com_claude(image_bytes: bytes) -> DiagnosticoV2Response | None:
+async def _diagnosticar_com_claude(
+    image_bytes: bytes | list[bytes],
+) -> DiagnosticoV2Response | None:
     """Tenta o Claude. Devolve None em qualquer falha, com o motivo no log."""
     try:
         service = ClaudeService()
@@ -75,32 +81,8 @@ async def _diagnosticar_com_claude(image_bytes: bytes) -> DiagnosticoV2Response 
     return None
 
 
-@router.post(
-    "/diagnostico",
-    # v2 primeiro: o relatorio do Claude sai com todos os campos, o do Gemini sai como v1
-    response_model=DiagnosticoV2Response | DiagnosticoResponse,
-    responses={
-        400: {"model": DiagnosticoErrorResponse, "description": "Imagem inválida"},
-        413: {"model": DiagnosticoErrorResponse, "description": "Imagem muito grande"},
-        415: {"model": DiagnosticoErrorResponse, "description": "Formato não suportado"},
-        502: {"model": DiagnosticoErrorResponse, "description": "Erro no Gemini"},
-        504: {"model": DiagnosticoErrorResponse, "description": "Demora no diagnóstico"},
-        429: {"model": DiagnosticoErrorResponse, "description": "Cota esgotada"},
-    },
-)
-@limiter.limit("10/minute")
-async def diagnosticar(
-    request: Request,
-    file: UploadFile = File(..., description="Foto da planta, JPEG, PNG ou WebP, até 10MB"),
-) -> DiagnosticoV2Response | DiagnosticoResponse:
-    """
-    Analisa uma imagem de planta e retorna diagnóstico (Claude v2 ou Gemini v1).
-
-    Regras:
-    - Aceita JPEG, PNG ou WebP
-    - Tamanho máximo: 10MB
-    - Retorna DiagnosticoV2Response (Claude) ou DiagnosticoResponse (Gemini)
-    """
+async def _ler_foto(file: UploadFile) -> bytes:
+    """Valida tipo e tamanho de uma foto e devolve os bytes. Mesmos erros de sempre."""
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -137,14 +119,51 @@ async def diagnosticar(
         file.content_type,
         len(image_bytes),
     )
+    return image_bytes
+
+
+@router.post(
+    "/diagnostico",
+    # v2 primeiro: o relatorio do Claude sai com todos os campos, o do Gemini sai como v1
+    response_model=DiagnosticoV2Response | DiagnosticoResponse,
+    responses={
+        400: {"model": DiagnosticoErrorResponse, "description": "Imagem inválida"},
+        413: {"model": DiagnosticoErrorResponse, "description": "Imagem muito grande"},
+        415: {"model": DiagnosticoErrorResponse, "description": "Formato não suportado"},
+        502: {"model": DiagnosticoErrorResponse, "description": "Erro no Gemini"},
+        504: {"model": DiagnosticoErrorResponse, "description": "Demora no diagnóstico"},
+        429: {"model": DiagnosticoErrorResponse, "description": "Cota esgotada"},
+    },
+)
+@limiter.limit("10/minute")
+async def diagnosticar(
+    request: Request,
+    file: UploadFile = File(..., description="Foto principal da planta, JPEG, PNG ou WebP, até 10MB"),
+    file2: UploadFile | None = File(None, description="Outro ângulo da mesma planta (opcional)"),
+    file3: UploadFile | None = File(None, description="Outro ângulo da mesma planta (opcional)"),
+) -> DiagnosticoV2Response | DiagnosticoResponse:
+    """
+    Analisa de 1 a 3 fotos da mesma planta e retorna diagnóstico (Claude v2 ou Gemini v1).
+
+    Regras:
+    - file obrigatório; file2 e file3 opcionais (outros ângulos)
+    - Aceita JPEG, PNG ou WebP, até 10MB por foto
+    - area_foto dos problemas se refere sempre à foto de file
+    - Retorna DiagnosticoV2Response (Claude) ou DiagnosticoResponse (Gemini)
+    """
+    image_bytes = await _ler_foto(file)
+    extras = [await _ler_foto(f) for f in (file2, file3) if f is not None]
+    fotos = [image_bytes, *extras]
 
     inicio = time.monotonic()
     provedor, motivo = escolher_provedor()
     logger.info("Provedor do diagnostico: %s (%s)", provedor, motivo)
 
     if provedor == "claude":
-        resultado_v2 = await _diagnosticar_com_claude(image_bytes)
+        resultado_v2 = await _diagnosticar_com_claude(fotos if extras else image_bytes)
         if resultado_v2 is not None:
+            # Fora do limite de tempo do Claude: no maximo 2 s e nunca levanta erro
+            resultado_v2 = await preencher_fotos_referencia(resultado_v2)
             logger.info(
                 "Diagnóstico concluído: provedor=claude especie=%s confianca=%s",
                 resultado_v2.especie_identificada,
@@ -152,6 +171,8 @@ async def diagnosticar(
             )
             return resultado_v2
 
+    # So passa as fotos extras quando existem, para a chamada de 1 foto ficar igual
+    kwargs_extras = {"fotos_extras": extras} if extras else {}
     try:
         service = GeminiService()
         # A chamada ao Gemini e bloqueante: roda em outra thread para nao travar a API inteira
@@ -159,10 +180,12 @@ async def diagnosticar(
         if provedor == "claude":
             # Reserva depois de falha do Claude: 1 tentativa e o tempo que sobra da rota
             restante = ROTA_TETO_S - (time.monotonic() - inicio)
-            chamada = asyncio.to_thread(service.diagnosticar, image_bytes, tentativas=1)
+            chamada = asyncio.to_thread(
+                service.diagnosticar, image_bytes, tentativas=1, **kwargs_extras
+            )
             limite = min(GEMINI_TIMEOUT_S + 10, max(GEMINI_RESERVA_MINIMO_S, restante))
         else:
-            chamada = asyncio.to_thread(service.diagnosticar, image_bytes)
+            chamada = asyncio.to_thread(service.diagnosticar, image_bytes, **kwargs_extras)
             limite = GEMINI_TIMEOUT_S + 10
         resultado = await asyncio.wait_for(chamada, timeout=limite)
     except (asyncio.TimeoutError, GeminiTimeoutError) as exc:

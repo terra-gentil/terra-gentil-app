@@ -201,6 +201,18 @@ _SCHEMA_V2_JSON = r"""
           "contagioso": {
             "type": "boolean",
             "description": "true se pode passar para outras plantas proximas."
+          },
+          "area_foto": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "description": "Caixa folgada em volta da regiao da PRIMEIRA foto onde o sinal aparece, em fracao da imagem de 0 a 1 (x e y do canto superior esquerdo, largura e altura). null quando o sinal nao esta numa regiao clara ou e a planta toda.",
+            "properties": {
+              "x": {"type": "number"},
+              "y": {"type": "number"},
+              "largura": {"type": "number"},
+              "altura": {"type": "number"}
+            },
+            "required": ["x", "y", "largura", "altura"]
           }
         },
         "required": [
@@ -210,7 +222,8 @@ _SCHEMA_V2_JSON = r"""
           "categoria",
           "evidencia_visual",
           "como_confirmar",
-          "contagioso"
+          "contagioso",
+          "area_foto"
         ]
       }
     },
@@ -355,6 +368,10 @@ _SCHEMA_V2_JSON = r"""
       "type": "string",
       "description": "Como saber a hora de regar, olhando o solo ou a planta."
     },
+    "nota_estacao": {
+      "type": "string",
+      "description": "Uma frase curta sobre como a estacao atual no Brasil muda a rega ou os cuidados desta planta. Vazio se nao muda nada."
+    },
     "temperatura_ideal": {
       "type": "string",
       "description": "Faixa de temperatura ideal, como 18 a 27 graus."
@@ -443,6 +460,7 @@ _SCHEMA_V2_JSON = r"""
     "rega_ml",
     "vaso_estimado_cm",
     "rega_condicao",
+    "nota_estacao",
     "temperatura_ideal",
     "nivel_dificuldade",
     "luz_porcentagem",

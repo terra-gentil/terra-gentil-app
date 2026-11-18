@@ -40,6 +40,21 @@ class GeminiTimeoutError(GeminiServiceError):
 # esperando e tentando de novo quando bate o limite por minuto.
 GEMINI_TIMEOUT_S = 45
 
+# Acrescentado ao prompt v1 quando chegam outros angulos da mesma planta
+NOTA_VARIAS_FOTOS = (
+    "\n\nAs imagens a seguir são {n} fotos da MESMA planta, em ângulos diferentes. "
+    "A primeira é a principal. Faça um único diagnóstico juntando o que todas mostram."
+)
+
+
+def _abrir_imagem(image_bytes: bytes) -> Image.Image:
+    try:
+        pil_image = Image.open(BytesIO(image_bytes))
+        pil_image.verify()
+        return Image.open(BytesIO(image_bytes))
+    except Exception as exc:
+        raise GeminiServiceError(f"Imagem invalida ou corrompida: {exc}") from exc
+
 
 def _classificar_erro(exc: Exception) -> GeminiServiceError:
     nome = type(exc).__name__
@@ -147,16 +162,23 @@ class GeminiService:
         )
         return response.text.strip()
 
-    def diagnosticar(self, image_bytes: bytes, tentativas: int = 2) -> DiagnosticoResponse:
-        """tentativas=1 quando o Gemini e reserva do Claude, para caber no tempo da rota."""
+    def diagnosticar(
+        self,
+        image_bytes: bytes,
+        tentativas: int = 2,
+        fotos_extras: list[bytes] | None = None,
+    ) -> DiagnosticoResponse:
+        """
+        tentativas=1 quando o Gemini e reserva do Claude, para caber no tempo da rota.
+        fotos_extras: outros angulos da mesma planta, enviados no mesmo pedido.
+        """
         start = time.time()
 
-        try:
-            pil_image = Image.open(BytesIO(image_bytes))
-            pil_image.verify()
-            pil_image = Image.open(BytesIO(image_bytes))
-        except Exception as exc:
-            raise GeminiServiceError(f"Imagem invalida ou corrompida: {exc}") from exc
+        pil_image = _abrir_imagem(image_bytes)
+        extras = [_abrir_imagem(b) for b in (fotos_extras or [])]
+        prompt = PROMPT_DIAGNOSTICO_V1
+        if extras:
+            prompt += NOTA_VARIAS_FOTOS.format(n=len(extras) + 1)
 
         logger.info(
             "Enviando imagem ao Gemini: formato=%s tamanho=%sx%s bytes=%s",
@@ -177,7 +199,7 @@ class GeminiService:
         for attempt in range(tentativas):
             try:
                 response = self.model.generate_content(
-                    [PROMPT_DIAGNOSTICO_V1, pil_image],
+                    [prompt, pil_image, *extras],
                     generation_config=generation_config,
                     request_options={"timeout": GEMINI_TIMEOUT_S, "retry": None},
                 )

@@ -51,6 +51,8 @@ class AlternativaEspecie(BaseModel):
     nome_popular: str
     especie: str
     como_diferenciar: str
+    # Derivado pelo backend (Wikipedia), nunca pelo modelo. "" quando nao achou.
+    foto_referencia: str = ""
 
 
 class Identificacao(BaseModel):
@@ -58,6 +60,42 @@ class Identificacao(BaseModel):
     como_reconheci: str = ""
     outros_nomes: list[str] = Field(default_factory=list)
     alternativas: list[AlternativaEspecie] = Field(default_factory=list)
+
+
+class AreaFoto(BaseModel):
+    """
+    Caixa da lupa na foto, em fracao da imagem (0 a 1), sempre sobre a primeira foto.
+    x e y sao o canto superior esquerdo; largura e altura a partir dele.
+    """
+
+    x: float
+    y: float
+    largura: float
+    altura: float
+
+
+def _normalizar_area(valor) -> dict | None:
+    """
+    Corta a caixa para dentro da imagem. Caixa ausente, nao numerica ou sem area
+    (largura ou altura <= 0 depois do corte) vira None, sem derrubar a resposta.
+    """
+    if isinstance(valor, AreaFoto):
+        valor = valor.model_dump()
+    if not isinstance(valor, dict):
+        return None
+    numeros = {}
+    for chave in ("x", "y", "largura", "altura"):
+        v = valor.get(chave)
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v:
+            return None
+        numeros[chave] = float(v)
+    x = min(1.0, max(0.0, numeros["x"]))
+    y = min(1.0, max(0.0, numeros["y"]))
+    largura = min(numeros["largura"], 1.0 - x)
+    altura = min(numeros["altura"], 1.0 - y)
+    if largura <= 0 or altura <= 0:
+        return None
+    return {"x": x, "y": y, "largura": largura, "altura": altura}
 
 
 class ProblemaDetectadoV2(ProblemaDetectado):
@@ -79,6 +117,14 @@ class ProblemaDetectadoV2(ProblemaDetectado):
     evidencia_visual: str
     como_confirmar: str = ""
     contagioso: bool = False
+    # Lupa: regiao da primeira foto onde o sinal aparece. None quando nao e localizavel
+    # ou e a planta toda.
+    area_foto: AreaFoto | None = None
+
+    @field_validator("area_foto", mode="before")
+    @classmethod
+    def _area_na_faixa(cls, v):
+        return _normalizar_area(v)
 
 
 class PassoTratamentoV2(PassoTratamento):
@@ -188,6 +234,10 @@ class DiagnosticoV2Response(DiagnosticoResponse):
     # (0 = nao deu para ver). Sempre exibidos como aproximados.
     rega_ml: int = 0
     vaso_estimado_cm: int = 0
+    # Uma frase sobre o efeito da estacao atual no Brasil nos cuidados ("" se nao muda nada)
+    nota_estacao: str = ""
+    # Derivado pelo backend (Wikipedia, pelo nome cientifico), nunca pelo modelo
+    foto_referencia: str = ""
 
     @field_validator("rega_ml", mode="before")
     @classmethod
