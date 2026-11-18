@@ -260,7 +260,7 @@ function MarcasAmpliadas({
   const destacada = visiveis.find((v) => v.m.indice === foco);
   return (
     <>
-      {!!destacada && <EscurecerFora key={`esc-${destacada.m.indice}`} retangulo={destacada.r} fator={fator} />}
+      {!!destacada && <EscurecerFora key={`esc-${destacada.m.indice}`} retangulo={destacada.r} limite={exibida} />}
       {visiveis.map(({ m, ordem, r }) => (
         <AnelMarca
           key={m.indice}

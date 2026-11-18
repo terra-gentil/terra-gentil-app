@@ -531,10 +531,11 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
               </View>
             )}
 
-            {/* Cartao do canal (pedido na tela de espera) */}
-            {lembrarCanal && <CartaoCanal />}
           </>
         )}
+
+        {/* Canal: ultimo video e inscricao (titulo muda se pediu para lembrar na tela de espera) */}
+        <CartaoCanal lembrou={lembrarCanal} />
 
         {/* 18. Rodape */}
         <View style={styles.rodape}>

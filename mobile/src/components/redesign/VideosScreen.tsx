@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -18,6 +18,7 @@ import Pills from "./Pills";
 import SectionTitle from "./SectionTitle";
 import NotificacoesModal from "./NotificacoesModal";
 import { MASCOT_POSES } from "../../assets/mascot";
+import { CANAL_INSCREVER_URL, VIDEOS_RESERVA, VideoCanal, buscarVideosCanal } from "../../api/videosCanal";
 
 const YOUTUBE_CHANNEL = "https://www.youtube.com/@TerraGentil";
 
@@ -29,46 +30,12 @@ function thumbUrlHQ(videoId: string) {
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }
 
-// Videos reais do canal @TerraGentil (UCfZn0uytIhsk30SMQtoKeLA), conferidos no feed oficial.
-type Video = { id: string; titulo: string; url: string; data: string };
+// Videos do canal vem do feed do YouTube (api/videosCanal.ts), com lista de reserva sem internet.
+type Video = VideoCanal;
 
-const TRANSFORMACOES: Video[] = [
-  {
-    id: "Q9FzrwE7nBA",
-    titulo: "JARDIM ABANDONADO da Senhora de 90 anos Invadiu a Calçada: Limpei Tudo de GRAÇA!",
-    url: "https://www.youtube.com/watch?v=Q9FzrwE7nBA",
-    data: "7 nov 2026",
-  },
-  {
-    id: "ykCh1KKHcvg",
-    titulo: "17 HORAS Limpando de GRAÇA o JARDIM ABANDONADO dessa Senhora!",
-    url: "https://www.youtube.com/watch?v=ykCh1KKHcvg",
-    data: "31 out 2026",
-  },
-  {
-    id: "5xIySYrszC4",
-    titulo: "Viúvo aos 87, não dá mais conta do JARDIM ABANDONADO. Limpei tudo de GRAÇA!",
-    url: "https://www.youtube.com/watch?v=5xIySYrszC4",
-    data: "24 out 2026",
-  },
-  {
-    id: "BuM4y6FvX10",
-    titulo: "Aos 78 anos, ela me ABENÇOOU por limpar o Jardim Abandonado de GRAÇA!",
-    url: "https://www.youtube.com/watch?v=BuM4y6FvX10",
-    data: "17 out 2026",
-  },
-];
-
-// Sem shorts nem lives publicos no canal por enquanto. Preencher aqui quando houver.
-const SHORTS: Video[] = [];
+// Sem lives publicas no canal por enquanto. Preencher aqui quando houver.
 const LIVES: Video[] = [];
 
-const CATEGORIAS = [
-  "Todos",
-  ...(TRANSFORMACOES.length ? ["Transformações"] : []),
-  ...(SHORTS.length ? ["Shorts"] : []),
-  ...(LIVES.length ? ["Lives"] : []),
-];
 
 function abrirVideo(url: string) {
   Linking.openURL(url);
@@ -81,6 +48,24 @@ export default function VideosScreen() {
   const { badgeCount } = useNotif();
   const [filtro, setFiltro] = useState("Todos");
   const [notifAberto, setNotifAberto] = useState(false);
+  const [videos, setVideos] = useState<VideoCanal[]>(VIDEOS_RESERVA);
+
+  useEffect(() => {
+    let vivo = true;
+    buscarVideosCanal().then((v) => vivo && setVideos(v));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  const TRANSFORMACOES = videos.filter((v) => !v.short);
+  const SHORTS = videos.filter((v) => v.short);
+  const CATEGORIAS = [
+    "Todos",
+    ...(TRANSFORMACOES.length ? ["Transformações"] : []),
+    ...(SHORTS.length ? ["Shorts"] : []),
+    ...(LIVES.length ? ["Lives"] : []),
+  ];
 
   const mostrarTransformacoes = TRANSFORMACOES.length > 0 && (filtro === "Todos" || filtro === "Transformações");
   const mostrarShorts = SHORTS.length > 0 && (filtro === "Todos" || filtro === "Shorts");
@@ -103,7 +88,7 @@ export default function VideosScreen() {
         <View style={styles.headerWrap}>
           <View style={styles.headerRow}>
             <Text style={styles.headerTitle}>Terra Gentil TV</Text>
-            <TouchableOpacity style={styles.subscribeBtn} onPress={() => abrirVideo(YOUTUBE_CHANNEL)} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.subscribeBtn} onPress={() => abrirVideo(CANAL_INSCREVER_URL)} activeOpacity={0.8}>
               <Play size={14} color="#fff" fill="#fff" />
               <Text style={styles.subscribeBtnText}>Inscreva-se</Text>
             </TouchableOpacity>

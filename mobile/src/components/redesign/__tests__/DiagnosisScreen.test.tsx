@@ -259,6 +259,10 @@ describe("DiagnosisScreen, interacoes", () => {
     const { tela } = renderizar(caso01);
     await waitFor(() => expect(mockConsumirLembrarCanal).toHaveBeenCalled());
     expect(tela.queryByTestId("cartao-lembrete-canal")).toBeNull();
+    // O cartao do canal (ultimo video e inscricao) aparece sempre no fim
+    expect(tela.getByTestId("cartao-canal")).toBeTruthy();
+    expect(tela.getByTestId("inscrever-canal")).toBeTruthy();
+    expect(tela.getByTestId("video-canal")).toBeTruthy();
   });
 
   it("tocar no ebook abre o leitor direto, sem e-mail", async () => {

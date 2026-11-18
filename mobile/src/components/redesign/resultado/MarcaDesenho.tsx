@@ -18,7 +18,6 @@ export const MARCA = {
 export const raioMarca = (r: Retangulo) => Math.max(Math.min(r.width, r.height) / 2, 22);
 
 const ATRASO_POR_MARCA = 120;
-const ESPESSURA_ESCURECER = 1000;
 
 interface AnelProps {
   testID: string;
@@ -189,11 +188,13 @@ export function EtiquetaMarca({ numero, retangulo: r, ativa, ordem, limite, esca
 
 interface EscurecerProps {
   retangulo: Retangulo;
-  fator?: number;
+  // Tamanho da foto: o escurecimento fica so dentro dela
+  limite: { largura: number; altura: number };
 }
 
-// Escurece tudo fora da marca destacada com uma borda gigante (sem SVG nem mascara)
-export function EscurecerFora({ retangulo: r, fator = 1 }: EscurecerProps) {
+// Escurece a foto fora da marca destacada: 4 faixas em volta da caixa e 4 cantos que arredondam o buraco.
+// Tudo do tamanho da foto: a borda gigante sugerida no Design nao desenhava no Android.
+export function EscurecerFora({ retangulo: r, limite }: EscurecerProps) {
   const reduzir = useReduzirMovimento();
   const opacidade = useRef(new Animated.Value(reduzir ? 1 : 0)).current;
 
@@ -207,25 +208,54 @@ export function EscurecerFora({ retangulo: r, fator = 1 }: EscurecerProps) {
     return () => a.stop();
   }, [reduzir, opacidade]);
 
-  const b = ESPESSURA_ESCURECER * fator;
+  const L = limite.largura;
+  const A = limite.altura;
+  const esq = Math.max(0, r.left);
+  const topo = Math.max(0, r.top);
+  const dir = Math.min(L, r.left + r.width);
+  const baixo = Math.min(A, r.top + r.height);
+  const R = Math.min(raioMarca(r), r.width / 2, r.height / 2);
+  const faixa = (left: number, top: number, width: number, height: number) =>
+    width > 0 && height > 0 ? { left, top, width, height } : null;
+  const faixas = [
+    faixa(0, 0, L, topo),
+    faixa(0, baixo, L, A - baixo),
+    faixa(0, topo, esq, baixo - topo),
+    faixa(dir, topo, L - dir, baixo - topo),
+  ].filter(Boolean) as Retangulo[];
+  // Cantos: quadrado R x R com o lado de fora do arco escuro (borda de um circulo centrado no ponto interno)
+  const cantos = [
+    { left: r.left, top: r.top, cx: R, cy: R },
+    { left: r.left + r.width - R, top: r.top, cx: 0, cy: R },
+    { left: r.left, top: r.top + r.height - R, cx: R, cy: 0 },
+    { left: r.left + r.width - R, top: r.top + r.height - R, cx: 0, cy: 0 },
+  ];
+
   return (
-    <Animated.View
-      testID="escurecer-lupa"
-      pointerEvents="none"
-      style={[
-        styles.abs,
-        {
-          left: r.left - b,
-          top: r.top - b,
-          width: r.width + 2 * b,
-          height: r.height + 2 * b,
-          borderWidth: b,
-          borderColor: MARCA.escurecer,
-          borderRadius: raioMarca(r) + b,
-          opacity: opacidade,
-        },
-      ]}
-    />
+    <Animated.View testID="escurecer-lupa" pointerEvents="none" style={[styles.abs, { left: 0, top: 0, width: L, height: A, opacity: opacidade }]}>
+      {faixas.map((f, i) => (
+        <Animated.View key={`f${i}`} style={[styles.abs, f, { backgroundColor: MARCA.escurecer }]} />
+      ))}
+      {R > 1 &&
+        cantos.map((c, i) => (
+          <Animated.View key={`c${i}`} style={[styles.abs, { left: c.left, top: c.top, width: R, height: R, overflow: "hidden" }]}>
+            <Animated.View
+              style={[
+                styles.abs,
+                {
+                  left: c.cx - 2 * R,
+                  top: c.cy - 2 * R,
+                  width: 4 * R,
+                  height: 4 * R,
+                  borderRadius: 2 * R,
+                  borderWidth: R,
+                  borderColor: MARCA.escurecer,
+                },
+              ]}
+            />
+          </Animated.View>
+        ))}
+    </Animated.View>
   );
 }
 

@@ -86,7 +86,7 @@ function Marcas({ marcas, destaque, caixa, imagem }: { marcas: MarcaLupa[]; dest
   const destacada = visiveis.find((v) => v.m.indice === destaque);
   return (
     <>
-      {!!destacada && <EscurecerFora key={`esc-${destacada.m.indice}`} retangulo={destacada.r} />}
+      {!!destacada && <EscurecerFora key={`esc-${destacada.m.indice}`} retangulo={destacada.r} limite={caixa} />}
       {visiveis.map(({ m, ordem, r }) => (
         <AnelMarca key={m.indice} testID={`marca-lupa-${m.numero}`} numero={m.numero} retangulo={r} ativa={destaque === m.indice} ordem={ordem} />
       ))}
@@ -102,8 +102,9 @@ const styles = StyleSheet.create({
   foto: { height: 208, borderRadius: 24, overflow: "hidden", backgroundColor: COR.bege },
   legenda: { marginTop: 8, paddingHorizontal: 4 },
   ampliar: {
+    // No alto: embaixo esbarrava no selo de confianca (canto de baixo a esquerda)
     position: "absolute",
-    bottom: 12,
+    top: 12,
     right: 12,
     height: 36,
     flexDirection: "row",
