@@ -237,6 +237,10 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
   const notaEstacao = (r.nota_estacao || "").trim();
   const marcas = useMemo(() => (r.eh_planta ? marcasDaLupa(r.problemas_detectados) : []), [r]);
   const numeroDe = (indice: number) => marcas.find((m) => m.indice === indice)?.numero;
+  const rotulosLupa = useMemo(
+    () => Object.fromEntries((r.problemas_detectados || []).map((p, i) => [i, p.descricao || ""])),
+    [r],
+  );
 
   const blocoViu = temViu ? (
     <OQueODoutorViu
@@ -272,7 +276,7 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
         showsVerticalScrollIndicator={false}
       >
         {/* 2. Foto com selo de reconhecimento (nunca porcentagem) */}
-        <FotoLupa imageUri={imageUri} marcas={marcas} destaque={destaque}>
+        <FotoLupa imageUri={imageUri} marcas={marcas} destaque={destaque} rotulos={rotulosLupa}>
           {!naoPlanta && !!selo && (
             <View testID="selo-confianca" style={styles.selo}>
               <ShieldCheck size={18} color={COLORS.green} strokeWidth={2.4} />

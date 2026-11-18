@@ -336,14 +336,17 @@ export interface Retangulo {
 // Leva a caixa (fracoes da imagem original) para a caixa na tela com resizeMode "cover":
 // a imagem escala para cobrir e centraliza, cortando as sobras. Devolve null se a marca
 // ficar quase toda fora do recorte visivel.
+// Com modo "contain" (foto ampliada) a imagem inteira cabe na caixa, com sobra nas bordas.
 export function caixaNaTela(
   area: AreaFoto,
   caixa: { largura: number; altura: number },
   imagem: { largura: number; altura: number },
   folga = 6,
+  modo: "cover" | "contain" = "cover",
 ): Retangulo | null {
   if (caixa.largura <= 0 || caixa.altura <= 0 || imagem.largura <= 0 || imagem.altura <= 0) return null;
-  const escala = Math.max(caixa.largura / imagem.largura, caixa.altura / imagem.altura);
+  const ajuste = modo === "cover" ? Math.max : Math.min;
+  const escala = ajuste(caixa.largura / imagem.largura, caixa.altura / imagem.altura);
   const larguraExibida = imagem.largura * escala;
   const alturaExibida = imagem.altura * escala;
   const offX = (caixa.largura - larguraExibida) / 2;
@@ -371,4 +374,57 @@ export function caixaNaTela(
     bottom = top + minimo;
   }
   return { left, top, width: right - left, height: bottom - top };
+}
+
+// ---------- Foto ampliada (zoom sobre a marca da lupa) ----------
+
+export const ZOOM_MINIMO = 1;
+export const ZOOM_MAXIMO = 5;
+
+export interface Zoom {
+  escala: number;
+  x: number; // deslocamento na tela, aplicado antes da escala em volta do centro
+  y: number;
+}
+
+export interface Tamanho2D {
+  largura: number;
+  altura: number;
+}
+
+// Tamanho da imagem exibida com "contain" dentro da tela
+export function exibidaContain(tela: Tamanho2D, imagem: Tamanho2D): Tamanho2D {
+  const e = Math.min(tela.largura / imagem.largura, tela.altura / imagem.altura);
+  return { largura: imagem.largura * e, altura: imagem.altura * e };
+}
+
+// Segura o deslocamento para a borda da foto nao entrar na tela (com foto menor que a tela, centraliza)
+export function limitarZoom(z: Zoom, tela: Tamanho2D, exibida: Tamanho2D): Zoom {
+  const escala = Math.max(ZOOM_MINIMO, Math.min(ZOOM_MAXIMO, z.escala));
+  const maxX = Math.max(0, (exibida.largura * escala - tela.largura) / 2);
+  const maxY = Math.max(0, (exibida.altura * escala - tela.altura) / 2);
+  return {
+    escala,
+    // + 0 tira o -0 (sem efeito na tela, mas atrapalha comparacao)
+    x: Math.max(-maxX, Math.min(maxX, z.x)) + 0,
+    y: Math.max(-maxY, Math.min(maxY, z.y)) + 0,
+  };
+}
+
+// Zoom que centraliza a area do problema e faz ela ocupar ~60% da tela (entre 1,5x e o maximo)
+export function zoomNaArea(area: AreaFoto, tela: Tamanho2D, imagem: Tamanho2D): Zoom {
+  if (tela.largura <= 0 || tela.altura <= 0 || imagem.largura <= 0 || imagem.altura <= 0) {
+    return { escala: 1, x: 0, y: 0 };
+  }
+  const exibida = exibidaContain(tela, imagem);
+  const larguraArea = Math.max(area.largura * exibida.largura, 1);
+  const alturaArea = Math.max(area.altura * exibida.altura, 1);
+  const escala = Math.max(
+    1.5,
+    Math.min(ZOOM_MAXIMO, (0.6 * tela.largura) / larguraArea, (0.6 * tela.altura) / alturaArea),
+  );
+  // Centro da area relativo ao centro da imagem exibida (que fica no centro da tela)
+  const cx = (area.x + area.largura / 2 - 0.5) * exibida.largura;
+  const cy = (area.y + area.altura / 2 - 0.5) * exibida.altura;
+  return limitarZoom({ escala, x: -cx * escala, y: -cy * escala }, tela, exibida);
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { act, fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render, within } from "@testing-library/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DiagnosticoResponse, ProblemaDetectado } from "../../../api/diagnostico";
 
@@ -14,7 +14,8 @@ jest.mock("../LoginModal", () => () => null);
 
 import DiagnosisScreen from "../DiagnosisScreen";
 import MaisFotosScreen from "../../MaisFotosScreen";
-import { caixaNaTela, marcasDaLupa } from "../resultado/derivar";
+import { caixaNaTela, limitarZoom, marcasDaLupa, zoomNaArea } from "../resultado/derivar";
+import { Image } from "react-native";
 import { diagnosticarPlanta } from "../../../api/diagnostico";
 
 const base: DiagnosticoResponse = require("../../../../../docs/exemplos-relatorio-v2/04-oidio-abobrinha.jpg.json");
@@ -65,7 +66,7 @@ describe("lupa na foto", () => {
   it("desenha a marca numerada, a legenda e o numero no cartao com caixa pequena", async () => {
     const t = await tela(laudo({ problemas_detectados: [prob("Mancha", { x: 0.3, y: 0.3, largura: 0.2, altura: 0.2 })] }));
     expect(t.getByTestId("marca-lupa-1")).toBeTruthy();
-    expect(t.getByText("O círculo mostra onde o Doutor viu o problema")).toBeTruthy();
+    expect(t.getByText(/O círculo mostra onde o Doutor viu o problema/)).toBeTruthy();
     expect(t.getByTestId("numero-problema-1")).toBeTruthy();
     // Tocar no numero do cartao destaca a marca (borda mais grossa)
     fireEvent.press(t.getByTestId("numero-problema-1"));
@@ -192,5 +193,40 @@ describe("tela Quer mandar mais fotos?", () => {
     expect(t.getByText("3 fotos")).toBeTruthy();
     fireEvent.press(t.getByTestId("remover-foto-2"));
     expect(onRemover).toHaveBeenCalledWith(2);
+  });
+});
+
+describe("foto ampliada", () => {
+  it("zoom centraliza a area do problema e nao deixa a borda entrar", () => {
+    const tela = { largura: 400, altura: 600 };
+    const imagem = { largura: 1000, altura: 1000 }; // exibida 400x400
+    // Area pequena no centro: aproxima ate o maximo, sem deslocar
+    expect(zoomNaArea({ x: 0.45, y: 0.45, largura: 0.1, altura: 0.1 }, tela, imagem)).toEqual({ escala: 5, x: 0, y: 0 });
+    // Area no canto: desloca, mas so ate a borda da foto
+    const z = zoomNaArea({ x: 0, y: 0, largura: 0.2, altura: 0.2 }, tela, imagem);
+    expect(z.escala).toBe(3);
+    expect(z.x).toBe(400); // (400*3 - 400) / 2
+    expect(z.y).toBe(300); // (400*3 - 600) / 2
+    // Sem zoom, a foto menor que a tela fica centralizada
+    expect(limitarZoom({ escala: 0.5, x: 80, y: -80 }, tela, { largura: 400, altura: 400 })).toEqual({ escala: 1, x: 0, y: 0 });
+  });
+
+  it("toque na foto abre em tela cheia com botao por problema, foto inteira e fechar", async () => {
+    jest.spyOn(Image, "getSize").mockImplementation((_u: string, ok: any) => ok(1000, 750));
+    const t = await tela(laudo({ problemas_detectados: [prob("Cochonilha", { x: 0.3, y: 0.3, largura: 0.2, altura: 0.2 })] }));
+    expect(t.getByTestId("botao-ampliar")).toBeTruthy();
+    expect(t.queryByTestId("foto-ampliada")).toBeNull();
+
+    fireEvent.press(t.getByTestId("foto-lupa"));
+    expect(t.getByTestId("foto-ampliada")).toBeTruthy();
+    expect(within(t.getByTestId("ver-problema-1")).getByText("Cochonilha")).toBeTruthy();
+    // Abre focada no problema 1
+    expect(t.getByTestId("ver-problema-1").props.accessibilityState).toEqual({ selected: true });
+
+    fireEvent.press(t.getByTestId("ver-foto-inteira"));
+    expect(t.getByTestId("ver-foto-inteira").props.accessibilityState).toEqual({ selected: true });
+
+    fireEvent.press(t.getByTestId("fechar-foto-ampliada"));
+    expect(t.queryByTestId("foto-ampliada")).toBeNull();
   });
 });

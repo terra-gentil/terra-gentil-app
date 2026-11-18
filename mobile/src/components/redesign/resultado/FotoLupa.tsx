@@ -1,15 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Image, LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
-import { FONTS } from "../../../constants/theme";
+import { Animated, Image, LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
+import { ZoomIn } from "lucide-react-native";
+import { COLORS, FONTS } from "../../../constants/theme";
 import { useReduzirMovimento } from "../../../hooks/useReduzirMovimento";
 import { MarcaLupa, caixaNaTela } from "./derivar";
 import { COR, fonte } from "./comum";
+import FotoAmpliada from "./FotoAmpliada";
 
 interface Props {
   imageUri: string;
   marcas: MarcaLupa[];
   // Indice do problema destacado (toque no chip ou no cartao)
   destaque: number | null;
+  // Nome curto de cada problema (indice -> descricao), para os botoes da foto ampliada
+  rotulos?: Record<number, string>;
   children?: React.ReactNode;
 }
 
@@ -19,14 +23,18 @@ interface Tamanho {
 }
 
 // Foto do topo do laudo com a "lupa": circulo coral numerado sobre onde o Doutor viu cada problema
-export default function FotoLupa({ imageUri, marcas, destaque, children }: Props) {
+export default function FotoLupa({ imageUri, marcas, destaque, rotulos = {}, children }: Props) {
   const [caixa, setCaixa] = useState<Tamanho | null>(null);
   const [imagem, setImagem] = useState<Tamanho | null>(null);
+  const [ampliada, setAmpliada] = useState(false);
 
   return (
     <View>
-      <View
+      <Pressable
         testID="foto-lupa"
+        onPress={() => setAmpliada(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Ampliar a foto"
         style={styles.foto}
         onLayout={(e: LayoutChangeEvent) => {
           const { width, height } = e.nativeEvent.layout;
@@ -53,11 +61,25 @@ export default function FotoLupa({ imageUri, marcas, destaque, children }: Props
             return <Marca key={m.indice} numero={m.numero} retangulo={r} ativa={destaque === m.indice} />;
           })}
         {children}
-      </View>
+        <View testID="botao-ampliar" pointerEvents="none" style={styles.ampliar}>
+          <ZoomIn size={18} color={COLORS.greenDark} strokeWidth={2.6} />
+          <Text style={fonte(FONTS.bodyExtraBold, 15, 1.1, COLORS.greenDark)}>Ampliar</Text>
+        </View>
+      </Pressable>
       {marcas.length > 0 && (
         <Text testID="legenda-lupa" style={[fonte(FONTS.bodySemiBold, 15, 1.4, COR.texto2), styles.legenda]}>
-          O círculo mostra onde o Doutor viu o problema
+          O círculo mostra onde o Doutor viu o problema. Toque na foto para ver de perto
         </Text>
+      )}
+      {ampliada && (
+        <FotoAmpliada
+          visivel
+          imageUri={imageUri}
+          marcas={marcas}
+          rotulos={rotulos}
+          inicial={marcas.find((m) => m.indice === destaque)?.indice ?? marcas[0]?.indice ?? null}
+          onFechar={() => setAmpliada(false)}
+        />
       )}
     </View>
   );
@@ -129,4 +151,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   legenda: { marginTop: 8, paddingHorizontal: 4 },
+  ampliar: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.94)",
+  },
 });
