@@ -1,5 +1,14 @@
 # PROGRESSO - Terra Gentil
 
+## 2026-11-18 manha: custo do Claude cortado e Ver/Fechar em todas as setas
+
+- APK 1.1.0 instalado no S23 do Andre via adb (app da Play desinstalado com autorizacao; quando a 1.1.0 sair na Play, desinstalar de novo, assinatura diferente).
+- Pilula Ver/Fechar virou padrao do Chevron (comum.tsx): todas as setas para baixo mostram a palavra (publico mais velho). OTA preview 9e0abf58, commit 5140bee.
+- Custo medido no log do Railway (CLI logada como Terra Gentil, projeto terra-gentil-api linkado): primeira consulta da hora custava US$ 0,187 (cache de 1h grava a US$ 8/MTok, 19.592 tokens fixos).
+- Commit 5ca4dc2: catalogo de ebooks fora do prompt; backend escolhe os guias em app/services/escolher_ebooks.py (nome da planta + sinonimos, problema mais grave, pet se toxica) com motivo "Feito para quem tem X. <descricao>" / "Para <problema> que vi na sua planta. <descricao>" (opcao b do Andre). Gabarito dos 12 laudos: 10 iguais, 2 equivalentes (tests/test_escolher_ebooks.py). Cache 5 min. Prompt fixo 9.851 tokens; rodada real: primeira US$ 0,10, demais ~US$ 0,06. Interruptores no Railway: EBOOKS_PELO_BACKEND=false volta o catalogo ao Claude; CLAUDE_CACHE_TTL=1h volta o cache longo. 419 testes.
+- Falha intermitente de JSON do Opus apareceu de novo (lirio, faltaram 5 campos; repetido 2x saiu certo). Producao cai no Gemini.
+- Proximo: falas do Doutor (ElevenLabs + expo-audio, entra na 1.1.0). Andre ainda decide conta (Starter pago vs gratuitas, risco de licenca) e voz. Roleta de chaves em /Users/andrehz/Documents/Githubhz/setlists-pj-ev/scripts/publish/narracao/chaves.mjs. Trocar "Em 15s descubro tudo" da Home (leva ~25 s).
+
 ## SEGUNDA ETAPA EM ANDAMENTO (2026-11-18 madrugada)
 
 ATENCAO OTA: a partir do commit 2909954 o app usa runtimeVersion "2.0.0" (version 1.1.0, versionCode 3) e tem modulos nativos novos (react-native-view-shot, expo-sensors). OTA feita do main agora NAO chega no build da Play (runtime exposdk:54.0.0). Correcao urgente para o build antigo: fazer `git worktree add` no commit b4c42c2 e rodar `npx -y eas-cli@latest update --branch production` de la.
