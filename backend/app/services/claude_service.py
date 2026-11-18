@@ -418,11 +418,74 @@ class ClaudeService:
 
         try:
             dados = json.loads(extrair_json(texto))
-            relatorio = DiagnosticoV2Response(**dados)
         except Exception as exc:
             raise ClaudeServiceError("fora_do_schema", str(exc)[:500]) from exc
+        try:
+            relatorio = DiagnosticoV2Response(**dados)
+        except Exception as exc:
+            relatorio = await self._consertar(params, texto, dados, exc)
 
         return pos_processar(relatorio)
+
+    async def _consertar(self, params: dict, texto: str, dados: dict, exc: Exception) -> DiagnosticoV2Response:
+        """
+        JSON valido mas fora do schema (o Opus as vezes pula campos, ~1 em 10): devolve ao
+        modelo a propria resposta e pede so os campos de topo com erro. O prefixo esta quente
+        no cache, entao custa ~US$ 0,02 e poucos segundos, contra cair no Gemini.
+        """
+        campos = campos_com_erro(exc, dados) if isinstance(dados, dict) else []
+        if not campos or not settings.CLAUDE_CONSERTO:
+            raise ClaudeServiceError("fora_do_schema", str(exc)[:500]) from exc
+        logger.warning("Claude fora do schema, pedindo conserto de %s", ", ".join(campos))
+
+        pedido = (
+            "Sua resposta não passou na validação do schema. Campos com problema: "
+            + ", ".join(campos)
+            + ". Responda somente com um objeto JSON que tenha apenas esses campos, completos e "
+            "corrigidos, seguindo o schema e coerentes com o resto do relatório. Sem texto em volta."
+        )
+        conserto = params | {
+            "max_tokens": CONSERTO_MAX_TOKENS,
+            "messages": params["messages"]
+            + [
+                {"role": "assistant", "content": texto},
+                {"role": "user", "content": [{"type": "text", "text": pedido}]},
+            ],
+        }
+        inicio = time.monotonic()
+        try:
+            resposta = await self.client.with_options(timeout=CONSERTO_TIMEOUT_S).messages.create(**conserto)
+        except Exception as erro_api:
+            logger.warning("Conserto do Claude falhou: %s", _classificar_erro(erro_api).motivo)
+            raise ClaudeServiceError("fora_do_schema", str(exc)[:500]) from exc
+        _registrar_uso(resposta, int((time.monotonic() - inicio) * 1000))
+
+        texto_conserto = next((b.text for b in resposta.content if b.type == "text"), "")
+        try:
+            remendo = json.loads(extrair_json(texto_conserto))
+            relatorio = DiagnosticoV2Response(**(dados | {k: v for k, v in remendo.items() if k in campos}))
+        except Exception as exc2:
+            raise ClaudeServiceError("fora_do_schema", f"conserto falhou: {str(exc2)[:450]}") from exc2
+        logger.info("Conserto do Claude ok: %s", ", ".join(campos))
+        return relatorio
+
+
+# Conserto de resposta fora do schema: saida curta e limite de tempo proprio
+CONSERTO_MAX_TOKENS = 3000
+CONSERTO_TIMEOUT_S = 20.0
+
+
+def campos_com_erro(exc: Exception, dados: dict) -> list[str]:
+    """
+    Campos de topo citados no erro do Pydantic mais os obrigatorios do schema que nao
+    vieram (alguns tem valor padrao no modelo e passariam vazios), sem repetir.
+    """
+    erros = getattr(exc, "errors", None)
+    if not callable(erros):
+        return []
+    citados = [str(e["loc"][0]) for e in erros() if e.get("loc")]
+    obrigatorios = schema_v2(not settings.EBOOKS_PELO_BACKEND)["required"]
+    return list(dict.fromkeys(citados + [c for c in obrigatorios if c not in dados]))
 
 
 def pos_processar(relatorio: DiagnosticoV2Response) -> DiagnosticoV2Response:

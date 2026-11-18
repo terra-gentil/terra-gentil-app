@@ -162,4 +162,6 @@ def cliente_mock(resposta=None, erro: Exception | None = None) -> MagicMock:
         return_value=resposta if resposta is not None else mensagem_sdk(),
         side_effect=erro,
     )
+    # with_options(timeout=...) usado no conserto devolve o proprio cliente
+    cliente.with_options.return_value = cliente
     return cliente

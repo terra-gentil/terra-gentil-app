@@ -55,6 +55,10 @@ class Settings(BaseSettings):
         default=True,
         description="True: catalogo fora do prompt e guias escolhidos pelo backend. False volta ao Claude escolher",
     )
+    CLAUDE_CONSERTO: bool = Field(
+        default=True,
+        description="Resposta fora do schema: pede ao Claude so os campos com erro antes de cair no Gemini",
+    )
     CLAUDE_TIMEOUT_S: float = Field(
         default=40.0, gt=0,
         description="Limite de tempo da chamada ao Claude, sem nova tentativa",

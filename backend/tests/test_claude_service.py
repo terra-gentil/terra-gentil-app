@@ -12,6 +12,7 @@ import pytest
 from PIL import Image
 
 from app.core.config import settings
+from app.services import claude_service
 from app.schemas.diagnostico_v2 import DiagnosticoV2Response
 from app.schemas.diagnostico_v2_schema import DIAGNOSTICO_V2_JSON_SCHEMA, schema_v2
 from app.services.claude_service import (
@@ -389,3 +390,76 @@ class TestCamposDerivados:
         ]
         rel = completar_campos_derivados(_relatorio(leitura_foto=leituras))
         assert [i.aspecto for i in rel.leitura_foto] == ["folhas", "vaso", "caule_e_ramos"]
+
+
+class TestConserto:
+    """Resposta valida em JSON mas sem campos: segunda chamada curta pede so o que faltou."""
+
+    @staticmethod
+    def _sem(*campos):
+        dados = resposta_v2_planta()
+        for c in campos:
+            dados.pop(c)
+        return dados
+
+    async def test_campos_faltando_sao_pedidos_e_completados(self):
+        completo = resposta_v2_planta()
+        remendo = {k: completo[k] for k in ("toxica_para_pets", "rega_dias")}
+        cliente = cliente_mock()
+        cliente.messages.create.side_effect = [
+            mensagem_sdk(self._sem("toxica_para_pets", "rega_dias")),
+            mensagem_sdk(texto=json.dumps(remendo)),
+        ]
+        rel = await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+
+        assert rel.rega_dias == completo["rega_dias"]
+        segunda = cliente.messages.create.await_args_list[1].kwargs
+        # Mesmo prefixo (cache quente), resposta anterior e pedido so dos campos com erro
+        primeira = cliente.messages.create.await_args_list[0].kwargs
+        assert segunda["system"] == primeira["system"]
+        assert segunda["messages"][1]["role"] == "assistant"
+        pedido = segunda["messages"][2]["content"][0]["text"]
+        assert "toxica_para_pets" in pedido and "rega_dias" in pedido
+        cliente.with_options.assert_called_with(timeout=claude_service.CONSERTO_TIMEOUT_S)
+
+    async def test_remendo_nao_troca_campo_que_ja_estava_certo(self):
+        cliente = cliente_mock()
+        cliente.messages.create.side_effect = [
+            mensagem_sdk(self._sem("rega_dias")),
+            mensagem_sdk(texto=json.dumps({"rega_dias": 5, "nome_popular": "Outra"})),
+        ]
+        rel = await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+        assert rel.rega_dias == 5 and rel.nome_popular == resposta_v2_planta()["nome_popular"]
+
+    async def test_conserto_incompleto_vira_fora_do_schema(self):
+        cliente = cliente_mock()
+        cliente.messages.create.side_effect = [
+            mensagem_sdk(self._sem("rega_dias")),
+            mensagem_sdk(texto="{}"),
+        ]
+        with pytest.raises(ClaudeServiceError) as exc:
+            await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+        assert exc.value.motivo == "fora_do_schema"
+
+    async def test_desligado_nao_faz_segunda_chamada(self, monkeypatch):
+        monkeypatch.setattr(settings, "CLAUDE_CONSERTO", False)
+        cliente = cliente_mock(mensagem_sdk(self._sem("rega_dias")))
+        with pytest.raises(ClaudeServiceError):
+            await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+        assert cliente.messages.create.await_count == 1
+
+    async def test_json_quebrado_nao_tenta_conserto(self):
+        cliente = cliente_mock(mensagem_sdk(texto='{"versao_relatorio": "v2", '))
+        with pytest.raises(ClaudeServiceError):
+            await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+        assert cliente.messages.create.await_count == 1
+
+    async def test_pede_tambem_obrigatorio_com_valor_padrao_que_nao_veio(self):
+        cliente = cliente_mock()
+        cliente.messages.create.side_effect = [
+            mensagem_sdk(self._sem("rega_dias", "rega_ml")),
+            mensagem_sdk(texto=json.dumps({"rega_dias": 5, "rega_ml": 300})),
+        ]
+        rel = await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
+        pedido = cliente.messages.create.await_args_list[1].kwargs["messages"][2]["content"][0]["text"]
+        assert "rega_ml" in pedido and rel.rega_ml == 300
