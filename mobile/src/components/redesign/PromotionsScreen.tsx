@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,91 +22,12 @@ import NotificacoesModal from "./NotificacoesModal";
 import { useNotif } from "../../context/NotifContext";
 import { MASCOT_POSES } from "../../assets/mascot";
 import SectionTitle from "./SectionTitle";
-import { FlashDealCard, RecommendedDealCard, FlashDeal, RecommendedDeal } from "./DealCard";
+import { FlashDealCard, RecommendedDealCard } from "./DealCard";
+import { CATEGORIAS_OFERTA, CategoriaOferta, FLASH_DEALS, REC_DEALS, avisoLojaEmBreve } from "../../data/ofertas";
 import { listarConsultas } from "../../storage/historico";
 
-type Categoria = "Todas" | "Vasos" | "Adubos" | "Sementes" | "Ferramentas";
-const CATEGORIAS: Categoria[] = ["Todas", "Vasos", "Adubos", "Sementes", "Ferramentas"];
-
-interface FlashDealComCat extends FlashDeal {
-  categoria: Categoria;
-}
-interface RecComCat extends RecommendedDeal {
-  categoria: Categoria;
-}
-
-const FLASH_DEALS: FlashDealComCat[] = [
-  {
-    id: "vaso-auto",
-    nome: "Vaso autoirrigável 18cm",
-    precoDe: "R$ 89",
-    precoPor: "R$ 39",
-    desconto: "-56%",
-    vendido: 70,
-    gradient: ["#bae6fd", "#0284c7"],
-    categoria: "Vasos",
-  },
-  {
-    id: "adubo-liq",
-    nome: "Adubo líquido 500ml",
-    precoDe: "R$ 45",
-    precoPor: "R$ 22",
-    desconto: "-51%",
-    vendido: 58,
-    gradient: ["#fde68a", "#b45309"],
-    categoria: "Adubos",
-  },
-  {
-    id: "kit-sementes",
-    nome: "Kit sementes 12 ervas",
-    precoDe: "R$ 65",
-    precoPor: "R$ 29",
-    desconto: "-55%",
-    vendido: 82,
-    gradient: ["#86efac", "#15803d"],
-    categoria: "Sementes",
-  },
-  {
-    id: "tesoura-poda",
-    nome: "Tesoura de poda inox",
-    precoDe: "R$ 78",
-    precoPor: "R$ 49",
-    desconto: "-37%",
-    vendido: 35,
-    gradient: ["#fbcfe8", "#be185d"],
-    categoria: "Ferramentas",
-  },
-];
-
-const REC_DEALS: RecComCat[] = [
-  {
-    id: "npk-organico",
-    nome: "Adubo NPK orgânico",
-    descricao: "Pra folhagens. 1x por mês",
-    preco: "R$ 24,90",
-    tag: "Recomendado",
-    gradient: ["#86efac", "#22c55e"],
-    categoria: "Adubos",
-  },
-  {
-    id: "vaso-terracota",
-    nome: "Vaso decor terracota",
-    descricao: "20cm. Drenagem perfeita",
-    preco: "R$ 49,00",
-    tag: "Mais comprado",
-    gradient: ["#fde68a", "#f59e0b"],
-    categoria: "Vasos",
-  },
-  {
-    id: "regador-1l",
-    nome: "Regador bico fino 1L",
-    descricao: "Ideal pra mudas e suculentas",
-    preco: "R$ 32,00",
-    tag: "Novidade",
-    gradient: ["#bae6fd", "#38bdf8"],
-    categoria: "Ferramentas",
-  },
-];
+type Categoria = CategoriaOferta;
+const CATEGORIAS: Categoria[] = ["Todas", ...CATEGORIAS_OFERTA];
 
 const DURACAO_OFERTA_MS = 5 * 24 * 60 * 60 * 1000;
 
@@ -170,13 +90,7 @@ export default function PromotionsScreen() {
     ? `🌱 Pra sua ${plantaUser}`
     : "🌱 Pra suas plantinhas";
 
-  function avisoEmBreve() {
-    Alert.alert(
-      "Loja chegando",
-      "A loja oficial Terra Gentil está sendo preparada. Em breve você vai poder comprar tudo isso por aqui mesmo.",
-      [{ text: "Combinado", style: "default" }]
-    );
-  }
+  const avisoEmBreve = avisoLojaEmBreve;
 
   return (
     <View style={styles.screen}>

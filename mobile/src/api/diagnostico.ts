@@ -11,15 +11,115 @@ export type EstadoSaude =
 export type NivelDificuldade =
   | "facil" | "medio" | "dificil" | "nao_aplicavel";
 
+// Campos v2 sao opcionais: o Gemini reserva ainda pode devolver o relatorio v1 sem eles.
+export type GravidadeProblema = "baixa" | "media" | "alta";
+
+export type CategoriaProblema =
+  | "rega_excesso" | "rega_falta" | "luz_excesso" | "luz_falta" | "praga"
+  | "fungo_ou_bacteria" | "nutricao" | "raiz_ou_vaso" | "clima" | "dano_fisico"
+  | "envelhecimento_natural" | "outro";
+
 export interface ProblemaDetectado {
   descricao: string;
   gravidade: string;
   causa_provavel: string;
+  categoria?: CategoriaProblema;
+  evidencia_visual?: string;
+  como_confirmar?: string;
+  contagioso?: boolean;
 }
+
+export type TipoPasso = "manejo" | "caseiro" | "organico" | "quimico";
 
 export interface PassoTratamento {
   etapa: string;
   acao: string;
+  tipo?: TipoPasso;
+  dia_inicio?: number;
+  como_fazer?: string;
+  por_que?: string;
+  materiais?: string[];
+}
+
+export type ProblemaFoto =
+  | "desfocada" | "escura" | "estourada" | "contraluz" | "longe_demais"
+  | "perto_demais" | "planta_cortada" | "varias_plantas" | "obstruida";
+
+export interface FotoAvaliacao {
+  qualidade: "boa" | "aceitavel" | "ruim";
+  problemas?: ProblemaFoto[];
+  o_que_aparece?: string;
+  dica_proxima_foto?: string;
+}
+
+export interface LeituraFoto {
+  aspecto: "folhas" | "caule_e_ramos" | "flores_e_frutos" | "solo" | "vaso" | "ambiente_e_luz";
+  observacao: string;
+  sinal: "bom" | "neutro" | "atencao" | "ruim";
+}
+
+export interface AlternativaEspecie {
+  nome_popular: string;
+  especie: string;
+  como_diferenciar: string;
+}
+
+export interface Identificacao {
+  nivel_confianca: "alta" | "media" | "baixa" | "nao_aplicavel";
+  como_reconheci?: string;
+  outros_nomes?: string[];
+  alternativas?: AlternativaEspecie[];
+}
+
+export interface Acompanhamento {
+  prazo_melhora?: string;
+  sinais_melhora?: string[];
+  sinais_piora?: string[];
+  retorno_em_dias?: number;
+  como_evitar?: string;
+}
+
+export interface AjudaProfissional {
+  recomendada?: boolean;
+  motivo?: string;
+}
+
+export type NivelToxicidade =
+  | "nao_toxica" | "leve" | "moderada" | "grave" | "desconhecida" | "nao_aplicavel";
+
+export type AfetadoToxicidade = "caes" | "gatos" | "criancas" | "adultos";
+
+export interface Toxicidade {
+  nivel: NivelToxicidade;
+  afeta?: AfetadoToxicidade[];
+  partes_toxicas?: string;
+  sintomas?: string;
+  o_que_fazer?: string;
+}
+
+export interface Cuidados {
+  rega?: string;
+  luz_e_local?: string;
+  solo_e_vaso?: string;
+  adubacao?: string;
+  poda_e_limpeza?: string;
+  como_fazer_mudas?: string;
+  erros_comuns?: string[];
+}
+
+export interface TarefaCalendario {
+  frequencia: "semanal" | "quinzenal" | "mensal" | "trimestral" | "semestral" | "anual" | "quando_necessario";
+  tarefa: string;
+}
+
+export interface EbookRecomendado {
+  id: string;
+  motivo: string;
+  titulo?: string;
+  capa?: string;
+  pdf?: string;
+  tema?: string;
+  emoji?: string;
 }
 
 export interface DiagnosticoResponse {
@@ -44,6 +144,20 @@ export interface DiagnosticoResponse {
   plano_timeline: PassoTratamento[];
   precisa_retorno: boolean;
   mensagem_retorno: string;
+  // Relatorio v2 (opcionais)
+  versao_relatorio?: "v2";
+  foto?: FotoAvaliacao;
+  leitura_foto?: LeituraFoto[];
+  identificacao?: Identificacao;
+  acompanhamento?: Acompanhamento;
+  ajuda_profissional?: AjudaProfissional;
+  toxicidade?: Toxicidade;
+  cuidados?: Cuidados;
+  calendario_cuidados?: TarefaCalendario[];
+  curiosidades?: string[];
+  ebooks_recomendados?: EbookRecomendado[];
+  rega_ml?: number;
+  vaso_estimado_cm?: number;
 }
 
 export async function diagnosticarPlanta(imageUri: string): Promise<DiagnosticoResponse> {

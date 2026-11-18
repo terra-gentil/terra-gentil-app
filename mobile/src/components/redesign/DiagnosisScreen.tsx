@@ -1,58 +1,57 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Image,
-  Linking,
+  LayoutChangeEvent,
   ScrollView,
   Share,
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
-import { MASCOT_POSES } from "../../assets/mascot";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ArrowLeft, Camera, Droplets, Leaf, Lightbulb, PawPrint, ShieldCheck, Sun } from "lucide-react-native";
 import { DiagnosticoResponse } from "../../api/diagnostico";
-import { COLORS, FONTS, SIZES, shadowChunky, shadowSoft } from "../../constants/theme";
-import StatCard from "./StatCard";
-import SectionTitle from "./SectionTitle";
-import { EbookCard } from "../EbookCard";
+import { COLORS, FONTS } from "../../constants/theme";
 import { consumirLembrarCanal } from "../../storage/preferencias";
-import { ArrowLeft, Bookmark, Sun, Droplets, Leaf, Star, AlertTriangle, Camera, MessageSquare, BellRing, Play, ExternalLink } from "lucide-react-native";
+import { getToken } from "../../storage/auth";
+import { Ebook } from "../../data/ebooks";
+import { ofertasParaMateriais } from "../../data/ofertas";
+import EbookViewerModal from "./EbookViewerModal";
+import NovaPostagemModal from "./NovaPostagemModal";
+import LoginModal from "./LoginModal";
+import CartaoVeredito from "./resultado/CartaoVeredito";
+import CartaoProblema from "./resultado/CartaoProblema";
+import ToxicidadeDestaque from "./resultado/ToxicidadeDestaque";
+import PlanoCuidado from "./resultado/PlanoCuidado";
+import Acompanhamento from "./resultado/Acompanhamento";
+import LeiaDeGraca from "./resultado/LeiaDeGraca";
+import OndeEncontrar from "./resultado/OndeEncontrar";
+import OQueODoutorViu from "./resultado/OQueODoutorViu";
+import CartaoCanal from "./resultado/CartaoCanal";
+import BarraFixa, { ALTURA_BARRA } from "./resultado/BarraFixa";
+import NaoPlanta from "./resultado/NaoPlanta";
+import { COR, Chevron, T, cartao, fonte } from "./resultado/comum";
+import {
+  LUZ,
+  SELO,
+  estadoDe,
+  fichaCuidados,
+  infoPet,
+  materiaisNaoQuimicos,
+  regaResumo,
+  separarPlano,
+  textoCompartilhar,
+  tituloPergunta,
+  toxicidadeDe,
+  toxicidadeForte,
+} from "./resultado/derivar";
 
-const YOUTUBE_CANAL = "https://www.youtube.com/@TerraGentil";
-
-// Capa do cartao do canal: arte paisagem do Doutor, enquadrada como object-position 70% 35%.
-const CANAL_CAPA_ALTURA = 150;
-const CANAL_CAPA_PROPORCAO = 1365 / 768;
-const CANAL_CAPA_FOCO_Y = 0.35;
-
-const NIVEL_LUZ_LABEL: Record<string, string> = {
-  sol_pleno: "Sol pleno",
-  meia_sombra: "Meia sombra",
-  indireta_brilhante: "Indireta",
-  sombra: "Sombra",
-  nao_aplicavel: "N/A",
-};
-
-const NIVEL_DIFICULDADE_LABEL: Record<string, string> = {
-  facil: "Fácil",
-  medio: "Médio",
-  dificil: "Difícil",
-  nao_aplicavel: "N/A",
-};
-
-const ESTADO_SAUDE_LABEL: Record<string, string> = {
-  saudavel: "Saudável",
-  atencao: "Atenção",
-  doente: "Doente",
-  critico: "Crítico",
-  nao_aplicavel: "N/A",
-};
-
-function regaLabel(dias: number): string {
-  if (dias <= 1) return "Diariamente";
-  return `A cada ${dias} dias`;
+export interface PerguntaComunidade {
+  titulo: string;
+  imageUri: string;
+  categoria: string;
 }
 
 interface Props {
@@ -60,19 +59,37 @@ interface Props {
   resultado: DiagnosticoResponse;
   onVoltar: () => void;
   onNovaConsulta: () => void;
+  // Opcional: quem monta a tela pode tratar o "Perguntar" por conta propria.
+  // Sem ela, a tela abre a nova postagem da comunidade ja preenchida.
+  onPerguntarComunidade?: (pergunta: PerguntaComunidade) => void;
 }
 
-export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaConsulta }: Props) {
-  const confiancaPct = Math.round(resultado.confianca * 100);
+const ALTURA_CABECALHO = 56;
+
+// Tela de resultado do diagnostico (redesign v2, Claude Design). Os blocos seguem a
+// ordem da secao D da pesquisa e cada um so aparece quando o JSON traz o campo,
+// entao o relatorio v1 do Gemini reserva tambem funciona.
+export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNovaConsulta, onPerguntarComunidade }: Props) {
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
+  const ancoras = useRef<Record<string, number>>({});
+
   // Lembrete pedido na tela de espera; aparece so neste relatorio
   const [lembrarCanal, setLembrarCanal] = useState(false);
-  // Largura da capa: tela menos margens (16 x 2) e padding do cartao (14 x 2)
-  const { width: larguraTela } = useWindowDimensions();
-  const capaLargura = larguraTela - 60;
-  const capaAlturaImg = Math.max(capaLargura / CANAL_CAPA_PROPORCAO, CANAL_CAPA_ALTURA);
-  const capaTopo = -(capaAlturaImg - CANAL_CAPA_ALTURA) * CANAL_CAPA_FOCO_Y;
+  const [ebookAberto, setEbookAberto] = useState<Ebook | null>(null);
+  const [postagemAberta, setPostagemAberta] = useState(false);
+  const [loginAberto, setLoginAberto] = useState(false);
 
+  const nivelConfianca = r.identificacao?.nivel_confianca;
+  const [altAberto, setAltAberto] = useState(nivelConfianca === "media" || nivelConfianca === "baixa");
+  const [problemasAbertos, setProblemasAbertos] = useState<Record<number, boolean>>({ 0: true });
+  const [fichaAberta, setFichaAberta] = useState(false);
+  const [toxLinhaAberta, setToxLinhaAberta] = useState(false);
+
+  // Foto sem planta nao gasta o lembrete: ele fica para o proximo laudo de verdade
+  const ehPlanta = r.eh_planta;
   useEffect(() => {
+    if (!ehPlanta) return;
     let ativo = true;
     consumirLembrarCanal().then((v) => {
       if (ativo) setLembrarCanal(v);
@@ -80,647 +97,433 @@ export default function DiagnosisScreen({ imageUri, resultado, onVoltar, onNovaC
     return () => {
       ativo = false;
     };
+  }, [ehPlanta]);
+
+  const marcar = useCallback(
+    (chave: string) => (ev: LayoutChangeEvent) => {
+      ancoras.current[chave] = ev.nativeEvent.layout.y;
+    },
+    [],
+  );
+
+  const rolarPara = useCallback((chave: string) => {
+    const y = ancoras.current[chave];
+    if (y === undefined) return;
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
   }, []);
 
-  function handleSalvarFeedback() {
-    Alert.alert(
-      "Salvo no Meu Jardim ✓",
-      "Sua planta já está guardada na aba Eu, no seu jardim. Pode voltar a ela quando quiser.",
-      [{ text: "Combinado", style: "default" }],
-    );
-  }
+  const derivados = useMemo(() => {
+    const { caseiros, quimicos } = separarPlano(r);
+    const tox = toxicidadeDe(r);
+    return {
+      caseiros,
+      quimicos,
+      tox,
+      toxForte: toxicidadeForte(tox),
+      pet: infoPet(tox),
+      ficha: fichaCuidados(r),
+      ofertas: ofertasParaMateriais(materiaisNaoQuimicos(r)),
+      rega: regaResumo(r),
+    };
+  }, [r]);
 
-  async function handleSegundaOpiniao() {
+  const perguntar = useCallback(async () => {
+    const pergunta: PerguntaComunidade = {
+      titulo: tituloPergunta(r),
+      imageUri,
+      categoria: (r.problemas_detectados || []).length > 0 ? "Pragas e doenças" : "Dúvida",
+    };
+    if (onPerguntarComunidade) {
+      onPerguntarComunidade(pergunta);
+      return;
+    }
+    const token = await getToken();
+    if (token) setPostagemAberta(true);
+    else setLoginAberto(true);
+  }, [r, imageUri, onPerguntarComunidade]);
+
+  const compartilhar = useCallback(async () => {
     try {
-      const partes = [
-        `Doutor Gentileza diagnosticou: ${resultado.nome_popular} (${resultado.especie_identificada})`,
-        resultado.diagnostico_titulo,
-        resultado.diagnostico_explicacao,
-        `O que você acha? Quero uma 2ª opinião.`,
-        "App Terra Gentil: https://terragentil.com.br",
-      ].filter(Boolean);
-      await Share.share({
-        message: partes.join("\n\n"),
-        title: `Diagnóstico: ${resultado.nome_popular}`,
-      });
+      await Share.share({ message: textoCompartilhar(r), title: `Laudo: ${r.nome_popular}` });
     } catch (err) {
       console.log("[diagnosis] erro ao compartilhar:", err);
     }
-  }
+  }, [r]);
+
+  const naoPlanta = !r.eh_planta;
+  const [estadoRotulo] = estadoDe(r);
+  const subtitulo = naoPlanta ? "Foto sem planta" : `${r.nome_popular}, ${estadoRotulo.toLowerCase()}`;
+  const foto = r.foto;
+  const temAvisoFoto = !naoPlanta && !!foto && foto.qualidade !== "boa";
+  const selo = nivelConfianca && nivelConfianca !== "nao_aplicavel" ? SELO[nivelConfianca] : null;
+  const alternativas = r.identificacao?.alternativas || [];
+  const problemas = r.problemas_detectados || [];
+  const temPlano = derivados.caseiros.length > 0 || derivados.quimicos.length > 0;
+  const ac = r.acompanhamento;
+  const mensagemV1 = r.precisa_retorno ? r.mensagem_retorno : "";
+  const temAcomp = !!ac && ((ac.sinais_melhora || []).length > 0 || !!ac.prazo_melhora || (ac.retorno_em_dias || 0) > 0);
+  const ajuda = r.ajuda_profissional;
+  const leitura = r.leitura_foto || [];
+  const luzPrecisa = LUZ[r.nivel_luz] ? LUZ[r.nivel_luz][1] : null;
+  const temViu = leitura.length > 0 || !!r.luz_veredito;
+  const saudavel = r.estado_saude === "saudavel";
+  const curiosidade = (r.curiosidades || [])[0];
+  const toxLinha = !derivados.toxForte && derivados.tox.nivel !== "nao_aplicavel";
+  const toxLinhaDetalhe = [derivados.tox.sintomas, derivados.tox.o_que_fazer].filter(Boolean).join(" ");
+  const luzValor = LUZ[r.nivel_luz] ? LUZ[r.nivel_luz][0] : "Sem dados";
+
+  const blocoViu = temViu ? (
+    <OQueODoutorViu
+      key="viu"
+      leitura={leitura}
+      luzOnde={Math.max(0, Math.min(100, r.luz_porcentagem || 50))}
+      luzPrecisa={luzPrecisa}
+      luzVeredito={r.luz_veredito}
+      abertoInicial={saudavel}
+    />
+  ) : null;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onVoltar} style={styles.headerBtn} hitSlop={6}>
-          <ArrowLeft size={22} color={COLORS.ink} strokeWidth={2.2} />
+    <View testID="diagnosis-screen" style={styles.tela}>
+      {/* 1. Cabecalho fixo */}
+      <View style={[styles.cabecalho, { paddingTop: insets.top, height: ALTURA_CABECALHO + insets.top }]}>
+        <TouchableOpacity onPress={onVoltar} style={styles.voltar} accessibilityRole="button" accessibilityLabel="Voltar">
+          <ArrowLeft size={24} color={COLORS.greenDark} strokeWidth={2.4} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Diagnóstico</Text>
-        <TouchableOpacity onPress={handleSalvarFeedback} style={styles.headerBtn} hitSlop={6} activeOpacity={0.7}>
-          <Bookmark size={20} color={COLORS.green} strokeWidth={2.2} fill={COLORS.green} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Hero da planta */}
-      <View style={styles.heroWrap}>
-        <View style={styles.hero}>
-          <Image source={{ uri: imageUri }} style={styles.heroImage} />
-          <View style={styles.heroBadge}>
-            <View style={styles.heroDot} />
-            <Text style={styles.heroBadgeText}>{confiancaPct}% de certeza</Text>
-          </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={fonte(FONTS.displayBlack, 18, 1.15, COLORS.greenDark)}>Laudo do Doutor</Text>
+          <Text style={fonte(FONTS.bodyMedium, 15, 1.2, COLORS.inkSoft)} numberOfLines={1}>
+            {subtitulo}
+          </Text>
         </View>
       </View>
 
-      {/* Identidade */}
-      <View style={styles.identity}>
-        <Text style={styles.plantName}>{resultado.nome_popular}</Text>
-        <Text style={styles.plantSci}>{resultado.especie_identificada}</Text>
-      </View>
-
-      {/* Stats grid 2x2 */}
-      <View style={styles.statsGrid}>
-        <View style={styles.statCell}>
-          <StatCard icon={<Sun size={20} color={COLORS.amber} strokeWidth={2.2} />} label="Luz" value={NIVEL_LUZ_LABEL[resultado.nivel_luz] || resultado.nivel_luz} bgColor={COLORS.amberSoft} />
-        </View>
-        <View style={styles.statCell}>
-          <StatCard icon={<Droplets size={20} color={COLORS.sky} strokeWidth={2.2} />} label="Rega" value={regaLabel(resultado.rega_dias)} bgColor={COLORS.skySoft} />
-        </View>
-        <View style={styles.statCell}>
-          <StatCard icon={<Leaf size={20} color={COLORS.green} strokeWidth={2.2} />} label="Saúde" value={ESTADO_SAUDE_LABEL[resultado.estado_saude] || resultado.estado_saude} bgColor={COLORS.greenSoft} />
-        </View>
-        <View style={styles.statCell}>
-          <StatCard icon={<Star size={20} color={COLORS.lavender} strokeWidth={2.2} />} label="Cuidado" value={NIVEL_DIFICULDADE_LABEL[resultado.nivel_dificuldade] || resultado.nivel_dificuldade} bgColor={COLORS.lavenderSoft} />
-        </View>
-      </View>
-
-      {/* Card de alerta / diagnostico */}
-      {resultado.diagnostico_titulo && (
-        <View style={styles.alertCard}>
-          <View style={styles.alertHeader}>
-            <AlertTriangle size={22} color={COLORS.coralDeep} strokeWidth={2.2} />
-            <Text style={styles.alertTitle}>{resultado.diagnostico_titulo}</Text>
-          </View>
-          <Text style={styles.alertText}>{resultado.diagnostico_explicacao}</Text>
-        </View>
-      )}
-
-      {/* Toxicidade */}
-      {resultado.toxica_para_pets && (
-        <View style={styles.toxicCard}>
-          <Text style={styles.toxicTitle}>🚨 Tóxica pra pets</Text>
-          <Text style={styles.toxicText}>{resultado.toxicidade_detalhes}</Text>
-        </View>
-      )}
-
-      {!resultado.toxica_para_pets && (
-        <View style={styles.safeCard}>
-          <Text style={styles.safeText}>✅ Segura pra pets e crianças</Text>
-        </View>
-      )}
-
-      {/* Problemas detectados */}
-      {resultado.problemas_detectados.length > 0 && (
-        <View style={styles.problemsWrap}>
-          <SectionTitle title="⚠️ Problemas detectados" />
-          {resultado.problemas_detectados.map((p, idx) => (
-            <View key={idx} style={styles.problemItem}>
-              <Text style={styles.problemDesc}>{p.descricao}</Text>
-              <Text style={styles.problemCause}>Gravidade {p.gravidade}. {p.causa_provavel}</Text>
+      <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1 }}
+        contentContainerStyle={[styles.conteudo, { paddingBottom: (naoPlanta ? 32 : ALTURA_BARRA + 36) + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 2. Foto com selo de reconhecimento (nunca porcentagem) */}
+        <View style={styles.foto}>
+          <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" accessibilityLabel="Sua foto" />
+          {!naoPlanta && !!selo && (
+            <View testID="selo-confianca" style={styles.selo}>
+              <ShieldCheck size={18} color={COLORS.green} strokeWidth={2.4} />
+              <Text style={fonte(FONTS.bodyBold, 15, 1.1, COLORS.greenDark)}>{selo}</Text>
             </View>
-          ))}
+          )}
         </View>
-      )}
 
-      {/* Plano de tratamento */}
-      <SectionTitle title="💊 Plano de tratamento" />
-      <View style={styles.timelineWrap}>
-        {resultado.plano_timeline.map((step, i) => (
-          <View key={i} style={styles.timelineRow}>
-            <View style={[
-              styles.timelineCircle,
-              i === 0
-                ? { backgroundColor: COLORS.coral }
-                : { backgroundColor: "#fff", borderWidth: 2, borderColor: COLORS.divider },
-            ]}>
-              <Text style={[styles.timelineNum, i === 0 ? { color: "#fff" } : { color: COLORS.inkMute }]}>{i + 1}</Text>
-            </View>
-            <View style={styles.timelineContent}>
-              <Text style={[styles.timelineEtapa, i === 0 ? { color: COLORS.coralDeep } : { color: COLORS.inkMute }]}>{step.etapa}</Text>
-              <Text style={styles.timelineAcao}>{step.acao}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
+        {naoPlanta ? (
+          <NaoPlanta
+            oQueAparece={foto?.o_que_aparece || r.plano_tratamento || ""}
+            dicaProxima={foto?.dica_proxima_foto || ""}
+            onNovaFoto={onNovaConsulta}
+          />
+        ) : (
+          <>
+            {/* 3. Aviso de foto */}
+            {temAvisoFoto && foto && (
+              <View testID="aviso-foto" style={styles.avisoFoto}>
+                <View style={styles.avisoIcone}>
+                  <Camera size={20} color="#fff" strokeWidth={2.2} />
+                </View>
+                <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+                  <Text style={fonte(FONTS.displayBold, 17, 1.3, COR.ambarTexto)}>
+                    {foto.qualidade === "ruim" ? "A foto dificultou a análise" : "Dá para ver melhor numa próxima foto"}
+                  </Text>
+                  {!!foto.o_que_aparece && (
+                    <Text style={fonte(FONTS.body, 15, 1.5, COR.ambarTexto)}>O que consegui ver: {foto.o_que_aparece}</Text>
+                  )}
+                  {!!foto.dica_proxima_foto && (
+                    <Text style={fonte(FONTS.bodySemiBold, 15, 1.5, COR.ambarTexto)}>
+                      <Text style={{ fontFamily: FONTS.bodyExtraBold }}>Dica: </Text>
+                      {foto.dica_proxima_foto}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
 
-      {/* Lembrete */}
-      {resultado.precisa_retorno && resultado.mensagem_retorno && (
-        <View style={styles.reminderCard}>
-          <Text style={styles.reminderTitle}>🔔 Lembrete do Doutor</Text>
-          <Text style={styles.reminderText}>{resultado.mensagem_retorno}</Text>
-        </View>
-      )}
-
-      {/* Ebook gift card */}
-      <View style={styles.giftCard}>
-        <Text style={styles.giftEmoji}>🎁</Text>
-        <View style={styles.giftTextWrap}>
-          <Text style={styles.giftTitle}>Presente do Doutor!</Text>
-          <Text style={styles.giftDesc}>Guia completo da {resultado.nome_popular}, grátis no seu email</Text>
-        </View>
-      </View>
-
-      <EbookCard nomePopular={resultado.nome_popular} />
-
-      {lembrarCanal && (
-        <TouchableOpacity
-          style={styles.canalCard}
-          onPress={() => Linking.openURL(YOUTUBE_CANAL)}
-          activeOpacity={0.85}
-          accessibilityRole="link"
-          accessibilityLabel="Você pediu para lembrar. Abrir o canal Terra Gentil no YouTube"
-          testID="cartao-lembrete-canal"
-        >
-          <View style={styles.canalTopo}>
-            <View style={styles.canalSino}>
-              <BellRing size={18} color={COLORS.coralDeep} strokeWidth={2.5} />
-            </View>
-            <Text style={styles.canalRotulo}>VOCÊ PEDIU PARA LEMBRAR</Text>
-          </View>
-          <View style={styles.canalCapa}>
-            <Image
-              source={MASCOT_POSES[1]}
-              style={[styles.canalCapaImg, { width: capaLargura, height: capaAlturaImg, top: capaTopo }]}
-              accessible={false}
+            {/* 4. Veredito */}
+            <CartaoVeredito
+              imageUri={imageUri}
+              resultado={r}
+              temPlano={temPlano}
+              onVerPlano={() => rolarPara("plano")}
+              onChipProblema={(i) => {
+                setProblemasAbertos((a) => ({ ...a, [i]: true }));
+                setTimeout(() => rolarPara(`prob-${i}`), 30);
+              }}
             />
-            <View style={styles.canalPlay}>
-              <Play size={24} color="#fff" fill="#fff" strokeWidth={0} />
+
+            {/* 5. Tambem pode ser */}
+            {alternativas.length > 0 && (
+              <View testID="tambem-pode-ser" style={[cartao.base, styles.recolhivel, { borderRadius: 20 }]}>
+                <TouchableOpacity style={[styles.linhaRecolhe, { minHeight: 52 }]} onPress={() => setAltAberto((v) => !v)} activeOpacity={0.8}>
+                  <Text style={fonte(FONTS.displayBold, 18, 1.2)}>Também pode ser</Text>
+                  <Chevron aberto={altAberto} />
+                </TouchableOpacity>
+                {altAberto && (
+                  <View style={{ gap: 12, paddingBottom: 14 }}>
+                    {alternativas.map((a, i) => (
+                      <View key={i} style={styles.itemDivisoria}>
+                        <Text style={fonte(FONTS.bodyExtraBold, 16, 1.3)}>
+                          {a.nome_popular}{" "}
+                          <Text style={{ fontFamily: FONTS.bodyMedium, fontStyle: "italic", color: COLORS.inkSoft }}>{a.especie}</Text>
+                        </Text>
+                        <Text style={T.corpo}>{a.como_diferenciar}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* 6. Tres chips-resumo */}
+            <View testID="chips-resumo" style={styles.resumo}>
+              <View style={[cartao.base, styles.resumoItem]}>
+                <View style={[styles.resumoIcone, { backgroundColor: COLORS.amberSoft }]}>
+                  <Sun size={22} color="#b45309" strokeWidth={2.2} />
+                </View>
+                <Text style={fonte(FONTS.bodyExtraBold, 15, 1.25)}>{luzValor}</Text>
+              </View>
+              <View style={[cartao.base, styles.resumoItem]}>
+                <View style={[styles.resumoIcone, { backgroundColor: COLORS.skySoft }]}>
+                  <Droplets size={22} color={COLORS.skyDeep} strokeWidth={2.2} />
+                </View>
+                <View style={{ gap: 2 }}>
+                  <Text style={fonte(FONTS.bodyExtraBold, 15, 1.25)}>{derivados.rega.valor}</Text>
+                  <Text style={fonte(FONTS.bodyMedium, 15, 1.25, COLORS.inkSoft)}>{derivados.rega.sub}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                testID="chip-pet"
+                activeOpacity={0.85}
+                onPress={() => {
+                  if (!derivados.toxForte) setToxLinhaAberta(true);
+                  setTimeout(() => rolarPara("tox"), 30);
+                }}
+                style={[cartao.base, styles.resumoItem, { backgroundColor: derivados.pet.cardBg }]}
+              >
+                <View style={[styles.resumoIcone, { backgroundColor: derivados.pet.iconBg }]}>
+                  <PawPrint size={22} color={derivados.pet.fg} strokeWidth={2.2} />
+                </View>
+                <View style={{ gap: 2 }}>
+                  <Text style={fonte(FONTS.bodyExtraBold, 15, 1.25, derivados.pet.fg)}>{derivados.pet.valor}</Text>
+                  <Text style={fonte(FONTS.bodyMedium, 15, 1.25, COLORS.inkSoft)}>{derivados.pet.sub}</Text>
+                </View>
+              </TouchableOpacity>
             </View>
-            <View style={styles.canalUrl}>
-              <Text style={styles.canalUrlTexto}>youtube.com/@TerraGentil</Text>
-            </View>
+
+            {/* 14 (saudavel). O que o Doutor viu sobe e abre */}
+            {saudavel && blocoViu}
+
+            {/* 7. Toxicidade em destaque */}
+            {derivados.toxForte && (
+              <View onLayout={marcar("tox")}>
+                <ToxicidadeDestaque tox={derivados.tox} />
+              </View>
+            )}
+
+            {/* 8. Problemas */}
+            {problemas.length > 0 && <Text style={[T.h3, styles.titulo]}>O que encontrei</Text>}
+            {problemas.map((p, i) => (
+              <View key={`prob-${i}`} onLayout={marcar(`prob-${i}`)}>
+                <CartaoProblema
+                  problema={p}
+                  aberto={!!problemasAbertos[i]}
+                  onAlternar={() => setProblemasAbertos((a) => ({ ...a, [i]: !a[i] }))}
+                />
+              </View>
+            ))}
+
+            {/* 9. Plano em dois degraus */}
+            {temPlano && (
+              <View testID="plano" onLayout={marcar("plano")} style={{ gap: 10 }}>
+                <Text style={[T.h3, styles.titulo]}>Plano de cuidado</Text>
+                <PlanoCuidado caseiros={derivados.caseiros} quimicos={derivados.quimicos} />
+              </View>
+            )}
+
+            {/* 10. Acompanhamento (v1: so a frase de retorno) */}
+            {temAcomp && ac ? (
+              <Acompanhamento dados={ac} nomePlanta={r.nome_popular} mensagemRetorno={mensagemV1} />
+            ) : (
+              !!mensagemV1 && <Acompanhamento dados={{}} nomePlanta={r.nome_popular} mensagemRetorno={mensagemV1} />
+            )}
+
+            {/* 11. Ajuda profissional */}
+            {!!ajuda?.recomendada && (
+              <View testID="ajuda-profissional" style={styles.ajuda}>
+                <Text style={fonte(FONTS.displayBlack, 19, 1.25, COR.lilasTitulo)}>Vale chamar quem entende</Text>
+                {!!ajuda.motivo && <Text style={fonte(FONTS.body, 15, 1.5, COR.lilasTexto)}>{ajuda.motivo}</Text>}
+                <TouchableOpacity onPress={perguntar} activeOpacity={0.85} style={styles.ajudaBotao}>
+                  <Text style={fonte(FONTS.bodyExtraBold, 16, 1.2, "#fff")}>Mostrar para a comunidade</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* 12. Leia de graca */}
+            <LeiaDeGraca ebooks={r.ebooks_recomendados || []} onAbrir={setEbookAberto} />
+
+            {/* 13. Onde encontrar */}
+            <OndeEncontrar ofertas={derivados.ofertas} />
+
+            {/* 14. O que o Doutor viu */}
+            {!saudavel && blocoViu}
+
+            {/* 15. Ficha de cuidados */}
+            {derivados.ficha.length > 0 && (
+              <View testID="ficha-cuidados" style={[cartao.base, styles.recolhivel]}>
+                <TouchableOpacity style={styles.linhaRecolhe} onPress={() => setFichaAberta((v) => !v)} activeOpacity={0.8}>
+                  <Text style={fonte(FONTS.displayBlack, 19, 1.2, COLORS.greenDark)}>Ficha de cuidados</Text>
+                  <Chevron aberto={fichaAberta} />
+                </TouchableOpacity>
+                {fichaAberta && (
+                  <View style={{ paddingBottom: 12 }}>
+                    {derivados.ficha.map((f) => (
+                      <View key={f.label} style={[styles.itemDivisoria, { paddingVertical: 10, gap: 2 }]}>
+                        <Text style={T.rotulo}>{f.label}</Text>
+                        <Text style={T.corpo}>{f.texto}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* 16. Toxicidade leve ou nenhuma */}
+            {toxLinha && (
+              <TouchableOpacity
+                testID="toxicidade-linha"
+                onLayout={marcar("tox")}
+                onPress={() => setToxLinhaAberta((v) => !v)}
+                disabled={!toxLinhaDetalhe}
+                activeOpacity={0.85}
+                style={[cartao.base, styles.toxLinha]}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  <PawPrint size={20} color={derivados.pet.fg} strokeWidth={2.2} />
+                  <Text style={[fonte(FONTS.bodyBold, 15, 1.35, derivados.pet.fg), { flex: 1 }]}>{derivados.pet.linhaTexto}</Text>
+                </View>
+                {toxLinhaAberta && !!toxLinhaDetalhe && <Text style={T.corpo}>{toxLinhaDetalhe}</Text>}
+              </TouchableOpacity>
+            )}
+
+            {/* 17. Voce sabia? */}
+            {!!curiosidade && (
+              <View style={styles.curiosidade}>
+                <Lightbulb size={24} color={COR.ambarForte} strokeWidth={2.2} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={fonte(FONTS.displayBlack, 18, 1.2, COR.ambarTexto)}>Você sabia?</Text>
+                  <Text style={fonte(FONTS.body, 15, 1.5, COR.ambarTexto)}>{curiosidade}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Cartao do canal (pedido na tela de espera) */}
+            {lembrarCanal && <CartaoCanal />}
+          </>
+        )}
+
+        {/* 18. Rodape */}
+        <View style={styles.rodape}>
+          <View testID="selo-gratis" style={styles.seloGratis}>
+            <Leaf size={18} color={COLORS.greenDark} strokeWidth={2.2} />
+            <Text style={fonte(FONTS.bodyExtraBold, 15, 1.2, COLORS.greenDark)}>Grátis, sem assinatura, em português</Text>
           </View>
-          <View style={styles.canalTextos}>
-            <Text style={styles.canalTitulo}>Conheça o canal Terra Gentil</Text>
-            <Text style={styles.canalDesc}>
-              Vídeos novos toda semana, com transformações de quintais e tutoriais de jardinagem sem pressa.
-            </Text>
-          </View>
-          <View style={styles.canalBotao}>
-            <Text style={styles.canalBotaoTexto}>Abrir o canal no YouTube</Text>
-            <ExternalLink size={17} color="#fff" strokeWidth={2.5} />
-          </View>
-        </TouchableOpacity>
+          <Text testID="aviso-ia" style={[fonte(FONTS.body, 15, 1.5, COLORS.inkSoft), { textAlign: "center" }]}>
+            Este laudo foi feito por inteligência artificial e pode errar. Na dúvida, confirme com a comunidade ou com um agrônomo.
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* 19. Barra fixa */}
+      {!naoPlanta && (
+        <BarraFixa insetInferior={insets.bottom} onPerguntar={perguntar} onCompartilhar={compartilhar} onNovaFoto={onNovaConsulta} />
       )}
 
-      {/* Botoes de acao */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.actionOutline} onPress={handleSegundaOpiniao} activeOpacity={0.8}>
-          <View style={styles.actionRow}>
-            <MessageSquare size={18} color={COLORS.greenDark} strokeWidth={2.2} />
-            <Text style={styles.actionOutlineText}>2ª opinião</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionPrimary} onPress={onNovaConsulta} activeOpacity={0.8}>
-          <View style={styles.actionRow}>
-            <Camera size={18} color="#fff" strokeWidth={2.2} />
-            <Text style={styles.actionPrimaryText}>Nova consulta</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* Leitor do ebook direto, sem e-mail. So entra na arvore depois do primeiro toque */}
+      {ebookAberto && <EbookViewerModal visible ebook={ebookAberto} onClose={() => setEbookAberto(null)} />}
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+      {postagemAberta && (
+        <NovaPostagemModal
+          visible
+          tituloInicial={tituloPergunta(r)}
+          imagemInicial={imageUri}
+          categoriaInicial={(r.problemas_detectados || []).length > 0 ? "Pragas e doenças" : "Dúvida"}
+          onClose={() => setPostagemAberta(false)}
+          onCriado={() => {
+            setPostagemAberta(false);
+            Alert.alert("Pergunta publicada", "Ela já está na aba Comunidade. Quem entende de plantas vai poder responder por lá.", [
+              { text: "Combinado" },
+            ]);
+          }}
+        />
+      )}
+      {loginAberto && (
+        <LoginModal
+          visible
+          onClose={() => setLoginAberto(false)}
+          onLogin={() => {
+            setLoginAberto(false);
+            setPostagemAberta(true);
+          }}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  canalCard: {
-    gap: 12,
-    marginHorizontal: 16,
-    marginBottom: 14,
-    padding: 14,
-    borderRadius: 24,
-    backgroundColor: COLORS.card,
-    ...shadowChunky("rgba(251,111,146,0.35)"),
-  },
-  canalTopo: {
+  tela: { flex: 1, backgroundColor: COLORS.bg },
+  cabecalho: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-  },
-  canalSino: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.coralSoft,
-  },
-  canalRotulo: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: 13,
-    letterSpacing: 1.2,
-    color: COLORS.coralDeep,
-  },
-  canalCapa: {
-    height: CANAL_CAPA_ALTURA,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: COLORS.sky,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  canalCapaImg: {
-    position: "absolute",
-    left: 0,
-  },
-  canalPlay: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.coral,
-    ...shadowChunky("rgba(230,59,110,0.5)"),
-    shadowOffset: { width: 0, height: 4 },
-  },
-  canalUrl: {
-    position: "absolute",
-    left: 10,
-    bottom: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: "rgba(28,25,23,0.75)",
-  },
-  canalUrlTexto: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 13,
-    color: "#fff",
-  },
-  canalTextos: {
     gap: 4,
-  },
-  canalTitulo: {
-    fontFamily: FONTS.displayBold,
-    fontSize: 21,
-    color: COLORS.ink,
-  },
-  canalDesc: {
-    fontFamily: FONTS.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: COLORS.inkSoft,
-  },
-  canalBotao: {
-    height: 50,
-    borderRadius: 999,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: COLORS.greenDeep,
-    ...shadowChunky(COLORS.greenDark),
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  canalBotaoTexto: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 16,
-    color: "#fff",
-  },
-  screen: {
-    flex: 1,
+    paddingHorizontal: 8,
     backgroundColor: COLORS.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: COR.linha,
   },
-  content: {
-    paddingBottom: 20,
-  },
-
-  // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  headerBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: COLORS.divider,
-  },
-  headerTitle: {
-    flex: 1,
-    fontFamily: FONTS.displayBlack,
-    fontSize: SIZES.lg,
-    color: COLORS.greenDark,
-  },
-
-  // Hero
-  heroWrap: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  hero: {
-    height: 240,
-    borderRadius: 24,
-    overflow: "hidden",
-    backgroundColor: COLORS.greenSoft,
-    ...shadowChunky(COLORS.greenDeep + "40"),
-  },
-  heroImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  heroBadge: {
+  voltar: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  conteudo: { paddingTop: 14, paddingHorizontal: 16, gap: 14 },
+  foto: { height: 208, borderRadius: 24, overflow: "hidden", backgroundColor: COR.bege },
+  selo: {
     position: "absolute",
-    top: 14,
-    left: 14,
+    left: 12,
+    bottom: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#fff",
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.94)",
   },
-  heroDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.green,
-  },
-  heroBadgeText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.sm,
-    color: COLORS.green,
-  },
-
-  // Identity
-  identity: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  plantName: {
-    fontFamily: FONTS.displayBlack,
-    fontSize: SIZES.hero,
-    color: COLORS.greenDark,
-    lineHeight: 32,
-  },
-  plantSci: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.body,
-    color: COLORS.inkSoft,
-    fontStyle: "italic",
-    marginTop: 4,
-  },
-
-  // Stats
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  statCell: {
-    width: "48%",
-  },
-
-  // Alert
-  alertCard: {
-    marginHorizontal: 16,
-    marginBottom: 14,
-    backgroundColor: COLORS.coralSoft,
-    borderRadius: 18,
-    padding: 16,
-    borderLeftWidth: 5,
-    borderLeftColor: COLORS.coral,
-  },
-  alertHeader: {
+  avisoFoto: { backgroundColor: COLORS.amberSoft, borderRadius: 20, paddingVertical: 14, paddingHorizontal: 16, flexDirection: "row", gap: 12 },
+  avisoIcone: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.amber, alignItems: "center", justifyContent: "center" },
+  recolhivel: { paddingVertical: 4, paddingHorizontal: 16 },
+  linhaRecolhe: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  itemDivisoria: { gap: 3, paddingTop: 12, borderTopWidth: 1, borderTopColor: COR.linha },
+  resumo: { flexDirection: "row", gap: 8 },
+  resumoItem: { flex: 1, borderRadius: 18, paddingVertical: 12, paddingHorizontal: 10, gap: 8 },
+  resumoIcone: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  titulo: { marginTop: 8 },
+  ajuda: { backgroundColor: COLORS.lavenderSoft, borderRadius: 22, padding: 16, gap: 10 },
+  ajudaBotao: { height: 50, borderRadius: 14, backgroundColor: COLORS.lavenderDeep, alignItems: "center", justifyContent: "center" },
+  toxLinha: { borderRadius: 18, paddingVertical: 12, paddingHorizontal: 14, gap: 6, minHeight: 44 },
+  curiosidade: { borderRadius: 22, padding: 16, backgroundColor: COLORS.amberSoft, flexDirection: "row", gap: 12 },
+  rodape: { alignItems: "center", gap: 10, paddingTop: 10, paddingHorizontal: 4 },
+  seloGratis: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginBottom: 8,
-  },
-  alertTitle: {
-    fontFamily: FONTS.displayBlack,
-    fontSize: SIZES.body + 1,
-    color: COLORS.coralDeep,
-    flex: 1,
-  },
-  alertText: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.smPlus,
-    color: COLORS.ink,
-    lineHeight: 20,
-  },
-
-  // Toxicidade
-  toxicCard: {
-    marginHorizontal: 16,
-    marginBottom: 14,
-    backgroundColor: COLORS.coralSoft,
-    borderRadius: 16,
-    padding: 16,
-    borderLeftWidth: 5,
-    borderLeftColor: COLORS.coralDeep,
-  },
-  toxicTitle: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.body + 1,
-    color: COLORS.coralDeep,
-    marginBottom: 6,
-  },
-  toxicText: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.smPlus,
-    color: COLORS.ink,
-    lineHeight: 20,
-  },
-  safeCard: {
-    marginHorizontal: 16,
-    marginBottom: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 100,
     backgroundColor: COLORS.greenSoft,
-    borderRadius: 16,
-    padding: 14,
-    alignItems: "center",
-  },
-  safeText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: SIZES.body,
-    color: COLORS.green,
-  },
-
-  // Problemas
-  problemsWrap: {
-    marginBottom: 4,
-  },
-  problemItem: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    backgroundColor: COLORS.amberSoft,
-    padding: 12,
-    borderRadius: 12,
-  },
-  problemDesc: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: SIZES.body,
-    color: COLORS.ink,
-  },
-  problemCause: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.smPlus,
-    color: COLORS.inkSoft,
-    marginTop: 4,
-  },
-
-  // Timeline
-  timelineWrap: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  timelineRow: {
-    flexDirection: "row",
-    gap: 12,
-    paddingVertical: 10,
-  },
-  timelineCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  timelineNum: {
-    fontFamily: FONTS.displayBlack,
-    fontSize: SIZES.body,
-  },
-  timelineContent: {
-    flex: 1,
-  },
-  timelineEtapa: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: SIZES.sm,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-  },
-  timelineAcao: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.body,
-    color: COLORS.ink,
-    marginTop: 2,
-  },
-
-  // Lembrete
-  reminderCard: {
-    marginHorizontal: 16,
-    marginBottom: 14,
-    backgroundColor: COLORS.skySoft,
-    borderRadius: 16,
-    padding: 16,
-    borderLeftWidth: 5,
-    borderLeftColor: COLORS.sky,
-  },
-  reminderTitle: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.body,
-    color: "#0d47a1",
-    marginBottom: 6,
-  },
-  reminderText: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.smPlus,
-    color: "#1565c0",
-    lineHeight: 20,
-  },
-
-  // Gift card
-  giftCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginHorizontal: 16,
-    marginBottom: 14,
-    backgroundColor: "#fef3c7",
-    borderRadius: 22,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: COLORS.amber,
-    shadowColor: COLORS.amber + "40",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
-  },
-  giftEmoji: {
-    fontSize: 36,
-  },
-  giftTextWrap: {
-    flex: 1,
-  },
-  giftTitle: {
-    fontFamily: FONTS.displayBlack,
-    fontSize: SIZES.body,
-    color: "#92400e",
-  },
-  giftDesc: {
-    fontFamily: FONTS.body,
-    fontSize: SIZES.sm,
-    color: "#78350f",
-    marginTop: 2,
-  },
-
-  // Action buttons
-  actionButtons: {
-    flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-  },
-  actionOutline: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: COLORS.green,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    shadowColor: COLORS.greenDeep + "40",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-  },
-  actionOutlineText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.body,
-    color: COLORS.greenDark,
-  },
-  actionPrimary: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 16,
-    backgroundColor: COLORS.green,
-    alignItems: "center",
-    ...shadowChunky(COLORS.greenDeep),
-  },
-  actionPrimaryText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: SIZES.body,
-    color: "#fff",
-  },
-  actionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
   },
 });

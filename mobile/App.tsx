@@ -2,11 +2,8 @@ import React, { memo, useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Platform,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -50,8 +47,7 @@ import {
 import { obterOuCriarNickname } from "./src/storage/nickname";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
-import { COLORS, FONTS } from "./src/constants/theme";
-import { MASCOT_POSES } from "./src/assets/mascot";
+import { COLORS } from "./src/constants/theme";
 import EbooksScreen from "./src/components/redesign/EbooksScreen";
 import PromotionsScreen from "./src/components/redesign/PromotionsScreen";
 import MainTabBar from "./src/components/redesign/MainTabBar";
@@ -331,27 +327,8 @@ export default function App() {
       );
     }
 
-    // Resultado nao-planta
-    if (resultado && !resultado.eh_planta) {
-      return (
-        <View style={styles.container}>
-          <StatusBar style="dark" />
-          <View style={styles.naoPlantaWrap}>
-            <View style={styles.naoPlantaMascotWrap}>
-              <Image source={MASCOT_POSES[1]} style={styles.naoPlantaMascot} resizeMode="cover" />
-            </View>
-            <Text style={styles.naoPlantaTitle}>Hmm...</Text>
-            <Text style={styles.naoPlantaMessage}>{resultado.plano_tratamento}</Text>
-            <TouchableOpacity style={styles.naoPlantaBtn} onPress={handleNovaFoto} activeOpacity={0.85}>
-              <Text style={styles.naoPlantaBtnText}>Tentar outra foto</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    }
-
-    // Resultado planta
-    if (resultado && resultado.eh_planta && imageUri) {
+    // Resultado (planta ou foto sem planta: a tela trata os dois estados)
+    if (resultado && imageUri) {
       return (
         <View style={styles.container}>
           <StatusBar style="dark" />
@@ -410,60 +387,5 @@ const styles = StyleSheet.create({
   bootScreen: {
     justifyContent: "center",
     alignItems: "center",
-  },
-  naoPlantaWrap: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 32,
-  },
-  naoPlantaMascotWrap: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    overflow: "hidden",
-    borderWidth: 5,
-    borderColor: "#fff",
-    backgroundColor: COLORS.greenLeaf,
-    marginBottom: 22,
-    shadowColor: COLORS.greenDeep,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 0,
-    elevation: 6,
-  },
-  naoPlantaMascot: {
-    width: "100%",
-    height: "100%",
-  },
-  naoPlantaTitle: {
-    fontFamily: FONTS.displayBlack,
-    fontSize: 28,
-    color: COLORS.greenDark,
-    marginBottom: 12,
-  },
-  naoPlantaMessage: {
-    fontFamily: FONTS.body,
-    fontSize: 15,
-    color: COLORS.inkSoft,
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  naoPlantaBtn: {
-    backgroundColor: COLORS.green,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    shadowColor: COLORS.greenDeep,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 5,
-  },
-  naoPlantaBtnText: {
-    fontFamily: FONTS.bodyExtraBold,
-    fontSize: 16,
-    color: "#fff",
   },
 });

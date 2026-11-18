@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -44,9 +44,13 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onCriado: (viaApi?: boolean) => void;
+  // Preenchimento opcional (ex.: "Perguntar" da tela de resultado do diagnostico)
+  tituloInicial?: string;
+  imagemInicial?: string;
+  categoriaInicial?: string;
 }
 
-export default function NovaPostagemModal({ visible, onClose, onCriado }: Props) {
+export default function NovaPostagemModal({ visible, onClose, onCriado, tituloInicial, imagemInicial, categoriaInicial }: Props) {
   const insets = useSafeAreaInsets();
   const [titulo, setTitulo] = useState("");
   const [cat, setCat] = useState(CATEGORIAS[0]);
@@ -56,6 +60,14 @@ export default function NovaPostagemModal({ visible, onClose, onCriado }: Props)
   const [salvando, setSalvando] = useState(false);
 
   const paleta = paletaPorId(paletaId);
+
+  // Ao abrir, preenche o que veio de fora sem apagar o que a pessoa ja escreveu
+  useEffect(() => {
+    if (!visible) return;
+    if (tituloInicial) setTitulo((t) => t || tituloInicial);
+    if (imagemInicial) setImageUri((u) => u || imagemInicial);
+    if (categoriaInicial && CATEGORIAS.includes(categoriaInicial)) setCat(categoriaInicial);
+  }, [visible, tituloInicial, imagemInicial, categoriaInicial]);
 
   function reset() {
     setTitulo("");
