@@ -27,6 +27,15 @@ export interface ProblemaDetectado {
   evidencia_visual?: string;
   como_confirmar?: string;
   contagioso?: boolean;
+  // Caixa do problema na foto principal, em fracoes de 0 a 1 (x,y = canto superior esquerdo)
+  area_foto?: AreaFoto | null;
+}
+
+export interface AreaFoto {
+  x: number;
+  y: number;
+  largura: number;
+  altura: number;
 }
 
 export type TipoPasso = "manejo" | "caseiro" | "organico" | "quimico";
@@ -62,6 +71,8 @@ export interface AlternativaEspecie {
   nome_popular: string;
   especie: string;
   como_diferenciar: string;
+  // Miniatura da Wikipedia ou ""
+  foto_referencia?: string;
 }
 
 export interface Identificacao {
@@ -158,14 +169,31 @@ export interface DiagnosticoResponse {
   ebooks_recomendados?: EbookRecomendado[];
   rega_ml?: number;
   vaso_estimado_cm?: number;
+  // Frase curta sobre a estacao do ano no Brasil, ou ""
+  nota_estacao?: string;
+  // Miniatura da Wikipedia da especie, ou ""
+  foto_referencia?: string;
 }
 
-export async function diagnosticarPlanta(imageUri: string): Promise<DiagnosticoResponse> {
-  console.log("[api] INICIANDO request para:", API_BASE_URL);
-  console.log("[api] Image URI:", imageUri);
+// Campos do multipart: a primeira foto e a principal, as outras sao outros angulos
+const CAMPOS_FOTO = ["file", "file2", "file3"] as const;
 
+export function montarFormDiagnostico(imageUris: string[]): FormData {
   const formData = new FormData();
-  formData.append("file", { uri: imageUri, name: "planta.jpg", type: "image/jpeg" } as any);
+  imageUris.slice(0, CAMPOS_FOTO.length).forEach((uri, i) => {
+    formData.append(CAMPOS_FOTO[i], { uri, name: i === 0 ? "planta.jpg" : `planta${i + 1}.jpg`, type: "image/jpeg" } as any);
+  });
+  return formData;
+}
+
+// Aceita uma URI ou uma lista de 1 a 3 (a primeira e a foto principal)
+export async function diagnosticarPlanta(imagens: string | string[]): Promise<DiagnosticoResponse> {
+  const imageUris = (Array.isArray(imagens) ? imagens : [imagens]).filter(Boolean);
+  if (imageUris.length === 0) throw new AppError(ErrorCode.IMAGE_INVALID);
+  console.log("[api] INICIANDO request para:", API_BASE_URL);
+  console.log("[api] Fotos:", imageUris.length);
+
+  const formData = montarFormDiagnostico(imageUris);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {

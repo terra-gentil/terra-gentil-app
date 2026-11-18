@@ -10,14 +10,30 @@ interface Props {
   problema: ProblemaDetectado;
   aberto: boolean;
   onAlternar: () => void;
+  // Numero da marca na foto (lupa); tocar leva para a foto
+  numero?: number;
+  onVerNaFoto?: () => void;
 }
 
 // Bloco 8: um problema encontrado, com evidencia, causa e como confirmar
-export default function CartaoProblema({ problema: p, aberto, onAlternar }: Props) {
+export default function CartaoProblema({ problema: p, aberto, onAlternar, numero, onVerNaFoto }: Props) {
   const [rotulo, bg, fg] = GRAVIDADE[p.gravidade] || GRAVIDADE.media;
   return (
     <View style={[cartao.base, { borderRadius: 20, overflow: "hidden" }]}>
       <TouchableOpacity onPress={onAlternar} activeOpacity={0.8} style={styles.cabecalho}>
+        {!!numero && (
+          <TouchableOpacity
+            testID={`numero-problema-${numero}`}
+            onPress={onVerNaFoto}
+            disabled={!onVerNaFoto}
+            accessibilityRole="button"
+            accessibilityLabel={`Ver na foto a marca ${numero}`}
+            hitSlop={8}
+            style={styles.numero}
+          >
+            <Text style={fonte(FONTS.bodyExtraBold, 16, 1, "#fff")}>{numero}</Text>
+          </TouchableOpacity>
+        )}
         <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
           <Text style={fonte(FONTS.displayBold, 18, 1.25)}>{p.descricao}</Text>
           <View style={styles.pilulas}>
@@ -66,6 +82,15 @@ export default function CartaoProblema({ problema: p, aberto, onAlternar }: Prop
 
 const styles = StyleSheet.create({
   cabecalho: { minHeight: 44, paddingVertical: 14, paddingHorizontal: 16, flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  numero: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COR.coral,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
   pilulas: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   pilula: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 100 },
   corpo: { paddingHorizontal: 16, paddingBottom: 16, gap: 12 },

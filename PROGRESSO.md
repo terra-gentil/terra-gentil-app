@@ -1,5 +1,14 @@
 # PROGRESSO - Terra Gentil
 
+## SEGUNDA ETAPA EM ANDAMENTO (2026-11-18 madrugada)
+
+ATENCAO OTA: a partir do commit 2909954 o app usa runtimeVersion "2.0.0" (version 1.1.0, versionCode 3) e tem modulos nativos novos (react-native-view-shot, expo-sensors). OTA feita do main agora NAO chega no build da Play (runtime exposdk:54.0.0). Correcao urgente para o build antigo: fazer `git worktree add` no commit b4c42c2 e rodar `npx -y eas-cli@latest update --branch production` de la.
+- Backend no ar (1a62322): area_foto, file2/file3, nota_estacao, foto_referencia (Wikipedia). Testado em producao com a abobrinha: ok (lupa veio com caixa quase da foto toda; app so desenha se < 60%).
+- App (2909954): compartilhar como imagem, antes e depois, lembrete de rega recorrente, Plantas em cuidado na Home, Me avise persistido, permissao de notificacao passo a passo, medidor de luz. 133 testes.
+- Em curso: agente integrando lupa, tela "mais fotos" (ate 3), foto de referencia e nota_estacao.
+- Depois: eas build Android do 1.1.0 (preview para o Andre testar no aparelho), so mandar para a Play quando o Andre aprovar os testes.
+- Fora: alerta regional, medir vaso com realidade aumentada.
+
 ## PROXIMA SESSAO: Andre testar a tela de resultado v2 no celular e pedir ajustes
 
 Atualizado 2026-11-17 23h. Tela de resultado v2 NO AR por OTA (update group 46df746a, commit a0bc7b7), junto com os 133 livros da aba Ebooks.

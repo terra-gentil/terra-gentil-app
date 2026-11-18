@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  Image,
   LayoutChangeEvent,
   ScrollView,
   Share,
@@ -37,6 +36,8 @@ import CartaoCompartilhar, { LARGURA_CARTAO, compartilharCartao, podeCompartilha
 import { ConsultaHistorico, acharAnterior, listarConsultas } from "../../storage/historico";
 import { refDoLaudo } from "../../storage/plantasEmCuidado";
 import NaoPlanta from "./resultado/NaoPlanta";
+import FotoLupa from "./resultado/FotoLupa";
+import FotoReferencia from "./resultado/FotoReferencia";
 import { COR, Chevron, T, cartao, fonte } from "./resultado/comum";
 import {
   LUZ,
@@ -44,6 +45,7 @@ import {
   estadoDe,
   fichaCuidados,
   infoPet,
+  marcasDaLupa,
   materiaisNaoQuimicos,
   regaResumo,
   separarPlano,
@@ -94,6 +96,8 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
   const [toxLinhaAberta, setToxLinhaAberta] = useState(false);
   const [anterior, setAnterior] = useState<ConsultaHistorico | null>(null);
   const [cartaoMontado, setCartaoMontado] = useState(false);
+  // Problema destacado na lupa da foto (indice em problemas_detectados)
+  const [destaque, setDestaque] = useState<number | null>(null);
   const cartaoRef = useRef<View>(null);
   const cartaoPronto = useRef<(() => void) | null>(null);
   const compartilhando = useRef(false);
@@ -230,6 +234,9 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
   const toxLinha = !derivados.toxForte && derivados.tox.nivel !== "nao_aplicavel";
   const toxLinhaDetalhe = [derivados.tox.sintomas, derivados.tox.o_que_fazer].filter(Boolean).join(" ");
   const luzValor = LUZ[r.nivel_luz] ? LUZ[r.nivel_luz][0] : "Sem dados";
+  const notaEstacao = (r.nota_estacao || "").trim();
+  const marcas = useMemo(() => (r.eh_planta ? marcasDaLupa(r.problemas_detectados) : []), [r]);
+  const numeroDe = (indice: number) => marcas.find((m) => m.indice === indice)?.numero;
 
   const blocoViu = temViu ? (
     <OQueODoutorViu
@@ -265,15 +272,14 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
         showsVerticalScrollIndicator={false}
       >
         {/* 2. Foto com selo de reconhecimento (nunca porcentagem) */}
-        <View style={styles.foto}>
-          <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" accessibilityLabel="Sua foto" />
+        <FotoLupa imageUri={imageUri} marcas={marcas} destaque={destaque}>
           {!naoPlanta && !!selo && (
             <View testID="selo-confianca" style={styles.selo}>
               <ShieldCheck size={18} color={COLORS.green} strokeWidth={2.4} />
               <Text style={fonte(FONTS.bodyBold, 15, 1.1, COLORS.greenDark)}>{selo}</Text>
             </View>
           )}
-        </View>
+        </FotoLupa>
 
         {naoPlanta ? (
           <NaoPlanta
@@ -313,6 +319,7 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
               temPlano={temPlano}
               onVerPlano={() => rolarPara("plano")}
               onChipProblema={(i) => {
+                setDestaque(i);
                 setProblemasAbertos((a) => ({ ...a, [i]: true }));
                 setTimeout(() => rolarPara(`prob-${i}`), 30);
               }}
@@ -336,12 +343,15 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
                 {altAberto && (
                   <View style={{ gap: 12, paddingBottom: 14 }}>
                     {alternativas.map((a, i) => (
-                      <View key={i} style={styles.itemDivisoria}>
-                        <Text style={fonte(FONTS.bodyExtraBold, 16, 1.3)}>
-                          {a.nome_popular}{" "}
-                          <Text style={{ fontFamily: FONTS.bodyMedium, fontStyle: "italic", color: COLORS.inkSoft }}>{a.especie}</Text>
-                        </Text>
-                        <Text style={T.corpo}>{a.como_diferenciar}</Text>
+                      <View key={i} style={[styles.itemDivisoria, styles.itemAlternativa]}>
+                        <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+                          <Text style={fonte(FONTS.bodyExtraBold, 16, 1.3)}>
+                            {a.nome_popular}{" "}
+                            <Text style={{ fontFamily: FONTS.bodyMedium, fontStyle: "italic", color: COLORS.inkSoft }}>{a.especie}</Text>
+                          </Text>
+                          <Text style={T.corpo}>{a.como_diferenciar}</Text>
+                        </View>
+                        <FotoReferencia uri={a.foto_referencia} testID={`foto-referencia-alt-${i}`} />
                       </View>
                     ))}
                   </View>
@@ -385,6 +395,17 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
               </TouchableOpacity>
             </View>
 
+            {/* 6b. Nota da estacao do ano */}
+            {!!notaEstacao && (
+              <View testID="nota-estacao" style={styles.notaEstacao}>
+                <Leaf size={20} color={COLORS.greenDeep} strokeWidth={2.2} style={{ marginTop: 1 }} />
+                <Text style={[fonte(FONTS.body, 15, 1.45, COR.texto2), { flex: 1 }]}>
+                  <Text style={{ fontFamily: FONTS.bodyExtraBold, color: COLORS.greenDark }}>Nesta estação: </Text>
+                  {notaEstacao}
+                </Text>
+              </View>
+            )}
+
             {/* 14 (saudavel). O que o Doutor viu sobe e abre */}
             {saudavel && blocoViu}
 
@@ -402,7 +423,15 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
                 <CartaoProblema
                   problema={p}
                   aberto={!!problemasAbertos[i]}
-                  onAlternar={() => setProblemasAbertos((a) => ({ ...a, [i]: !a[i] }))}
+                  onAlternar={() => {
+                    setDestaque(i);
+                    setProblemasAbertos((a) => ({ ...a, [i]: !a[i] }));
+                  }}
+                  numero={numeroDe(i)}
+                  onVerNaFoto={() => {
+                    setDestaque(i);
+                    scrollRef.current?.scrollTo({ y: 0, animated: true });
+                  }}
                 />
               </View>
             ))}
@@ -573,7 +602,6 @@ const styles = StyleSheet.create({
   },
   voltar: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   conteudo: { paddingTop: 14, paddingHorizontal: 16, gap: 14 },
-  foto: { height: 208, borderRadius: 24, overflow: "hidden", backgroundColor: COR.bege },
   selo: {
     position: "absolute",
     left: 12,
@@ -591,6 +619,8 @@ const styles = StyleSheet.create({
   recolhivel: { paddingVertical: 4, paddingHorizontal: 16 },
   linhaRecolhe: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   itemDivisoria: { gap: 3, paddingTop: 12, borderTopWidth: 1, borderTopColor: COR.linha },
+  itemAlternativa: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  notaEstacao: { flexDirection: "row", gap: 10, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16, backgroundColor: COR.verdeFundo },
   resumo: { flexDirection: "row", gap: 8 },
   resumoItem: { flex: 1, borderRadius: 18, paddingVertical: 12, paddingHorizontal: 10, gap: 8 },
   resumoIcone: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },

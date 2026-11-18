@@ -6,6 +6,7 @@ import { DiagnosticoResponse } from "../../../api/diagnostico";
 import { COLORS, FONTS } from "../../../constants/theme";
 import { CATEGORIA_LABEL, estadoDe } from "./derivar";
 import { COR, Chevron, fonte } from "./comum";
+import FotoReferencia from "./FotoReferencia";
 
 interface Props {
   imageUri: string;
@@ -51,6 +52,9 @@ export default function CartaoVeredito({ imageUri, resultado: r, temPlano, onVer
           {!!r.especie_identificada && <Text style={styles.especie}>{r.especie_identificada}</Text>}
         </View>
       </View>
+
+      {/* Foto de referencia da especie (Wikipedia); some se vier vazia ou falhar */}
+      <FotoReferencia uri={r.foto_referencia} claro titulo="Foto de referência" tamanho={56} />
 
       {(!!r.diagnostico_titulo || !!r.diagnostico_explicacao) && (
         <View style={{ gap: 6 }}>

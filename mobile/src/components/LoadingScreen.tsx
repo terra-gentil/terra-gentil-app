@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  AccessibilityInfo,
   Animated,
   Easing,
   Image,
@@ -37,6 +36,7 @@ import {
 import { MASCOT_ANALYZING, MASCOT_GIFT, MASCOT_POSES } from "../assets/mascot";
 import { COLORS, FONTS, RADIUS, shadowChunky, shadowSoft } from "../constants/theme";
 import { marcarLembrarCanal } from "../storage/preferencias";
+import { useReduzirMovimento } from "../hooks/useReduzirMovimento";
 
 // Etapas sao ilusao de progresso: avancam por tempo, nao pelo backend.
 // Calibradas no Opus 5.5 (fase 2: 25 a 35 s, media 27 s). Roteiro em docs/ROTEIRO-ESPERA-V2.md.
@@ -188,25 +188,6 @@ interface Props {
   imageUri?: string | null;
 }
 
-function useReduzirMovimento(): boolean {
-  const [reduzir, setReduzir] = useState(false);
-  useEffect(() => {
-    let ativo = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((v) => {
-        if (ativo) setReduzir(!!v);
-      })
-      .catch(() => {});
-    const sub = AccessibilityInfo.addEventListener("reduceMotionChanged", (v) => {
-      if (ativo) setReduzir(!!v);
-    });
-    return () => {
-      ativo = false;
-      sub?.remove?.();
-    };
-  }, []);
-  return reduzir;
-}
 
 // Emula object-fit: cover + object-position, que o Image do RN nao tem.
 function enquadrar(

@@ -33,6 +33,7 @@ import { ErrorScreen } from "./src/components/ErrorScreen";
 import { LoadingScreen } from "./src/components/LoadingScreen";
 import { TutorialScreen } from "./src/components/TutorialScreen";
 import { WelcomeScreen } from "./src/components/WelcomeScreen";
+import MaisFotosScreen, { MAX_FOTOS, OrigemFoto } from "./src/components/MaisFotosScreen";
 import HomeScreen from "./src/components/redesign/HomeScreen";
 import DiagnosisScreen from "./src/components/redesign/DiagnosisScreen";
 import VideosScreen from "./src/components/redesign/VideosScreen";
@@ -149,6 +150,8 @@ export default function App() {
   const [loginAberto, setLoginAberto] = useState(false);
   const [gameNickname, setGameNickname] = useState<string | undefined>(undefined);
   const [imageUri, setImageUri] = useState<string | null>(null);
+  // Fotos escolhidas antes de analisar (1 a 3); null fora da tela "Quer mandar mais fotos?"
+  const [fotosPendentes, setFotosPendentes] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
   const [consulta, setConsulta] = useState<ConsultaHistorico | null>(null);
@@ -190,14 +193,15 @@ export default function App() {
     setShowTutorial(false);
   }
 
-  const enviarParaDiagnostico = useCallback(async (uri: string) => {
+  const enviarParaDiagnostico = useCallback(async (uris: string[]) => {
     setLoading(true);
     try {
-      const data = await diagnosticarPlanta(uri);
-      // Salva antes de mostrar: a tela usa a consulta para o antes e depois e os lembretes
+      const data = await diagnosticarPlanta(uris);
+      // Salva antes de mostrar: a tela usa a consulta para o antes e depois e os lembretes.
+      // O historico guarda so a foto principal.
       let salva: ConsultaHistorico | null = null;
       if (data.eh_planta) {
-        salva = await salvarConsulta(data, uri);
+        salva = await salvarConsulta(data, uris[0]);
         await registrarLaudo(data, salva);
       }
       setConsulta(salva);
@@ -212,47 +216,71 @@ export default function App() {
     }
   }, []);
 
-  const handleTirarFoto = useCallback(async () => {
-    const permissao = await ImagePicker.requestCameraPermissionsAsync();
+  // Abre a camera ou a galeria e devolve a URI (null se negou ou desistiu)
+  const escolherFoto = useCallback(async (origem: OrigemFoto): Promise<string | null> => {
+    const camera = origem === "camera";
+    const permissao = camera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
-      Alert.alert("Permissão negada", "Precisamos da câmera pra fotografar a planta.");
-      return;
+      Alert.alert(
+        "Permissão negada",
+        camera ? "Precisamos da câmera pra fotografar a planta." : "Precisamos acessar a galeria pra escolher a imagem.",
+      );
+      return null;
     }
-    const result = await ImagePicker.launchCameraAsync({
+    const opcoes: ImagePicker.ImagePickerOptions = {
       mediaTypes: ["images"],
       allowsEditing: false,
       quality: 0.5,
       base64: false,
-    });
-    if (result.canceled) return;
-    const uri = result.assets[0].uri;
-    setImageUri(uri);
-    setResultado(null);
-    setAppError(null);
-    await enviarParaDiagnostico(uri);
-  }, [enviarParaDiagnostico]);
+    };
+    const result = camera ? await ImagePicker.launchCameraAsync(opcoes) : await ImagePicker.launchImageLibraryAsync(opcoes);
+    if (result.canceled || !result.assets?.[0]?.uri) return null;
+    return result.assets[0].uri;
+  }, []);
 
-  const handleEscolherGaleria = useCallback(async () => {
-    const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissao.granted) {
-      Alert.alert("Permissão negada", "Precisamos acessar a galeria pra escolher a imagem.");
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: false,
-      quality: 0.5,
-      base64: false,
-    });
-    if (result.canceled) return;
-    const uri = result.assets[0].uri;
-    setImageUri(uri);
-    setResultado(null);
-    setAppError(null);
-    await enviarParaDiagnostico(uri);
-  }, [enviarParaDiagnostico]);
+  // Primeira foto: vai para a tela "Quer mandar mais fotos?"
+  const comecarConsulta = useCallback(
+    async (origem: OrigemFoto) => {
+      const uri = await escolherFoto(origem);
+      if (!uri) return;
+      setResultado(null);
+      setConsulta(null);
+      setAppError(null);
+      setFotosPendentes([uri]);
+    },
+    [escolherFoto],
+  );
+
+  const handleTirarFoto = useCallback(() => comecarConsulta("camera"), [comecarConsulta]);
+  const handleEscolherGaleria = useCallback(() => comecarConsulta("galeria"), [comecarConsulta]);
+
+  const handleAdicionarFoto = useCallback(
+    async (origem: OrigemFoto) => {
+      const uri = await escolherFoto(origem);
+      if (!uri) return;
+      setFotosPendentes((f) => (f && f.length < MAX_FOTOS ? [...f, uri] : f));
+    },
+    [escolherFoto],
+  );
+
+  // A foto principal (indice 0) nao sai daqui; para trocar, volta e tira outra
+  const handleRemoverFoto = useCallback((indice: number) => {
+    if (indice <= 0) return;
+    setFotosPendentes((f) => (f ? f.filter((_, i) => i !== indice) : f));
+  }, []);
+
+  const handleAnalisar = useCallback(() => {
+    if (!fotosPendentes || fotosPendentes.length === 0) return;
+    const fotos = fotosPendentes.slice(0, MAX_FOTOS);
+    setFotosPendentes(null);
+    setImageUri(fotos[0]);
+    enviarParaDiagnostico(fotos);
+  }, [fotosPendentes, enviarParaDiagnostico]);
 
   function handleNovaFoto() {
+    setFotosPendentes(null);
     setImageUri(null);
     setResultado(null);
     setConsulta(null);
@@ -325,6 +353,22 @@ export default function App() {
         <View style={styles.container}>
           <StatusBar style="dark" />
           <TutorialScreen onConcluir={handleTutorialDone} />
+        </View>
+      );
+    }
+
+    // Mais fotos (depois da primeira, antes de analisar)
+    if (fotosPendentes && fotosPendentes.length > 0) {
+      return (
+        <View style={styles.container}>
+          <StatusBar style="dark" />
+          <MaisFotosScreen
+            fotos={fotosPendentes}
+            onAdicionar={handleAdicionarFoto}
+            onRemover={handleRemoverFoto}
+            onAnalisar={handleAnalisar}
+            onCancelar={handleNovaFoto}
+          />
         </View>
       );
     }

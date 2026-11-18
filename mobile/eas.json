@@ -4,12 +4,6 @@
     "appVersionSource": "local"
   },
   "build": {
-    "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      }
-    },
     "production": {
       "channel": "production",
       "android": {

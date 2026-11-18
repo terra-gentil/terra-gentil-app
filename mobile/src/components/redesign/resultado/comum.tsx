@@ -18,6 +18,7 @@ export const COR = {
   ambarBorda: "#fcd34d",
   lilasTitulo: "#4c1d95",
   lilasTexto: "#3b0764",
+  coral: "#ff5a3c",
 };
 
 // Fonte com tamanho e altura de linha; nada abaixo de 15

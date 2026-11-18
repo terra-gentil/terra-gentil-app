@@ -1,9 +1,11 @@
 import type {
   AfetadoToxicidade,
+  AreaFoto,
   DiagnosticoResponse,
   EbookRecomendado,
   LeituraFoto,
   PassoTratamento,
+  ProblemaDetectado,
   Toxicidade,
 } from "../../../api/diagnostico";
 import type { Ebook } from "../../../data/ebooks";
@@ -290,4 +292,83 @@ export function mediana(valores: number[]): number {
   const v = [...valores].sort((a, b) => a - b);
   const m = Math.floor(v.length / 2);
   return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+
+// Lupa: ate 2 marcas, pelos problemas na ordem, so com caixa valida e menor que 60% da foto.
+// Caixa quase do tamanho da foto nao aponta nada (ex.: oidio espalhado), entao nao desenha.
+export const LUPA_MAX_MARCAS = 2;
+export const LUPA_AREA_MAXIMA = 0.6;
+
+export interface MarcaLupa {
+  indice: number; // posicao em problemas_detectados
+  numero: number; // 1 ou 2, o mesmo que aparece no cartao do problema
+  area: AreaFoto;
+}
+
+function limitar(v: number): number {
+  return Math.max(0, Math.min(1, v));
+}
+
+export function marcasDaLupa(problemas: ProblemaDetectado[] | undefined): MarcaLupa[] {
+  const marcas: MarcaLupa[] = [];
+  (problemas || []).forEach((p, indice) => {
+    if (marcas.length >= LUPA_MAX_MARCAS) return;
+    const a = p.area_foto;
+    if (!a || ![a.x, a.y, a.largura, a.altura].every((n) => typeof n === "number" && isFinite(n))) return;
+    const x = limitar(a.x);
+    const y = limitar(a.y);
+    const largura = limitar(Math.min(a.largura, 1 - x));
+    const altura = limitar(Math.min(a.altura, 1 - y));
+    if (largura <= 0 || altura <= 0) return;
+    if (largura * altura >= LUPA_AREA_MAXIMA) return;
+    marcas.push({ indice, numero: marcas.length + 1, area: { x, y, largura, altura } });
+  });
+  return marcas;
+}
+
+export interface Retangulo {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+// Leva a caixa (fracoes da imagem original) para a caixa na tela com resizeMode "cover":
+// a imagem escala para cobrir e centraliza, cortando as sobras. Devolve null se a marca
+// ficar quase toda fora do recorte visivel.
+export function caixaNaTela(
+  area: AreaFoto,
+  caixa: { largura: number; altura: number },
+  imagem: { largura: number; altura: number },
+  folga = 6,
+): Retangulo | null {
+  if (caixa.largura <= 0 || caixa.altura <= 0 || imagem.largura <= 0 || imagem.altura <= 0) return null;
+  const escala = Math.max(caixa.largura / imagem.largura, caixa.altura / imagem.altura);
+  const larguraExibida = imagem.largura * escala;
+  const alturaExibida = imagem.altura * escala;
+  const offX = (caixa.largura - larguraExibida) / 2;
+  const offY = (caixa.altura - alturaExibida) / 2;
+  // Folga em volta para o circulo nao cobrir a lesao
+  let left = offX + area.x * larguraExibida - folga;
+  let top = offY + area.y * alturaExibida - folga;
+  let right = offX + (area.x + area.largura) * larguraExibida + folga;
+  let bottom = offY + (area.y + area.altura) * alturaExibida + folga;
+  left = Math.max(0, left);
+  top = Math.max(0, top);
+  right = Math.min(caixa.largura, right);
+  bottom = Math.min(caixa.altura, bottom);
+  if (right - left < 16 || bottom - top < 16) return null;
+  // Marca minima de 44 para ser visivel, sem sair da foto
+  const minimo = 44;
+  if (right - left < minimo) {
+    const cx = (left + right) / 2;
+    left = Math.max(0, Math.min(caixa.largura - minimo, cx - minimo / 2));
+    right = left + minimo;
+  }
+  if (bottom - top < minimo) {
+    const cy = (top + bottom) / 2;
+    top = Math.max(0, Math.min(caixa.altura - minimo, cy - minimo / 2));
+    bottom = top + minimo;
+  }
+  return { left, top, width: right - left, height: bottom - top };
 }
