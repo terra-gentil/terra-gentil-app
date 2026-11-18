@@ -8,6 +8,7 @@
 - Laudo: voz so no laudo recem-chegado (prop vozAtiva; historico mudo), 0,7 s depois de abrir, qualquer toque curto para a voz (rolar nao), convite dispensado se a pessoa chega ao cartao do canal. Erros: falam uma vez (NETWORK_OFFLINE = erro_conexao, timeout/servidor = erro_geral, imagem = foto_ruim).
 - Limite conhecido: Android nao deixa ler modo silencioso nem se ha musica tocando sem modulo nativo proprio; a musica de outro app so abaixa. Ficou para depois, se fizer falta.
 - Falas comprimidas para 64 kbps (3,8 MB -> 2 MB), Andre aprovou ouvindo. 167 testes, tsc ok.
+- APK preview com voz PRONTO (commit 813d8a8; o 1o build falhou porque o expo-audio puxava expo-asset 58, fixado em 12.0.14): https://expo.dev/accounts/terra-gentil-app/projects/terra-gentil-app/builds/85bf60c9-a4ce-458f-9a68-d72643a0233e
 - PROXIMO: Andre testar no S23 o APK preview novo (roteiro: primeira consulta, segunda consulta, alto-falante desligado, TalkBack, sair do app no meio, laudo saudavel/problema/toxica, laudo do historico mudo, modo aviao). Depois: eas build --profile production + submit para a Play. Pendente do Andre: gh secret set ELEVENLABS_API_KEY_RESERVA7 no setlists.
 
 ## 2026-11-18 manha: custo do Claude cortado e Ver/Fechar em todas as setas
