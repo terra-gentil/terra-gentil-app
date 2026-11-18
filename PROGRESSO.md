@@ -1,10 +1,14 @@
 # PROGRESSO - Terra Gentil
 
-## PROXIMA SESSAO: trazer o retorno do Claude Design da tela de resultado v2 e portar
+## PROXIMA SESSAO: Andre testar a tela de resultado v2 no celular e pedir ajustes
 
-Atualizado 2026-11-17 22h30. Lista da pesquisa aprovada inteira pelo Andre. Pacote enviado:
-/Users/andrehz/Documents/Githubhz/terra-gentil-app/design-handoff-resultado.zip (58 arquivos: BRIEF-DESIGN.md, codigo-atual/ com DiagnosisScreen e componentes, exemplos/ com 12 JSON + fotos, concorrentes/ com 8 capturas, mascote, PESQUISA). Pasta e zip no .gitignore.
-Proximo: Andre cria projeto no claude.ai/design, arrasta o zip, cola o BRIEF. Quando aprovar, salvar o export em /Users/andrehz/Documents/Githubhz/terra-gentil-app/design-handoff-resultado/retorno/ e portar para React Native (tipo DiagnosticoResponse do app ainda e v1: estender com os campos v2), manter props e testID cartao-lembrete-canal, jest + tsc, commit, eas update --branch production (leva tambem os 133 livros).
+Atualizado 2026-11-17 23h. Tela de resultado v2 NO AR por OTA (update group 46df746a, commit a0bc7b7), junto com os 133 livros da aba Ebooks.
+- Design: projeto "Terra Gentil: Tela de Resultado" no claude.ai/design (p/3184555a-37c3-411a-8a0f-a7d77b9ce4ef); retorno em /Users/andrehz/Documents/Githubhz/terra-gentil-app/design-handoff-resultado/retorno.
+- Codigo: DiagnosisScreen.tsx + mobile/src/components/redesign/resultado/ (derivar.ts e blocos), ofertas em mobile/src/data/ofertas.ts (compartilhado com Promocoes), tipo v2 opcional em api/diagnostico.ts, foto sem planta agora abre a DiagnosisScreen (saiu o "Hmm...").
+- Perguntar: abre NovaPostagemModal com foto, titulo e categoria (login antes se preciso). A folha propria do prototipo nao foi feita.
+- Lembrete "Me avise": notificacao local as 10h do dia do retorno; nao persiste (botao Desfazer some ao fechar).
+- Decisoes abertas do Design: miniatura redonda no veredito repete a foto (tirar?); comparar familia visual com a tela de espera.
+- Pendencias: 2 testes de EbooksScreen.perf ("abas e chips") ja falhavam antes, corrigir; eas nao esta instalado global, usar `npx -y eas-cli@latest update ...`; tsc com --stack-size=16000 no Node 26; EbookCard (presente por e-mail) ficou sem uso; JSON intermitente do Opus; politica de privacidade no fim.
 
 ## (anterior) levar a tela de resultado v2 ao Claude Design
 Lista APROVADA pelo Andre em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/PESQUISA-CONCORRENTES.md (secoes B, D e G).
