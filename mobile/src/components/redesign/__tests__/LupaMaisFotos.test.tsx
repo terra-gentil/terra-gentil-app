@@ -68,10 +68,14 @@ describe("lupa na foto", () => {
     expect(t.getByTestId("marca-lupa-1")).toBeTruthy();
     expect(t.getByText(/O círculo mostra onde o Doutor viu o problema/)).toBeTruthy();
     expect(t.getByTestId("numero-problema-1")).toBeTruthy();
-    // Tocar no numero do cartao destaca a marca (borda mais grossa)
+    expect(t.getByTestId("etiqueta-marca-1")).toBeTruthy();
+    const anel = () => [t.getByTestId("marca-lupa-1-anel").props.style].flat(Infinity).reduce((a: any, b: any) => ({ ...a, ...b }), {});
+    expect(anel().borderWidth).toBe(4);
+    expect(t.queryByTestId("escurecer-lupa")).toBeNull();
+    // Tocar no numero do cartao destaca a marca (anel coral mais grosso e escurecimento em volta)
     fireEvent.press(t.getByTestId("numero-problema-1"));
-    const estilo = [t.getByTestId("marca-lupa-1").props.style].flat(Infinity).reduce((a: any, b: any) => ({ ...a, ...b }), {});
-    expect(estilo.borderWidth).toBe(6);
+    expect(anel().borderWidth).toBe(5);
+    expect(t.getByTestId("escurecer-lupa")).toBeTruthy();
   });
 
   it("nao desenha nada com caixa da foto toda (oidio espalhado)", async () => {
