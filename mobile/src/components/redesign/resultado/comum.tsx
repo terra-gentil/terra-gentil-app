@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, TextStyle, View } from "react-native";
+import { StyleSheet, Text, TextStyle, View } from "react-native";
 import { ChevronDown } from "lucide-react-native";
 import { COLORS, FONTS, shadowSoft } from "../../../constants/theme";
 
@@ -40,10 +40,31 @@ export const cartao = StyleSheet.create({
   },
 });
 
-export function Chevron({ aberto, cor = COLORS.inkSoft, tamanho = 20 }: { aberto: boolean; cor?: string; tamanho?: number }) {
+// Indicador de "toque para abrir": chevron num circulo colorido; com `texto`, vira pilula "Ver" / "Fechar"
+export function Chevron({
+  aberto,
+  cor = COLORS.greenDark,
+  tamanho = 20,
+  texto = false,
+}: {
+  aberto: boolean;
+  cor?: string;
+  tamanho?: number;
+  texto?: boolean;
+}) {
+  const claro = cor.toLowerCase() === "#fff" || cor.toLowerCase() === "#ffffff";
+  const fundo = claro ? "rgba(255,255,255,0.2)" : cor === COR.ambarTexto ? "#fde68a" : "#dcfce7";
   return (
-    <View style={{ transform: [{ rotate: aberto ? "180deg" : "0deg" }] }}>
-      <ChevronDown size={tamanho} color={cor} strokeWidth={2.4} />
+    <View
+      style={[
+        { backgroundColor: fundo, borderRadius: 999, flexDirection: "row", alignItems: "center", justifyContent: "center" },
+        texto ? { paddingLeft: 12, paddingRight: 8, height: 34, gap: 2 } : { width: 34, height: 34 },
+      ]}
+    >
+      {texto && <Text style={fonte(FONTS.bodyExtraBold, 15, 1.2, cor)}>{aberto ? "Fechar" : "Ver"}</Text>}
+      <View style={{ transform: [{ rotate: aberto ? "180deg" : "0deg" }] }}>
+        <ChevronDown size={tamanho} color={cor} strokeWidth={2.6} />
+      </View>
     </View>
   );
 }

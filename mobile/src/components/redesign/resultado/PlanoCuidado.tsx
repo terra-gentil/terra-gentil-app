@@ -96,7 +96,7 @@ export default function PlanoCuidado({ caseiros, quimicos }: Props) {
               <Text style={styles.pilulaQuimicoTexto}>Se não resolver</Text>
             </View>
             <Text style={styles.quimicoResumo}>Produto, só se o caseiro não bastar</Text>
-            <Chevron aberto={quimicoAberto} cor={COR.ambarTexto} />
+            <Chevron aberto={quimicoAberto} cor={COR.ambarTexto} texto />
           </TouchableOpacity>
           {quimicoAberto && (
             <View testID="plano-quimico-aberto" style={styles.quimicoCorpo}>

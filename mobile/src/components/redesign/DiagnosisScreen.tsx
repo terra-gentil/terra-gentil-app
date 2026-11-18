@@ -262,8 +262,8 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
             {alternativas.length > 0 && (
               <View testID="tambem-pode-ser" style={[cartao.base, styles.recolhivel, { borderRadius: 20 }]}>
                 <TouchableOpacity style={[styles.linhaRecolhe, { minHeight: 52 }]} onPress={() => setAltAberto((v) => !v)} activeOpacity={0.8}>
-                  <Text style={fonte(FONTS.displayBold, 18, 1.2)}>Também pode ser</Text>
-                  <Chevron aberto={altAberto} />
+                  <Text style={[fonte(FONTS.displayBold, 18, 1.2), { flex: 1 }]}>Também pode ser</Text>
+                  <Chevron aberto={altAberto} texto />
                 </TouchableOpacity>
                 {altAberto && (
                   <View style={{ gap: 12, paddingBottom: 14 }}>
@@ -378,8 +378,11 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
             {derivados.ficha.length > 0 && (
               <View testID="ficha-cuidados" style={[cartao.base, styles.recolhivel]}>
                 <TouchableOpacity style={styles.linhaRecolhe} onPress={() => setFichaAberta((v) => !v)} activeOpacity={0.8}>
-                  <Text style={fonte(FONTS.displayBlack, 19, 1.2, COLORS.greenDark)}>Ficha de cuidados</Text>
-                  <Chevron aberto={fichaAberta} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={fonte(FONTS.displayBlack, 19, 1.2, COLORS.greenDark)}>Ficha de cuidados</Text>
+                    <Text style={fonte(FONTS.body, 15, 1.3, COLORS.inkSoft)}>Rega, solo, adubo e poda</Text>
+                  </View>
+                  <Chevron aberto={fichaAberta} texto />
                 </TouchableOpacity>
                 {fichaAberta && (
                   <View style={{ paddingBottom: 12 }}>
@@ -407,6 +410,7 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <PawPrint size={20} color={derivados.pet.fg} strokeWidth={2.2} />
                   <Text style={[fonte(FONTS.bodyBold, 15, 1.35, derivados.pet.fg), { flex: 1 }]}>{derivados.pet.linhaTexto}</Text>
+                  {!!toxLinhaDetalhe && <Chevron aberto={toxLinhaAberta} />}
                 </View>
                 {toxLinhaAberta && !!toxLinhaDetalhe && <Text style={T.corpo}>{toxLinhaDetalhe}</Text>}
               </TouchableOpacity>
@@ -506,7 +510,7 @@ const styles = StyleSheet.create({
   avisoFoto: { backgroundColor: COLORS.amberSoft, borderRadius: 20, paddingVertical: 14, paddingHorizontal: 16, flexDirection: "row", gap: 12 },
   avisoIcone: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.amber, alignItems: "center", justifyContent: "center" },
   recolhivel: { paddingVertical: 4, paddingHorizontal: 16 },
-  linhaRecolhe: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  linhaRecolhe: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   itemDivisoria: { gap: 3, paddingTop: 12, borderTopWidth: 1, borderTopColor: COR.linha },
   resumo: { flexDirection: "row", gap: 8 },
   resumoItem: { flex: 1, borderRadius: 18, paddingVertical: 12, paddingHorizontal: 10, gap: 8 },

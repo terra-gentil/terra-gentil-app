@@ -32,7 +32,7 @@ export default function CartaoProblema({ problema: p, aberto, onAlternar }: Prop
           </View>
         </View>
         <View style={{ marginTop: 2 }}>
-          <Chevron aberto={aberto} tamanho={22} />
+          <Chevron aberto={aberto} texto />
         </View>
       </TouchableOpacity>
       {aberto && (

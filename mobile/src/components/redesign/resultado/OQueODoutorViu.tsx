@@ -21,8 +21,11 @@ export default function OQueODoutorViu({ leitura, luzOnde, luzPrecisa, luzVeredi
   return (
     <View testID="o-que-o-doutor-viu" style={[cartao.base, styles.caixa]}>
       <TouchableOpacity style={styles.cabecalho} onPress={() => setAberto((v) => !v)} activeOpacity={0.8}>
-        <Text style={fonte(FONTS.displayBlack, 19, 1.2, COLORS.greenDark)}>O que o Doutor viu</Text>
-        <Chevron aberto={aberto} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={fonte(FONTS.displayBlack, 19, 1.2, COLORS.greenDark)}>O que o Doutor viu</Text>
+          <Text style={fonte(FONTS.body, 15, 1.3, COLORS.inkSoft)}>Folhas, ambiente e luz da foto</Text>
+        </View>
+        <Chevron aberto={aberto} texto />
       </TouchableOpacity>
       {aberto && (
         <View style={styles.corpo}>
@@ -80,7 +83,7 @@ export default function OQueODoutorViu({ leitura, luzOnde, luzPrecisa, luzVeredi
 
 const styles = StyleSheet.create({
   caixa: { paddingVertical: 4, paddingHorizontal: 16 },
-  cabecalho: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  cabecalho: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   corpo: { gap: 14, paddingBottom: 16 },
   ponto: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },
   luz: { gap: 10, padding: 14, borderRadius: 16, backgroundColor: COLORS.bg },
