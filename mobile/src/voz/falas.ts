@@ -4,6 +4,7 @@ export const FALAS = {
   camera_dica_a: require("../../assets/voz/doutor/camera_dica_a.mp3"),
   camera_dica_b: require("../../assets/voz/doutor/camera_dica_b.mp3"),
   camera_dica_c: require("../../assets/voz/doutor/camera_dica_c.mp3"),
+  camera_dica_d: require("../../assets/voz/doutor/camera_dica_d.mp3"),
   convite_a: require("../../assets/voz/doutor/convite_a.mp3"),
   convite_b: require("../../assets/voz/doutor/convite_b.mp3"),
   convite_c: require("../../assets/voz/doutor/convite_c.mp3"),

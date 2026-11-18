@@ -208,7 +208,8 @@ Dica da câmera e entrada em "Quer mandar mais fotos?": nas 3 primeiras consulta
 | id | Quando toca | Texto exato enviado à voz |
 |---|---|---|
 | camera_dica_a | Logo antes de abrir a câmera para a 1a foto | Chegue pertinho da planta, num lugar com bastante luz, e deixe a parte doente bem no meio da foto. |
-| camera_dica_b | Variação | Procure a luz da janela e segure o celular firme. Mostre bem as folhas que estão preocupando você. |
+| camera_dica_b | Variação | Busque a luz da janela e segure o celular firme. Mostre bem as folhas que estão preocupando você. |
+| camera_dica_d | Variação | Fique pertinho da janela, onde tem mais luz, e segure o celular firme. Mostre bem as folhas que estão preocupando você. |
 | camera_dica_c | Variação | Uma dica antes da foto. Nada de flash: prefira a luz do dia, e chegue perto o bastante para eu ver os detalhes da folha. |
 | mais_fotos_a | Ao entrar em Quer mandar mais fotos | Boa foto. Se quiser me ajudar, mande mais uma ou duas: uma da planta inteira, e outra bem de perto, no ponto doente. Ou toque em Analisar agora. |
 | mais_fotos_b | Variação | Quanto mais eu vejo, melhor eu examino. Vale uma foto da planta inteira, com o vaso, e outra bem de perto da folha. Ou toque em Analisar agora. |
@@ -220,7 +221,7 @@ Dica da câmera e entrada em "Quer mandar mais fotos?": nas 3 primeiras consulta
 | terceira_foto_b | Variação | Para terminar, chegue bem perto da mancha ou do ponto que está estranho. |
 | terceira_foto_c | Variação | Agora um detalhe: aproxime o celular da parte doente, sem tremer. |
 
-primeira_guias regravada com "Ebooks" escrito "Í-búks" (a gravação anterior soava "Inbox").
+primeira_guias regravada com "Ebooks" escrito "Í-búks" (a gravação anterior soava "Inbox"). camera_dica_b regravada ("Procure" soava estranho, virou "Busque") e camera_dica_d nova (conta reserva6). Todas as 63 falas passaram pelo Whisper em 18/11: nenhum erro de verdade, Andre conferiu as 5 suspeitas de ouvido.
 
 ## 3. Regras de reprodução recomendadas
 

@@ -41,7 +41,7 @@ export const GRUPOS = {
   naoPlanta: ["nao_planta_a", "nao_planta_b"],
   fotoRuim: ["foto_ruim_a", "foto_ruim_b"],
   erroConexao: ["erro_conexao_a", "erro_conexao_b"],
-  cameraDica: ["camera_dica_a", "camera_dica_b", "camera_dica_c"],
+  cameraDica: ["camera_dica_a", "camera_dica_b", "camera_dica_c", "camera_dica_d"],
   maisFotos: ["mais_fotos_a", "mais_fotos_b", "mais_fotos_c"],
   segundaFoto: ["segunda_foto_a", "segunda_foto_b", "segunda_foto_c"],
   terceiraFoto: ["terceira_foto_a", "terceira_foto_b", "terceira_foto_c"],
