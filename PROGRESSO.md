@@ -1,5 +1,15 @@
 # PROGRESSO - Terra Gentil
 
+## 2026-11-18 tarde: voz do Doutor LIGADA no app (commit dba6e0b, build novo)
+
+- expo-audio instalado SEM permissao de microfone (plugin com microphonePermission false e recordAudioAndroid false). runtimeVersion 2.0.0 -> 2.1.0 (version 1.1.0 e versionCode 3 mantidos): o APK de teste antigo do S23 nao recebe mais OTA, instalar o novo.
+- Codigo em /Users/andrehz/Documents/Githubhz/terra-gentil-app/mobile/src/voz: falas.ts (mapa id -> mp3), roteiro.ts (trilhas da espera primeira/A/B/C, escolherFalasLaudo, falaDeErro, Sorteio sem repetir), locutor.ts (fila, 1 s entre falas, canal com prioridade, exame atrasado cai, fade 0,5 s, vigia de 20 s), index.ts (expo-audio em modo "abaixar os outros", AppState, TalkBack), acoes.ts. Estado no aparelho em src/storage/voz.ts (alto-falante, contador de consultas, trilha, ultimas variacoes, foto marcada ate 3x, erro repetido em 2 min).
+- Tela de espera: botao de alto-falante no cabecalho (escolha guardada), carrossel pula para o cartao citado e fica parado ate 4 s depois da fala, botao do canal pulsa na chamada, lembrar_ok ao tocar, texto "O link vai no seu laudo".
+- Laudo: voz so no laudo recem-chegado (prop vozAtiva; historico mudo), 0,7 s depois de abrir, qualquer toque curto para a voz (rolar nao), convite dispensado se a pessoa chega ao cartao do canal. Erros: falam uma vez (NETWORK_OFFLINE = erro_conexao, timeout/servidor = erro_geral, imagem = foto_ruim).
+- Limite conhecido: Android nao deixa ler modo silencioso nem se ha musica tocando sem modulo nativo proprio; a musica de outro app so abaixa. Ficou para depois, se fizer falta.
+- Falas comprimidas para 64 kbps (3,8 MB -> 2 MB), Andre aprovou ouvindo. 167 testes, tsc ok.
+- PROXIMO: Andre testar no S23 o APK preview novo (roteiro: primeira consulta, segunda consulta, alto-falante desligado, TalkBack, sair do app no meio, laudo saudavel/problema/toxica, laudo do historico mudo, modo aviao). Depois: eas build --profile production + submit para a Play. Pendente do Andre: gh secret set ELEVENLABS_API_KEY_RESERVA7 no setlists.
+
 ## 2026-11-18 manha: custo do Claude cortado e Ver/Fechar em todas as setas
 
 - APK 1.1.0 instalado no S23 do Andre via adb (app da Play desinstalado com autorizacao; quando a 1.1.0 sair na Play, desinstalar de novo, assinatura diferente).
