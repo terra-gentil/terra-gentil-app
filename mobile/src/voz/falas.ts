@@ -1,6 +1,9 @@
 // Gerado a partir de assets/voz/doutor: um mp3 por fala, nome = id do roteiro (docs/ROTEIRO-VOZ-DOUTOR.md).
 /* eslint-disable @typescript-eslint/no-require-imports */
 export const FALAS = {
+  camera_dica_a: require("../../assets/voz/doutor/camera_dica_a.mp3"),
+  camera_dica_b: require("../../assets/voz/doutor/camera_dica_b.mp3"),
+  camera_dica_c: require("../../assets/voz/doutor/camera_dica_c.mp3"),
   convite_a: require("../../assets/voz/doutor/convite_a.mp3"),
   convite_b: require("../../assets/voz/doutor/convite_b.mp3"),
   convite_c: require("../../assets/voz/doutor/convite_c.mp3"),
@@ -46,11 +49,20 @@ export const FALAS = {
   laudo_toxica_a: require("../../assets/voz/doutor/laudo_toxica_a.mp3"),
   laudo_toxica_b: require("../../assets/voz/doutor/laudo_toxica_b.mp3"),
   lembrar_ok: require("../../assets/voz/doutor/lembrar_ok.mp3"),
+  mais_fotos_a: require("../../assets/voz/doutor/mais_fotos_a.mp3"),
+  mais_fotos_b: require("../../assets/voz/doutor/mais_fotos_b.mp3"),
+  mais_fotos_c: require("../../assets/voz/doutor/mais_fotos_c.mp3"),
   nao_planta_a: require("../../assets/voz/doutor/nao_planta_a.mp3"),
   nao_planta_b: require("../../assets/voz/doutor/nao_planta_b.mp3"),
   primeira_canal: require("../../assets/voz/doutor/primeira_canal.mp3"),
   primeira_guias: require("../../assets/voz/doutor/primeira_guias.mp3"),
   primeira_quem_somos: require("../../assets/voz/doutor/primeira_quem_somos.mp3"),
+  segunda_foto_a: require("../../assets/voz/doutor/segunda_foto_a.mp3"),
+  segunda_foto_b: require("../../assets/voz/doutor/segunda_foto_b.mp3"),
+  segunda_foto_c: require("../../assets/voz/doutor/segunda_foto_c.mp3"),
+  terceira_foto_a: require("../../assets/voz/doutor/terceira_foto_a.mp3"),
+  terceira_foto_b: require("../../assets/voz/doutor/terceira_foto_b.mp3"),
+  terceira_foto_c: require("../../assets/voz/doutor/terceira_foto_c.mp3"),
 } as const;
 
 export type FalaId = keyof typeof FALAS;

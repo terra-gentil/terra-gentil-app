@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, Camera, ImageIcon, Plus, Trash2 } from "lucide-react-native";
 import { COLORS, FONTS } from "../constants/theme";
 import { COR, fonte } from "./redesign/resultado/comum";
+import { locutor } from "../voz";
+import { falarMaisFotos } from "../voz/acoes";
 
 export type OrigemFoto = "camera" | "galeria";
 
@@ -25,6 +27,12 @@ export default function MaisFotosScreen({ fotos, onAdicionar, onRemover, onAnali
   const extras = fotos.slice(1, MAX_FOTOS);
   const vagas = Math.max(0, MAX_FOTOS - 1 - extras.length);
   const total = Math.min(fotos.length, MAX_FOTOS);
+
+  // O Doutor explica que mais fotos ajudam; sai da tela, a voz para
+  useEffect(() => {
+    falarMaisFotos().catch(() => undefined);
+    return () => locutor.cancelar(true);
+  }, []);
 
   function adicionar(origem: OrigemFoto) {
     setEscolhendo(false);

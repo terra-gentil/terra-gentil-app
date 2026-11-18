@@ -62,7 +62,8 @@ export async function iniciarVoz(): Promise<void> {
     await setAudioModeAsync({
       playsInSilentMode: false,
       interruptionMode: "duckOthers",
-      shouldPlayInBackground: false,
+      // O locutor ja para sozinho em segundo plano; isto so deixa a dica de foto seguir com a camera aberta
+      shouldPlayInBackground: true,
       shouldRouteThroughEarpiece: false,
       allowsRecording: false,
     });

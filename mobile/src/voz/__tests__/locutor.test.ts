@@ -108,3 +108,19 @@ describe("Locutor", () => {
     expect(tocadas).toEqual(["espera_canal_c"]);
   });
 });
+
+describe("Locutor, dica de foto", () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it("falarAgora corta o que toca, comeca na hora e segue com a camera aberta", () => {
+    const { locutor, tocador, tocadas } = montar();
+    locutor.sequencia([{ fala: "mais_fotos_a" }]);
+    jest.advanceTimersByTime(1);
+    locutor.falarAgora({ fala: "segunda_foto_a", sobreCamera: true });
+    expect(tocadas).toEqual(["mais_fotos_a", "segunda_foto_a"]);
+    locutor.setPrimeiroPlano(false);
+    expect(locutor.falando).toBe(true);
+    expect(tocador.parar).toHaveBeenCalledTimes(1);
+  });
+});

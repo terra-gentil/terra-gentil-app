@@ -1,7 +1,7 @@
 import type { DiagnosticoResponse } from "../../api/diagnostico";
 import { ErrorCode } from "../../errors/AppError";
 import { FALAS } from "../falas";
-import { escolherFalasLaudo, falaDeErro, GRUPOS, planoEspera, proximaTrilha, situacaoDoLaudo, Sorteio } from "../roteiro";
+import { deveDarDicaDeFoto, escolherFalasLaudo, falaDeErro, falaProximaFoto, GRUPOS, planoEspera, proximaTrilha, situacaoDoLaudo, Sorteio } from "../roteiro";
 
 const base = {
   eh_planta: true,
@@ -77,5 +77,19 @@ describe("roteiro da voz", () => {
     expect(falaDeErro(ErrorCode.NETWORK_TIMEOUT, s)?.fala).toBe("erro_geral");
     expect(falaDeErro(ErrorCode.IMAGE_INVALID, s)?.fala).toBe("foto_ruim_a");
     expect(falaDeErro(ErrorCode.PERMISSION_DENIED, s)).toBeNull();
+  });
+});
+
+describe("dicas de foto", () => {
+  it("dica nas 3 primeiras consultas e depois 1 a cada 5", () => {
+    expect([0, 1, 2, 3, 4, 5, 6, 10].map(deveDarDicaDeFoto)).toEqual([true, true, true, false, false, true, false, true]);
+  });
+
+  it("2a foto pede a planta inteira, 3a o detalhe", () => {
+    const s = new Sorteio({}, () => 0);
+    expect(falaProximaFoto(2, s)).toBe("segunda_foto_a");
+    expect(falaProximaFoto(3, s)).toBe("terceira_foto_a");
+    expect(falaProximaFoto(4, s)).toBeNull();
+    [...GRUPOS.cameraDica, ...GRUPOS.maisFotos].forEach((f) => expect(FALAS).toHaveProperty(f));
   });
 });

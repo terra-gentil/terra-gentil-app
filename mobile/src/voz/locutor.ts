@@ -71,10 +71,11 @@ export class Locutor {
     if (v) this.interromper(false);
   }
 
-  // App em segundo plano ou tela apagada: para na hora (regra 5)
+  // App em segundo plano ou tela apagada: para na hora (regra 5), menos a dica de foto,
+  // que foi feita para tocar com a camera aberta
   setPrimeiroPlano(v: boolean): void {
     this.emPrimeiroPlano = v;
-    if (!v) this.interromper(false);
+    if (!v && !this.atual?.sobreCamera) this.interromper(false);
   }
 
   private podeFalar(): boolean {
@@ -98,6 +99,13 @@ export class Locutor {
     this.agendados.push(
       setTimeout(() => itens.forEach((item) => this.entrar(item)), atrasoMs),
     );
+  }
+
+  // Corta o que estiver tocando e fala ja, sem esperar o silencio minimo (dica antes da camera)
+  falarAgora(item: ItemFala): void {
+    this.cancelar(false);
+    this.fimUltima = -Infinity;
+    this.entrar(item);
   }
 
   // Toca so se nada estiver no ar (lembrar_ok, regra 12)

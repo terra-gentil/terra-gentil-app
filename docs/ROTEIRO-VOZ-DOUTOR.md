@@ -201,6 +201,27 @@ Assim, quem volta ouve uma chamada diferente a cada consulta: o que o Terra Gent
 
 Na primeira consulta, o convite é sempre o convite_a (ou o convite_cuidado_a, se houver problema), que é o mais explicado.
 
+### J. NOVO (18/11 tarde). Foto: dica da câmera e pedido de mais fotos
+
+Dica da câmera e entrada em "Quer mandar mais fotos?": nas 3 primeiras consultas, depois 1 a cada 5. Falas da 2a e da 3a foto: sempre. As falas de foto continuam tocando com a câmera ou a galeria aberta.
+
+| id | Quando toca | Texto exato enviado à voz |
+|---|---|---|
+| camera_dica_a | Logo antes de abrir a câmera para a 1a foto | Chegue pertinho da planta, num lugar com bastante luz, e deixe a parte doente bem no meio da foto. |
+| camera_dica_b | Variação | Procure a luz da janela e segure o celular firme. Mostre bem as folhas que estão preocupando você. |
+| camera_dica_c | Variação | Uma dica antes da foto. Nada de flash: prefira a luz do dia, e chegue perto o bastante para eu ver os detalhes da folha. |
+| mais_fotos_a | Ao entrar em Quer mandar mais fotos | Boa foto. Se quiser me ajudar, mande mais uma ou duas: uma da planta inteira, e outra bem de perto, no ponto doente. Ou toque em Analisar agora. |
+| mais_fotos_b | Variação | Quanto mais eu vejo, melhor eu examino. Vale uma foto da planta inteira, com o vaso, e outra bem de perto da folha. Ou toque em Analisar agora. |
+| mais_fotos_c | Variação | Recebi a sua foto. Se puder, mande também a planta inteira e um detalhe bem de pertinho. Mas, se preferir, já dá para tocar em Analisar agora. |
+| segunda_foto_a | Ao pedir a 2a foto (câmera ou galeria) | Agora, a planta inteira, com o vaso aparecendo. |
+| segunda_foto_b | Variação | Desta vez, afaste um pouquinho e mostre a planta toda, do vaso até a ponta das folhas. |
+| segunda_foto_c | Variação | Agora quero ver a planta de corpo inteiro, com o vaso e a terra. |
+| terceira_foto_a | Ao pedir a 3a foto | Agora bem de pertinho, na parte da folha que está diferente. |
+| terceira_foto_b | Variação | Para terminar, chegue bem perto da mancha ou do ponto que está estranho. |
+| terceira_foto_c | Variação | Agora um detalhe: aproxime o celular da parte doente, sem tremer. |
+
+primeira_guias regravada com "Ebooks" escrito "Í-búks" (a gravação anterior soava "Inbox").
+
 ## 3. Regras de reprodução recomendadas
 
 **Som e respeito ao aparelho**

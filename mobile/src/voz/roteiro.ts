@@ -24,6 +24,8 @@ export interface ItemFala {
   chamada?: boolean;
   // Convite do fim do laudo: dispensado se a pessoa ja chegou ao cartao do canal (regra 19)
   convite?: boolean;
+  // Dica de foto: continua tocando com a camera ou a galeria aberta por cima do app
+  sobreCamera?: boolean;
 }
 
 export const GRUPOS = {
@@ -39,6 +41,10 @@ export const GRUPOS = {
   naoPlanta: ["nao_planta_a", "nao_planta_b"],
   fotoRuim: ["foto_ruim_a", "foto_ruim_b"],
   erroConexao: ["erro_conexao_a", "erro_conexao_b"],
+  cameraDica: ["camera_dica_a", "camera_dica_b", "camera_dica_c"],
+  maisFotos: ["mais_fotos_a", "mais_fotos_b", "mais_fotos_c"],
+  segundaFoto: ["segunda_foto_a", "segunda_foto_b", "segunda_foto_c"],
+  terceiraFoto: ["terceira_foto_a", "terceira_foto_b", "terceira_foto_c"],
 } as const satisfies Record<string, readonly FalaId[]>;
 
 export type Grupo = keyof typeof GRUPOS;
@@ -187,6 +193,18 @@ export function escolherFalasLaudo(
   itens.push({ fala: convite, convite: true, pausaAntesMs: situacao === "serio" ? 1500 : 1000 });
 
   return { itens, usouFotoMarcada };
+}
+
+// Dica da camera e convite para mais fotos: nas 3 primeiras consultas, depois 1 a cada 5
+export function deveDarDicaDeFoto(consultasFeitas: number): boolean {
+  return consultasFeitas < 3 || consultasFeitas % 5 === 0;
+}
+
+// Fala ao pedir a 2a ou a 3a foto: sempre, porque diz o que fotografar
+export function falaProximaFoto(numero: number, s: Sorteio): FalaId | null {
+  if (numero === 2) return s.de("segundaFoto");
+  if (numero === 3) return s.de("terceiraFoto");
+  return null;
 }
 
 // Fala da tela de erro. O tempo limite de 100 s e o 504 viram NETWORK_TIMEOUT: o roteiro manda erro_geral.

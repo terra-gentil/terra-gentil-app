@@ -51,7 +51,7 @@ import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 import { COLORS } from "./src/constants/theme";
 import { iniciarVoz, locutor } from "./src/voz";
-import { falarErro } from "./src/voz/acoes";
+import { falarAntesDaCamera, falarErro, falarProximaFoto } from "./src/voz/acoes";
 import EbooksScreen from "./src/components/redesign/EbooksScreen";
 import PromotionsScreen from "./src/components/redesign/PromotionsScreen";
 import MainTabBar from "./src/components/redesign/MainTabBar";
@@ -231,7 +231,8 @@ export default function App() {
   }, []);
 
   // Abre a camera ou a galeria e devolve a URI (null se negou ou desistiu)
-  const escolherFoto = useCallback(async (origem: OrigemFoto): Promise<string | null> => {
+  // "antes" roda depois da permissao e logo antes de abrir: e onde entra a dica falada
+  const escolherFoto = useCallback(async (origem: OrigemFoto, antes?: () => Promise<void>): Promise<string | null> => {
     const camera = origem === "camera";
     const permissao = camera
       ? await ImagePicker.requestCameraPermissionsAsync()
@@ -243,6 +244,7 @@ export default function App() {
       );
       return null;
     }
+    if (antes) await antes().catch(() => undefined);
     const opcoes: ImagePicker.ImagePickerOptions = {
       mediaTypes: ["images"],
       allowsEditing: false,
@@ -257,7 +259,7 @@ export default function App() {
   // Primeira foto: vai para a tela "Quer mandar mais fotos?"
   const comecarConsulta = useCallback(
     async (origem: OrigemFoto) => {
-      const uri = await escolherFoto(origem);
+      const uri = await escolherFoto(origem, origem === "camera" ? falarAntesDaCamera : undefined);
       if (!uri) return;
       setResultado(null);
       setConsulta(null);
@@ -272,11 +274,12 @@ export default function App() {
 
   const handleAdicionarFoto = useCallback(
     async (origem: OrigemFoto) => {
-      const uri = await escolherFoto(origem);
+      const numero = (fotosPendentes?.length || 1) + 1;
+      const uri = await escolherFoto(origem, () => falarProximaFoto(numero));
       if (!uri) return;
       setFotosPendentes((f) => (f && f.length < MAX_FOTOS ? [...f, uri] : f));
     },
-    [escolherFoto],
+    [escolherFoto, fotosPendentes],
   );
 
   // A foto principal (indice 0) nao sai daqui; para trocar, volta e tira outra
