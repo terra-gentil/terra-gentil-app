@@ -16,7 +16,15 @@ jest.mock("expo-file-system/legacy", () => ({ cacheDirectory: "file:///cache/", 
 jest.mock("expo-sharing", () => ({ isAvailableAsync: jest.fn(), shareAsync: jest.fn() }));
 
 import EbooksScreen from "../EbooksScreen";
-import { capaOtimizada, larguraDaMiniatura } from "../../../data/ebooks";
+import { NUMEROS_NA_COLECAO, TODOS_EBOOKS, capaOtimizada, larguraDaMiniatura } from "../../../data/ebooks";
+import { COLECAO, TEMAS_COLECAO } from "../../../data/colecao";
+
+// Contadores lidos dos dados: o catalogo cresce (133 livros em nov/2026) sem quebrar o teste
+const N_COLECAO = COLECAO.length;
+const N_CLASSICOS = TODOS_EBOOKS.filter((e) => !NUMEROS_NA_COLECAO.has(e.numero)).length;
+const N_TEMAS = TEMAS_COLECAO.filter((t) => COLECAO.some((l) => l.tema === t.id)).length;
+const reColecao = new RegExp(`Coleção \\(${N_COLECAO}\\)`);
+const reClassicos = new RegExp(`Clássicos \\(${N_CLASSICOS}\\)`);
 
 type Tela = ReturnType<typeof render>;
 
@@ -98,11 +106,11 @@ describe("EbooksScreen, custo da primeira renderizacao", () => {
 describe("EbooksScreen, abas e chips", () => {
   it("mostra as duas abas e um chip por prateleira", () => {
     const tela = render(<EbooksScreen />);
-    expect(tela.getByText(/Coleção \(105\)/)).toBeTruthy();
-    expect(tela.getByText(/Clássicos \(8\)/)).toBeTruthy();
-    expect(tela.getByText("113 GUIAS · DE GRAÇA")).toBeTruthy();
-    expect(tela.getAllByLabelText(/^Ir para /)).toHaveLength(7);
-    fireEvent.press(tela.getByText(/Clássicos \(8\)/));
+    expect(tela.getByText(reColecao)).toBeTruthy();
+    expect(tela.getByText(reClassicos)).toBeTruthy();
+    expect(tela.getByText(`${N_COLECAO + N_CLASSICOS} GUIAS · DE GRAÇA`)).toBeTruthy();
+    expect(tela.getAllByLabelText(/^Ir para /)).toHaveLength(N_TEMAS);
+    fireEvent.press(tela.getByText(reClassicos));
     expect(tela.getAllByLabelText(/^Ir para /)).toHaveLength(4);
   });
 
@@ -114,7 +122,7 @@ describe("EbooksScreen, abas e chips", () => {
       act(() => {
         jest.runAllTimers();
       });
-      expect(tela.getByText(/Coleção \(105\)/)).toBeTruthy();
+      expect(tela.getByText(reColecao)).toBeTruthy();
       tela.unmount();
     } finally {
       jest.useRealTimers();

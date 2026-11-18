@@ -211,18 +211,6 @@ export function materiaisNaoQuimicos(r: DiagnosticoResponse): string[] {
   return lista;
 }
 
-// Data do aviso: daqui a N dias, as 10h da manha
-export function dataDoRetorno(dias: number, agora: Date = new Date()): Date {
-  const d = new Date(agora.getTime());
-  d.setDate(d.getDate() + dias);
-  d.setHours(10, 0, 0, 0);
-  return d;
-}
-
-export function textoCombinado(data: Date): string {
-  return `Combinado, aviso dia ${data.getDate()} de ${MESES[data.getMonth()]}`;
-}
-
 export function textoCompartilhar(r: DiagnosticoResponse): string {
   const estado = estadoDe(r)[0];
   const partes = [
@@ -255,4 +243,51 @@ export function ebookDoRelatorio(e: EbookRecomendado): Ebook | null {
     emoji: e.emoji || "📗",
     keywords: [],
   };
+}
+
+// Medidor de luz (sensor do Android, em lux). Faixas simples para quem cuida de planta em casa.
+export const FAIXAS_LUZ = ["Sombra", "Luz indireta", "Meia-sombra", "Sol pleno"];
+export const FAIXA_EXPLICA = [
+  "Pouca luz, longe das janelas.",
+  "Claro, mas sem sol batendo direto.",
+  "Sol direto por parte do dia.",
+  "Sol direto a maior parte do dia.",
+];
+
+export function faixaDoLux(lux: number): number {
+  if (lux < 800) return 0;
+  if (lux < 5000) return 1;
+  if (lux < 20000) return 2;
+  return 3;
+}
+
+export function faixaDaPlanta(nivelLuz: string | undefined): number | null {
+  switch (nivelLuz) {
+    case "sombra":
+      return 0;
+    case "indireta_media":
+    case "indireta_brilhante":
+      return 1;
+    case "meia_sombra":
+    case "sol_parcial":
+      return 2;
+    case "sol_pleno":
+      return 3;
+    default:
+      return null;
+  }
+}
+
+export function comparaLuz(medida: number, precisa: number | null): string {
+  if (precisa === null) return "";
+  if (medida === precisa) return "Este lugar combina com o que a planta precisa.";
+  if (medida < precisa) return `Aqui está mais escuro do que ela gosta. Ela prefere ${FAIXAS_LUZ[precisa].toLowerCase()}: tente um lugar mais claro.`;
+  return `Aqui tem mais luz do que ela gosta. Ela prefere ${FAIXAS_LUZ[precisa].toLowerCase()}: tente um lugar mais protegido.`;
+}
+
+export function mediana(valores: number[]): number {
+  if (valores.length === 0) return 0;
+  const v = [...valores].sort((a, b) => a - b);
+  const m = Math.floor(v.length / 2);
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
 }

@@ -1,56 +1,53 @@
-import React, { useState } from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import * as Notifications from "expo-notifications";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Bell, CalendarCheck, Check } from "lucide-react-native";
 import { Acompanhamento as DadosAcompanhamento } from "../../../api/diagnostico";
 import { COLORS, FONTS } from "../../../constants/theme";
-import { dataDoRetorno, textoCombinado } from "./derivar";
+import { textoPronto } from "../../../notificacoes/avisos";
+import { PlantaRef, agendarRetorno, cancelarRetorno, plantaEmCuidado } from "../../../storage/plantasEmCuidado";
+import { usePermissaoAvisos } from "../PermissaoAvisos";
 import { COR, T, cartao, fonte } from "./comum";
-
-const CANAL_LEMBRETES = "lembretes-doutor";
 
 interface Props {
   dados: DadosAcompanhamento;
-  nomePlanta: string;
+  planta: PlantaRef;
   // v1: frase de retorno quando nao ha bloco de acompanhamento
   mensagemRetorno?: string;
 }
 
-// Bloco 10: prazo, sinais de melhora e piora, como evitar e "Me avise em N dias"
-export default function Acompanhamento({ dados, nomePlanta, mensagemRetorno }: Props) {
+// Bloco 10: prazo, sinais de melhora e piora, como evitar e "Me avise em N dias".
+// O aviso marcado fica salvo na lista de plantas em cuidado e volta ao reabrir o laudo.
+export default function Acompanhamento({ dados, planta, mensagemRetorno }: Props) {
   const dias = dados.retorno_em_dias || 0;
-  const [lembrete, setLembrete] = useState<{ id: string; data: Date } | null>(null);
+  const [lembrete, setLembrete] = useState<Date | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [agendando, setAgendando] = useState(false);
+  const { garantir, folha } = usePermissaoAvisos();
   const melhora = dados.sinais_melhora || [];
   const piora = dados.sinais_piora || [];
+
+  useEffect(() => {
+    let ativo = true;
+    plantaEmCuidado(planta.chave).then((p) => {
+      if (ativo && p?.retornoNotifId && p.proximoRetorno && p.proximoRetorno > Date.now()) {
+        setLembrete(new Date(p.proximoRetorno));
+      }
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [planta.chave]);
 
   async function agendar() {
     if (agendando) return;
     setAgendando(true);
     setAviso(null);
     try {
-      let { status } = await Notifications.getPermissionsAsync();
-      if (status !== "granted") status = (await Notifications.requestPermissionsAsync()).status;
-      if (status !== "granted") {
+      if (!(await garantir())) {
         setAviso(`Sem permissão de aviso, tudo bem. Se mudar de ideia, ligue as notificações do Terra Gentil nas configurações do celular. Ou volte aqui em ${dias} dias e tire uma nova foto.`);
         return;
       }
-      if (Platform.OS === "android") {
-        await Notifications.setNotificationChannelAsync(CANAL_LEMBRETES, {
-          name: "Lembretes do Doutor",
-          importance: Notifications.AndroidImportance.DEFAULT,
-        });
-      }
-      const data = dataDoRetorno(dias);
-      const id = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `Hora de rever: ${nomePlanta}`,
-          body: "Tire uma nova foto para o Doutor comparar com o laudo de hoje.",
-        },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: data, channelId: CANAL_LEMBRETES },
-      });
-      setLembrete({ id, data });
+      setLembrete(await agendarRetorno(planta, dias));
     } catch (err) {
       console.log("[resultado] erro ao agendar lembrete:", err);
       setAviso("Não consegui marcar o aviso agora. Tente de novo daqui a pouco.");
@@ -60,11 +57,9 @@ export default function Acompanhamento({ dados, nomePlanta, mensagemRetorno }: P
   }
 
   async function desfazer() {
-    const atual = lembrete;
     setLembrete(null);
-    if (!atual) return;
     try {
-      await Notifications.cancelScheduledNotificationAsync(atual.id);
+      await cancelarRetorno(planta.chave);
     } catch (err) {
       console.log("[resultado] erro ao cancelar lembrete:", err);
     }
@@ -126,7 +121,7 @@ export default function Acompanhamento({ dados, nomePlanta, mensagemRetorno }: P
       {lembrete && (
         <View testID="lembrete-combinado" style={styles.combinado}>
           <CalendarCheck size={22} color={COLORS.greenDeep} strokeWidth={2.3} />
-          <Text style={styles.combinadoTexto}>{textoCombinado(lembrete.data)}</Text>
+          <Text style={styles.combinadoTexto}>{textoPronto(lembrete)}</Text>
           <TouchableOpacity onPress={desfazer} style={styles.desfazer} accessibilityRole="button">
             <Text style={styles.desfazerTexto}>Desfazer</Text>
           </TouchableOpacity>
@@ -137,6 +132,7 @@ export default function Acompanhamento({ dados, nomePlanta, mensagemRetorno }: P
           {aviso}
         </Text>
       )}
+      {folha}
     </View>
   );
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import { Share } from "react-native";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DiagnosticoResponse } from "../../../api/diagnostico";
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -20,8 +21,8 @@ jest.mock("expo-notifications", () => ({
   setNotificationChannelAsync: (...a: unknown[]) => mockNotif.setNotificationChannelAsync(...a),
   scheduleNotificationAsync: (...a: unknown[]) => mockNotif.scheduleNotificationAsync(...a),
   cancelScheduledNotificationAsync: (...a: unknown[]) => mockNotif.cancelScheduledNotificationAsync(...a),
-  AndroidImportance: { DEFAULT: 3 },
-  SchedulableTriggerInputTypes: { DATE: "date" },
+  AndroidImportance: { DEFAULT: 3, HIGH: 4 },
+  SchedulableTriggerInputTypes: { DATE: "date", DAILY: "daily" },
 }));
 
 const mockConsumirLembrarCanal = jest.fn();
@@ -133,8 +134,9 @@ function textos(tela: ReturnType<typeof render>): string {
   return partes.join(" | ");
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  await AsyncStorage.clear();
   mockConsumirLembrarCanal.mockResolvedValue(false);
   mockGetToken.mockResolvedValue("token");
   mockNotif.getPermissionsAsync.mockResolvedValue({ status: "granted" });
@@ -280,7 +282,7 @@ describe("DiagnosisScreen, interacoes", () => {
     esperado.setDate(esperado.getDate() + 14);
     expect(new Date(pedido.trigger.date).getDate()).toBe(esperado.getDate());
     expect(tela.getByTestId("lembrete-combinado")).toBeTruthy();
-    expect(tela.getByText(/^Combinado, aviso dia \d+ de /)).toBeTruthy();
+    expect(tela.getByText(/^Pronto! Vou te avisar no dia \d{2}\/\d{2}, às 10h\.$/)).toBeTruthy();
     await act(async () => {
       fireEvent.press(tela.getByText("Desfazer"));
     });
@@ -289,11 +291,16 @@ describe("DiagnosisScreen, interacoes", () => {
   });
 
   it("permissao negada mostra mensagem gentil e nao agenda", async () => {
-    mockNotif.getPermissionsAsync.mockResolvedValue({ status: "undetermined" });
-    mockNotif.requestPermissionsAsync.mockResolvedValue({ status: "denied" });
+    mockNotif.getPermissionsAsync.mockResolvedValue({ status: "undetermined", canAskAgain: true });
+    mockNotif.requestPermissionsAsync.mockResolvedValue({ status: "denied", canAskAgain: true });
     const { tela } = renderizar(caso04);
     await act(async () => {
       fireEvent.press(tela.getByTestId("botao-me-avise"));
+    });
+    // Antes do pedido do sistema, a folha propria explica o que vai acontecer
+    expect(tela.getByTestId("folha-permissao-explicar")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(tela.getByTestId("botao-permissao-continuar"));
     });
     expect(mockNotif.scheduleNotificationAsync).not.toHaveBeenCalled();
     expect(tela.getByTestId("aviso-lembrete")).toBeTruthy();

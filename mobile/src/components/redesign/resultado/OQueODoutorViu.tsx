@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Sun } from "lucide-react-native";
 import { LeituraFoto } from "../../../api/diagnostico";
 import { COLORS, FONTS } from "../../../constants/theme";
 import { ASPECTO_LABEL, SINAL } from "./derivar";
 import { Chevron, T, cartao, fonte } from "./comum";
+import MedidorLuz, { useSensorDeLuz } from "./MedidorLuz";
 
 interface Props {
   leitura: LeituraFoto[];
@@ -12,11 +14,14 @@ interface Props {
   luzPrecisa: number | null;
   luzVeredito: string;
   abertoInicial: boolean;
+  nivelLuz?: string;
 }
 
 // Bloco 14: leitura da foto por aspecto e regua de luz (onde esta x do que precisa)
-export default function OQueODoutorViu({ leitura, luzOnde, luzPrecisa, luzVeredito, abertoInicial }: Props) {
+export default function OQueODoutorViu({ leitura, luzOnde, luzPrecisa, luzVeredito, abertoInicial, nivelLuz = "" }: Props) {
   const [aberto, setAberto] = useState(abertoInicial);
+  const [medidor, setMedidor] = useState(false);
+  const temSensor = useSensorDeLuz();
   const temRegua = luzPrecisa !== null;
   return (
     <View testID="o-que-o-doutor-viu" style={[cartao.base, styles.caixa]}>
@@ -75,8 +80,15 @@ export default function OQueODoutorViu({ leitura, luzOnde, luzPrecisa, luzVeredi
               {!!luzVeredito && <Text style={T.corpo}>{luzVeredito}</Text>}
             </View>
           )}
+          {temSensor && (
+            <TouchableOpacity testID="botao-medir-luz" onPress={() => setMedidor(true)} activeOpacity={0.85} style={styles.medir}>
+              <Sun size={22} color="#b45309" strokeWidth={2.3} />
+              <Text style={fonte(FONTS.displayBlack, 17, 1.2, "#92400e")}>Medir a luz aqui</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
+      {temSensor && <MedidorLuz visivel={medidor} nivelLuz={nivelLuz} onFechar={() => setMedidor(false)} />}
     </View>
   );
 }
@@ -110,6 +122,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.green,
     borderWidth: 4,
     borderColor: "#fff",
+  },
+  medir: {
+    height: 54,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: COLORS.amber,
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
   },
   legenda: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
   legendaItem: { flexDirection: "row", alignItems: "center", gap: 6 },

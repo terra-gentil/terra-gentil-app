@@ -1,5 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { salvarConsulta, listarConsultas, limparHistorico } from "../historico";
+import * as FileSystem from "expo-file-system/legacy";
+import {
+  ConsultaHistorico,
+  acharAnterior,
+  carregarLaudo,
+  chavePlanta,
+  limparHistorico,
+  listarConsultas,
+  mesmaPlanta,
+  salvarConsulta,
+} from "../historico";
 import { DiagnosticoResponse } from "../../api/diagnostico";
 
 const mockDiag: DiagnosticoResponse = {
@@ -27,6 +37,7 @@ const mockDiag: DiagnosticoResponse = {
 };
 
 beforeEach(async () => {
+  jest.clearAllMocks();
   await AsyncStorage.clear();
 });
 
@@ -44,7 +55,9 @@ describe("salvarConsulta", () => {
     expect(lista).toHaveLength(1);
     expect(lista[0].especie_identificada).toBe("Nephrolepis exaltata");
     expect(lista[0].nome_popular).toBe("Samambaia");
-    expect(lista[0].imageUri).toBe("file://foto.jpg");
+    // A foto do cache vira copia persistente na pasta do app
+    expect(lista[0].imageUri).toMatch(/^file:\/\/\/docs\/historico-fotos\/.+\.jpg$/);
+    expect(FileSystem.copyAsync).toHaveBeenCalledWith({ from: "file://foto.jpg", to: lista[0].imageUri });
     expect(lista[0].estado_saude).toBe("saudavel");
   });
 
@@ -62,12 +75,28 @@ describe("salvarConsulta", () => {
     expect(lista[1].especie_identificada).toBe("Especie A");
   });
 
-  it("mais de 20 consultas fica limitado a 20", async () => {
-    for (let i = 0; i < 25; i++) {
+  it("mais de 30 consultas fica limitado a 30 e apaga foto e laudo das antigas", async () => {
+    const primeira = await salvarConsulta(mockDiag, "file://foto-0.jpg");
+    for (let i = 1; i < 32; i++) {
       await salvarConsulta(mockDiag, `file://foto-${i}.jpg`);
     }
     const lista = await listarConsultas();
-    expect(lista).toHaveLength(20);
+    expect(lista).toHaveLength(30);
+    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(primeira!.imageUri, { idempotent: true });
+    expect(await carregarLaudo(primeira!.id)).toBeNull();
+  });
+
+  it("guarda o laudo inteiro para reabrir depois", async () => {
+    const c = await salvarConsulta(mockDiag, "file://foto.jpg");
+    const salvo = await carregarLaudo(c!.id);
+    expect(salvo?.resultado.diagnostico_titulo).toBe("Planta saudavel");
+    expect(salvo?.consulta.id).toBe(c!.id);
+  });
+
+  it("se a copia falhar, mantem a URI original", async () => {
+    (FileSystem.copyAsync as jest.Mock).mockRejectedValueOnce(new Error("sem espaco"));
+    const c = await salvarConsulta(mockDiag, "file://cache/x.jpg");
+    expect(c?.imageUri).toBe("file://cache/x.jpg");
   });
 });
 
@@ -87,5 +116,43 @@ describe("limparHistorico", () => {
     await limparHistorico();
     const lista = await listarConsultas();
     expect(lista).toHaveLength(0);
+  });
+});
+
+describe("antes e depois: consulta anterior da mesma planta", () => {
+  const DIA = 86400000;
+  const agora = Date.UTC(2026, 10, 17, 12);
+  function c(over: Partial<ConsultaHistorico>): ConsultaHistorico {
+    return {
+      id: Math.random().toString(36),
+      timestamp: agora - 10 * DIA,
+      imageUri: "file:///docs/historico-fotos/a.jpg",
+      nome_popular: "Jiboia",
+      especie_identificada: "Epipremnum aureum",
+      estado_saude: "doente",
+      diagnostico_titulo: "",
+      ...over,
+    };
+  }
+  const atual = { id: "atual", timestamp: agora, especie_identificada: "Epipremnum  Aureum", nome_popular: "Jibóia" };
+
+  it("normaliza acento, caixa e espacos", () => {
+    expect(mesmaPlanta({ especie_identificada: "", nome_popular: "Jibóia" }, { especie_identificada: "x", nome_popular: "jiboia " })).toBe(true);
+    expect(chavePlanta({ especie_identificada: "Epipremnum Aureum", nome_popular: "Jiboia" })).toBe("epipremnum aureum");
+    expect(chavePlanta({ especie_identificada: "Desconhecida", nome_popular: "Jibóia" })).toBe("jiboia");
+  });
+
+  it("acha a mais recente dentro de 120 dias", () => {
+    const antiga = c({ id: "a", timestamp: agora - 100 * DIA });
+    const recente = c({ id: "b", timestamp: agora - 20 * DIA });
+    expect(acharAnterior([antiga, recente], atual)?.id).toBe("b");
+  });
+
+  it("ignora outra planta, a propria consulta, mais de 120 dias e fotos do mesmo dia", () => {
+    const outra = c({ especie_identificada: "Ficus lyrata", nome_popular: "Figueira" });
+    const propria = c({ id: "atual", timestamp: agora - 5 * DIA });
+    const velha = c({ timestamp: agora - 121 * DIA });
+    const mesmoDia = c({ timestamp: agora - 2 * 3600000 });
+    expect(acharAnterior([outra, propria, velha, mesmoDia], atual)).toBeNull();
   });
 });

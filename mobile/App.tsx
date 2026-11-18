@@ -39,7 +39,8 @@ import VideosScreen from "./src/components/redesign/VideosScreen";
 import ProfileScreen from "./src/components/redesign/ProfileScreen";
 import CommunityScreen from "./src/components/redesign/CommunityScreen";
 import GameScreen from "./src/components/redesign/GameScreen";
-import { salvarConsulta } from "./src/storage/historico";
+import { ConsultaHistorico, carregarLaudo, salvarConsulta } from "./src/storage/historico";
+import { registrarLaudo } from "./src/storage/plantasEmCuidado";
 import {
   tutorialJaVisto,
   welcomeJaVisto,
@@ -93,11 +94,12 @@ function VideosTab() { return <VideosScreen />; }
 
 // Main tabs com FAB. Memoizado: com os handlers estaveis do App, abrir
 // Configuracoes ou Login nao re-renderiza mais as abas montadas.
-const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar }: {
+const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSettings, onJogar, onAbrirLaudo }: {
   onTirarFoto: () => void;
   onEscolherGaleria: () => void;
   onSettings: () => void;
   onJogar: () => void;
+  onAbrirLaudo: (consultaId: string) => void;
 }) {
   return (
     <Tab.Navigator
@@ -111,6 +113,7 @@ const MainTabs = memo(function MainTabs({ onTirarFoto, onEscolherGaleria, onSett
             onEscolherGaleria={onEscolherGaleria}
             onSettings={onSettings}
             onJogar={onJogar}
+            onAbrirLaudo={onAbrirLaudo}
           />
         )}
       </Tab.Screen>
@@ -148,6 +151,7 @@ export default function App() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
+  const [consulta, setConsulta] = useState<ConsultaHistorico | null>(null);
   const [appError, setAppError] = useState<AppError | null>(null);
 
   useEffect(() => {
@@ -190,10 +194,14 @@ export default function App() {
     setLoading(true);
     try {
       const data = await diagnosticarPlanta(uri);
-      setResultado(data);
+      // Salva antes de mostrar: a tela usa a consulta para o antes e depois e os lembretes
+      let salva: ConsultaHistorico | null = null;
       if (data.eh_planta) {
-        await salvarConsulta(data, uri);
+        salva = await salvarConsulta(data, uri);
+        await registrarLaudo(data, salva);
       }
+      setConsulta(salva);
+      setResultado(data);
     } catch (err) {
       const appErr = toAppError(err);
       logError(appErr, "diagnostico");
@@ -247,8 +255,22 @@ export default function App() {
   function handleNovaFoto() {
     setImageUri(null);
     setResultado(null);
+    setConsulta(null);
     setAppError(null);
   }
+
+  // "Ver laudo" das plantas em cuidado: reabre o resultado salvo no historico
+  const handleAbrirLaudo = useCallback(async (consultaId: string) => {
+    const salvo = await carregarLaudo(consultaId);
+    if (!salvo) {
+      Alert.alert("Laudo não encontrado", "Esse laudo já saiu do histórico. Tire uma nova foto da planta.");
+      return;
+    }
+    setAppError(null);
+    setConsulta(salvo.consulta);
+    setImageUri(salvo.consulta.imageUri);
+    setResultado(salvo.resultado);
+  }, []);
 
   const handleSettings = useCallback(() => {
     setConfigAberta(true);
@@ -337,6 +359,7 @@ export default function App() {
             resultado={resultado}
             onVoltar={handleNovaFoto}
             onNovaConsulta={handleNovaFoto}
+            consulta={consulta}
           />
         </View>
       );
@@ -352,6 +375,7 @@ export default function App() {
             onEscolherGaleria={handleEscolherGaleria}
             onSettings={handleSettings}
             onJogar={handleJogar}
+            onAbrirLaudo={handleAbrirLaudo}
           />
         </NavigationContainer>
         <ConfiguracoesModal

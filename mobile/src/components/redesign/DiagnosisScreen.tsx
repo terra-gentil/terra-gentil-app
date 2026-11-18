@@ -31,6 +31,11 @@ import OndeEncontrar from "./resultado/OndeEncontrar";
 import OQueODoutorViu from "./resultado/OQueODoutorViu";
 import CartaoCanal from "./resultado/CartaoCanal";
 import BarraFixa, { ALTURA_BARRA } from "./resultado/BarraFixa";
+import AntesDepois from "./resultado/AntesDepois";
+import LembreteRega from "./resultado/LembreteRega";
+import CartaoCompartilhar, { LARGURA_CARTAO, compartilharCartao, podeCompartilharImagem } from "./resultado/CartaoCompartilhar";
+import { ConsultaHistorico, acharAnterior, listarConsultas } from "../../storage/historico";
+import { refDoLaudo } from "../../storage/plantasEmCuidado";
 import NaoPlanta from "./resultado/NaoPlanta";
 import { COR, Chevron, T, cartao, fonte } from "./resultado/comum";
 import {
@@ -62,6 +67,8 @@ interface Props {
   // Opcional: quem monta a tela pode tratar o "Perguntar" por conta propria.
   // Sem ela, a tela abre a nova postagem da comunidade ja preenchida.
   onPerguntarComunidade?: (pergunta: PerguntaComunidade) => void;
+  // Consulta salva no historico (nova ou reaberta): da a data do laudo e evita comparar com ela mesma
+  consulta?: ConsultaHistorico | null;
 }
 
 const ALTURA_CABECALHO = 56;
@@ -69,7 +76,7 @@ const ALTURA_CABECALHO = 56;
 // Tela de resultado do diagnostico (redesign v2, Claude Design). Os blocos seguem a
 // ordem da secao D da pesquisa e cada um so aparece quando o JSON traz o campo,
 // entao o relatorio v1 do Gemini reserva tambem funciona.
-export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNovaConsulta, onPerguntarComunidade }: Props) {
+export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNovaConsulta, onPerguntarComunidade, consulta }: Props) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const ancoras = useRef<Record<string, number>>({});
@@ -85,6 +92,34 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
   const [problemasAbertos, setProblemasAbertos] = useState<Record<number, boolean>>({ 0: true });
   const [fichaAberta, setFichaAberta] = useState(false);
   const [toxLinhaAberta, setToxLinhaAberta] = useState(false);
+  const [anterior, setAnterior] = useState<ConsultaHistorico | null>(null);
+  const [cartaoMontado, setCartaoMontado] = useState(false);
+  const cartaoRef = useRef<View>(null);
+  const cartaoPronto = useRef<(() => void) | null>(null);
+  const compartilhando = useRef(false);
+
+  const planta = useMemo(() => refDoLaudo(r, consulta), [r, consulta]);
+  const momento = consulta?.timestamp;
+
+  // Antes e depois: foto anterior da mesma planta nos ultimos 120 dias
+  useEffect(() => {
+    if (!r.eh_planta) return;
+    let ativo = true;
+    listarConsultas().then((hist) => {
+      if (!ativo) return;
+      setAnterior(
+        acharAnterior(hist, {
+          id: consulta?.id,
+          timestamp: momento ?? Date.now(),
+          especie_identificada: r.especie_identificada,
+          nome_popular: r.nome_popular,
+        }),
+      );
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [r, consulta?.id, momento]);
 
   // Foto sem planta nao gasta o lembrete: ele fica para o proximo laudo de verdade
   const ehPlanta = r.eh_planta;
@@ -142,13 +177,37 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
     else setLoginAberto(true);
   }, [r, imageUri, onPerguntarComunidade]);
 
-  const compartilhar = useCallback(async () => {
+  const compartilharTexto = useCallback(async () => {
     try {
       await Share.share({ message: textoCompartilhar(r), title: `Laudo: ${r.nome_popular}` });
     } catch (err) {
       console.log("[diagnosis] erro ao compartilhar:", err);
     }
   }, [r]);
+
+  // Compartilha o cartao-imagem; se nao der, cai no texto de sempre
+  const compartilhar = useCallback(async () => {
+    if (compartilhando.current) return;
+    compartilhando.current = true;
+    try {
+      if (!(await podeCompartilharImagem())) {
+        await compartilharTexto();
+        return;
+      }
+      await new Promise<void>((res) => {
+        cartaoPronto.current = res;
+        setCartaoMontado(true);
+      });
+      await compartilharCartao(cartaoRef, r.nome_popular);
+    } catch (err) {
+      console.log("[diagnosis] cartao falhou, vai texto:", err);
+      await compartilharTexto();
+    } finally {
+      cartaoPronto.current = null;
+      setCartaoMontado(false);
+      compartilhando.current = false;
+    }
+  }, [r, compartilharTexto]);
 
   const naoPlanta = !r.eh_planta;
   const [estadoRotulo] = estadoDe(r);
@@ -180,6 +239,7 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
       luzPrecisa={luzPrecisa}
       luzVeredito={r.luz_veredito}
       abertoInicial={saudavel}
+      nivelLuz={r.nivel_luz}
     />
   ) : null;
 
@@ -257,6 +317,14 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
                 setTimeout(() => rolarPara(`prob-${i}`), 30);
               }}
             />
+
+            {/* 4b. Antes e depois (so com foto anterior da mesma planta) */}
+            {!!anterior && (
+              <AntesDepois
+                antes={anterior}
+                agora={{ imageUri, timestamp: momento ?? Date.now(), estado_saude: r.estado_saude }}
+              />
+            )}
 
             {/* 5. Tambem pode ser */}
             {alternativas.length > 0 && (
@@ -349,10 +417,13 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
 
             {/* 10. Acompanhamento (v1: so a frase de retorno) */}
             {temAcomp && ac ? (
-              <Acompanhamento dados={ac} nomePlanta={r.nome_popular} mensagemRetorno={mensagemV1} />
+              <Acompanhamento dados={ac} planta={planta} mensagemRetorno={mensagemV1} />
             ) : (
-              !!mensagemV1 && <Acompanhamento dados={{}} nomePlanta={r.nome_popular} mensagemRetorno={mensagemV1} />
+              !!mensagemV1 && <Acompanhamento dados={{}} planta={planta} mensagemRetorno={mensagemV1} />
             )}
+
+            {/* 10b. Lembrete de rega recorrente */}
+            {r.rega_dias > 0 && <LembreteRega planta={planta} regaDias={r.rega_dias} regaMl={r.rega_ml} />}
 
             {/* 11. Ajuda profissional */}
             {!!ajuda?.recomendada && (
@@ -449,6 +520,13 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
         <BarraFixa insetInferior={insets.bottom} onPerguntar={perguntar} onCompartilhar={compartilhar} onNovaFoto={onNovaConsulta} />
       )}
 
+      {/* Cartao-imagem do compartilhar: montado fora da tela so durante o compartilhamento */}
+      {cartaoMontado && (
+        <View style={styles.foraDaTela} pointerEvents="none">
+          <CartaoCompartilhar ref={cartaoRef} imageUri={imageUri} resultado={r} onPronto={() => cartaoPronto.current?.()} />
+        </View>
+      )}
+
       {/* Leitor do ebook direto, sem e-mail. So entra na arvore depois do primeiro toque */}
       {ebookAberto && <EbookViewerModal visible ebook={ebookAberto} onClose={() => setEbookAberto(null)} />}
 
@@ -483,6 +561,7 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
 
 const styles = StyleSheet.create({
   tela: { flex: 1, backgroundColor: COLORS.bg },
+  foraDaTela: { position: "absolute", top: 0, left: -(LARGURA_CARTAO + 200), width: LARGURA_CARTAO },
   cabecalho: {
     flexDirection: "row",
     alignItems: "center",

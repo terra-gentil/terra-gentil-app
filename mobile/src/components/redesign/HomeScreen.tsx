@@ -24,6 +24,7 @@ import { useNotif } from "../../context/NotifContext";
 import SectionTitle from "./SectionTitle";
 import DoctorScanner from "./DoctorScanner";
 import NotificacoesModal from "./NotificacoesModal";
+import PlantasEmCuidado from "./PlantasEmCuidado";
 import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -60,6 +61,8 @@ interface HomeScreenProps {
   onEscolherGaleria: () => void;
   onSettings?: () => void;
   onJogar?: () => void;
+  // Reabre um laudo salvo (cartao "Plantas em cuidado")
+  onAbrirLaudo?: (consultaId: string) => void;
   loading?: boolean;
 }
 
@@ -98,8 +101,10 @@ export default function HomeScreen({
   onEscolherGaleria,
   onSettings,
   onJogar,
+  onAbrirLaudo,
   loading = false,
 }: HomeScreenProps) {
+  const [focoN, setFocoN] = useState(0);
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + Math.max(insets.bottom, 6);
@@ -121,6 +126,7 @@ export default function HomeScreen({
   useFocusEffect(
     useCallback(() => {
       let alive = true;
+      setFocoN((n) => n + 1);
       (async () => {
         const [hist, u, extra, cStats] = await Promise.all([
           listarConsultas(),
@@ -221,6 +227,9 @@ export default function HomeScreen({
 
         <DoctorScanner pausado={scannerPausado} />
       </TouchableOpacity>
+
+      {/* Plantas em tratamento ou com lembrete de rega */}
+      <PlantasEmCuidado gatilho={focoN} onVerLaudo={(id) => onAbrirLaudo?.(id)} onFotoRetorno={onTirarFoto} />
 
       {/* Atalhos rapidos */}
       <SectionTitle title="Atalhos rápidos" />
