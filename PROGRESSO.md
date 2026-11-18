@@ -1,5 +1,18 @@
 # PROGRESSO - Terra Gentil
 
+## 2026-11-18 noite: 1.1.0 indo para a Play (logo novo, politica, Seguranca dos dados, atualizacao obrigatoria)
+
+- Logo da Terra Gentil (igual ao avatar do canal, flor amarela + TERRA GENTIL no preto) no icone, icone adaptativo, splash (fundo preto), favicon e icone de notificacao (flor branca). Commit 65b044b. Icone 512 da loja em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/play/icone-loja-512.png.
+- Build vc3 (f98a734b) foi subido na Play mas DESCARTAR: pedia ACTIVITY_RECOGNITION (expo-sensors, a Play exigiu declaracao de saude) e RECORD_AUDIO (expo-audio, apesar do plugin). app.json agora tem android.blockedPermissions com as duas; versionCode 4 (commit 4c57d2c). Build vc4: https://expo.dev/accounts/terra-gentil-app/projects/terra-gentil-app/builds/13152034-8c18-4906-a026-cd99cbcf3732 (estava na fila as 19h23).
+- AAB baixado vai para /Users/andrehz/Documents/Githubhz/terra-gentil-app/builds (fora do git). Upload no Play Console e manual (60 MB, o Chrome do Claude so anexa ate 10 MB); conta dona = canalterragentil@gmail.com (u/2 no Chrome). Sem chave de servico, eas submit nao funciona.
+- Play Console, rascunho da versao de producao (release 3): notas pt-BR preenchidas, nome "3 (1.1.0)". FALTA: remover o pacote vc3 do rascunho, subir o vc4, conferir que a declaracao de saude sumiu, lancamento 100% (por causa da atualizacao obrigatoria), Andre aprovar o envio para revisao em "Visao geral da publicacao".
+- Ficha da loja (rascunho salvo): icone novo; video do YouTube removido (Play recusava por ter anuncios).
+- Seguranca dos dados (salva): conta por OAuth (Google/Apple) com URL de exclusao https://terra-gentil.github.io/terra-gentil-app/excluir-conta.html; coletados nome, ID de usuario, conteudo da comunidade e ID do dispositivo (opcionais, funcionalidade/conta); fotos efemeras; nada compartilhado; e-mail saiu.
+- Politica de privacidade reescrita (commit 55216be, no ar): Anthropic + Gemini, conta opcional, comunidade, notificacoes, Supabase, Expo, sem FormSubmit, exclusao por e-mail em 30 dias.
+- Atualizacao obrigatoria do app antigo (1.0.0, runtime exposdk:54.0.0): tela unica "Tem uma versao nova" com botao para a Play, no branch app-antigo-forcar-atualizacao (commit 05f46f7), worktree /Users/andrehz/Documents/Githubhz/terra-gentil-app-antigo. Publicar SO depois da 1.1.0 aprovada e no ar com 100%: cd /Users/andrehz/Documents/Githubhz/terra-gentil-app-antigo/mobile && npx -y eas-cli@latest update --branch production --message "Atualizacao obrigatoria para 1.1.0". Nao foi visto rodando num celular.
+- Saldos ElevenLabs (18/11): reserva7 10.000 livres; agenda 3.889; fabrica 3.171; audiovisual 2.082; reservas 2 a 6 e quiz quase zeradas. reserva4 deu 401 por cota acabada (35 restantes, renova 06/12), a chave esta boa. As dicas de camera regravadas sairam da reserva6.
+- PROXIMO: build vc4 terminar -> baixar AAB -> Andre arrasta no rascunho -> conferir erros -> 100% -> Andre aprova envio -> apos aprovacao do Google, publicar a OTA do app antigo.
+
 ## 2026-11-18 tarde: voz do Doutor LIGADA no app (commit dba6e0b, build novo)
 
 - expo-audio instalado SEM permissao de microfone (plugin com microphonePermission false e recordAudioAndroid false). runtimeVersion 2.0.0 -> 2.1.0 (version 1.1.0 e versionCode 3 mantidos): o APK de teste antigo do S23 nao recebe mais OTA, instalar o novo.
