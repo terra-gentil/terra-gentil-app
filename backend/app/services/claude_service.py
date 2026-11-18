@@ -13,8 +13,10 @@ Regras (secoes 6.1, 7.2 e 7.4 da proposta):
 - Uma tentativa so, sem retentativa no SDK (max_retries=0) e com limite de tempo proprio
   do cliente, para a requisicao ser abortada de verdade e nao seguir sendo cobrada.
 - Qualquer falha vira ClaudeServiceError com um motivo curto; a rota cai no Gemini.
-- O system tem dois blocos (instrucoes e catalogo) e a marca de cache de 1 hora fica
-  no segundo. Fotos, data, mes e estacao vao na mensagem do usuario, depois da marca.
+- Com EBOOKS_PELO_BACKEND (padrao desde 18/11/2026) o system tem um bloco so, sem catalogo,
+  e o backend escolhe os guias (escolher_ebooks). Desligado, volta o segundo bloco com o
+  catalogo. A marca de cache (CLAUDE_CACHE_TTL, 5m por padrao) fica no ultimo bloco.
+  Fotos, data, mes e estacao vao na mensagem do usuario, depois da marca.
 """
 from __future__ import annotations
 
@@ -35,7 +37,8 @@ from PIL import Image, ImageOps
 from app.core.config import settings
 from app.prompts.diagnostico_v2 import catalogo_v2, instrucoes_v2
 from app.schemas.diagnostico_v2 import DiagnosticoV2Response, EbookRecomendado
-from app.schemas.diagnostico_v2_schema import DIAGNOSTICO_V2_JSON_SCHEMA
+from app.schemas.diagnostico_v2_schema import schema_v2
+from app.services.escolher_ebooks import escolher_ebooks
 from app.services.trava_diaria import FUSO_BRASILIA
 
 logger = logging.getLogger(__name__)
@@ -276,9 +279,9 @@ def completar_campos_derivados(relatorio: DiagnosticoV2Response) -> DiagnosticoV
     return relatorio
 
 
-def _formato_resposta() -> str:
+def _formato_resposta(com_ebooks: bool = True) -> str:
     """Instrucao de formato com o schema v2 compacto. Texto fixo para nao quebrar o cache."""
-    schema = json.dumps(DIAGNOSTICO_V2_JSON_SCHEMA, ensure_ascii=False, separators=(",", ":"))
+    schema = json.dumps(schema_v2(com_ebooks), ensure_ascii=False, separators=(",", ":"))
     return (
         "\n\nFORMATO DA RESPOSTA: responda somente com um objeto JSON, sem texto antes ou "
         "depois e sem cercas de codigo, que valide neste JSON Schema (todos os campos "
@@ -314,17 +317,15 @@ def _montar_requisicao(
     if isinstance(imagens_jpeg, (bytes, bytearray)):
         imagens_jpeg = [imagens_jpeg]
     agora = datetime.now(FUSO_BRASILIA)
+    com_ebooks = not settings.EBOOKS_PELO_BACKEND
+    system = [{"type": "text", "text": instrucoes_v2(com_ebooks) + _formato_resposta(com_ebooks)}]
+    if com_ebooks:
+        system.append({"type": "text", "text": catalogo_v2(list(catalogo) if catalogo else None)})
+    system[-1]["cache_control"] = {"type": "ephemeral", "ttl": settings.CLAUDE_CACHE_TTL}
     return {
         "model": settings.CLAUDE_MODEL,
         "max_tokens": settings.CLAUDE_MAX_TOKENS,
-        "system": [
-            {"type": "text", "text": instrucoes_v2() + _formato_resposta()},
-            {
-                "type": "text",
-                "text": catalogo_v2(list(catalogo) if catalogo else None),
-                "cache_control": {"type": "ephemeral", "ttl": "1h"},
-            },
-        ],
+        "system": system,
         "messages": [
             {
                 "role": "user",
@@ -392,7 +393,8 @@ class ClaudeService:
                 i, len(preparadas), original[0], original[1], final[0], final[1], len(imagem_jpeg),
             )
 
-        params = _montar_requisicao([p[0] for p in preparadas], linhas_catalogo())
+        catalogo = None if settings.EBOOKS_PELO_BACKEND else linhas_catalogo()
+        params = _montar_requisicao([p[0] for p in preparadas], catalogo)
         inicio = time.monotonic()
         try:
             resposta = await self.client.messages.create(**params)
@@ -425,5 +427,8 @@ class ClaudeService:
 
 def pos_processar(relatorio: DiagnosticoV2Response) -> DiagnosticoV2Response:
     """Tudo o que o backend faz sobre a resposta validada antes de devolver ao app."""
-    relatorio.ebooks_recomendados = resolver_ebooks(relatorio.ebooks_recomendados)
+    if settings.EBOOKS_PELO_BACKEND:
+        relatorio.ebooks_recomendados = escolher_ebooks(relatorio, carregar_catalogo())
+    else:
+        relatorio.ebooks_recomendados = resolver_ebooks(relatorio.ebooks_recomendados)
     return completar_campos_derivados(relatorio)

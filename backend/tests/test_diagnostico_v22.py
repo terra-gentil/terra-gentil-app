@@ -376,7 +376,7 @@ class TestEstacao:
         assert verao["system"] == inverno["system"]
         assert "verão" in verao["messages"][0]["content"][-1]["text"]
         assert "inverno" in inverno["messages"][0]["content"][-1]["text"]
-        assert "Estação no Brasil" not in verao["system"][1]["text"]
+        assert all("Estação no Brasil" not in b["text"] for b in verao["system"])
 
     def test_nota_estacao_no_relatorio_e_no_schema(self):
         r = DiagnosticoV2Response(**resposta_v2_planta())

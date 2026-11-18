@@ -101,9 +101,23 @@ MARCADOR_CATALOGO = "{CATALOGO_EBOOKS}"
 CATALOGO_VAZIO = "Nenhum guia disponível no momento. Deixe ebooks_recomendados vazio."
 
 
-def instrucoes_v2() -> str:
-    """Parte fixa do prompt, sem o catalogo."""
-    return PROMPT_DIAGNOSTICO_V2.split(MARCADOR_CATALOGO)[0].rstrip()
+TRECHO_TAMANHO_COM_EBOOK = "sinais, como_evitar, curiosidade e motivo de ebook com 1 frase cada"
+TRECHO_TAMANHO_SEM_EBOOK = "sinais, como_evitar e curiosidade com 1 frase cada"
+
+
+def instrucoes_v2(com_ebooks: bool = True) -> str:
+    """
+    Parte fixa do prompt, sem o catalogo. com_ebooks=False (ebooks escolhidos pelo backend,
+    18/11/2026) tira a secao Ebooks, o titulo do catalogo e o motivo de ebook do Tamanho.
+    """
+    texto = PROMPT_DIAGNOSTICO_V2.split(MARCADOR_CATALOGO)[0].rstrip()
+    if com_ebooks:
+        return texto
+    antes, resto = texto.split("\n\nEbooks\n\n", 1)
+    resto = resto.split("\n\nTamanho\n\n", 1)[1]
+    resto = resto.split("\n\nCatálogo de ebooks", 1)[0]
+    resto = resto.replace(TRECHO_TAMANHO_COM_EBOOK, TRECHO_TAMANHO_SEM_EBOOK)
+    return antes + "\n\nTamanho\n\n" + resto.rstrip()
 
 
 def catalogo_v2(linhas_catalogo: list[str] | None = None) -> str:

@@ -132,9 +132,12 @@ class TestRotaComClaude:
         assert data["toxicidade_detalhes"] == "Partes tóxicas: folhas e caule. Sintomas: salivação."
         assert data["problemas_detectados"][0]["categoria"] == "rega_excesso"
         assert data["plano_timeline"][0]["como_fazer"] == "Espere o solo secar."
-        [ebook] = data["ebooks_recomendados"]
-        assert ebook["id"] == "TG074" and ebook["titulo"] == "Espada-de-são-jorge"
-        assert ebook["pdf"].endswith("/TG074.pdf")
+        # Guias escolhidos pelo backend: a especie primeiro, depois o problema (rega)
+        ebook = data["ebooks_recomendados"][0]
+        assert ebook["id"] == "TG035" and ebook["titulo"] == "Jiboia e Filodendro"
+        assert ebook["pdf"].endswith("/TG035.pdf")
+        assert ebook["motivo"].startswith("Feito para quem tem jiboia. ")
+        assert [e["id"] for e in data["ebooks_recomendados"]][1:] == ["TG005"]
         gemini_ok.return_value.diagnosticar.assert_not_called()
 
 

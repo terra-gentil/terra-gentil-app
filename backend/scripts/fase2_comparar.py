@@ -29,7 +29,9 @@ from app.services.claude_service import ClaudeService, ClaudeServiceError  # noq
 from app.services.gemini_service import GeminiService  # noqa: E402
 
 # Precos do Opus 5.5 em US$ por milhao de tokens (docs/PROPOSTA-DIAGNOSTICO-V2.md, secao de custo)
-PRECO_ENTRADA, PRECO_SAIDA, PRECO_CACHE_LEITURA, PRECO_CACHE_GRAVACAO_1H = 4.0, 20.0, 0.20, 8.0
+# Gravacao no cache: US$ 5 com validade de 5 minutos, US$ 8 com 1 hora (pagina de precos, 18/11/2026)
+PRECO_ENTRADA, PRECO_SAIDA, PRECO_CACHE_LEITURA = 4.0, 20.0, 0.20
+PRECO_CACHE_GRAVACAO = {"5m": 5.0, "1h": 8.0}
 EXTENSOES = {".jpg", ".jpeg", ".png", ".webp", ".heic"}
 
 
@@ -51,7 +53,7 @@ def custo_claude(uso) -> float:
         (uso.input_tokens or 0) * PRECO_ENTRADA
         + (uso.output_tokens or 0) * PRECO_SAIDA
         + (getattr(uso, "cache_read_input_tokens", 0) or 0) * PRECO_CACHE_LEITURA
-        + (getattr(uso, "cache_creation_input_tokens", 0) or 0) * PRECO_CACHE_GRAVACAO_1H
+        + (getattr(uso, "cache_creation_input_tokens", 0) or 0) * PRECO_CACHE_GRAVACAO[settings.CLAUDE_CACHE_TTL]
     ) / 1_000_000
 
 

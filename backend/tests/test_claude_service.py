@@ -13,7 +13,7 @@ from PIL import Image
 
 from app.core.config import settings
 from app.schemas.diagnostico_v2 import DiagnosticoV2Response
-from app.schemas.diagnostico_v2_schema import DIAGNOSTICO_V2_JSON_SCHEMA
+from app.schemas.diagnostico_v2_schema import DIAGNOSTICO_V2_JSON_SCHEMA, schema_v2
 from app.services.claude_service import (
     LADO_MAXIMO_PX,
     ClaudeService,
@@ -98,16 +98,17 @@ class TestRequisicao:
         assert params["max_tokens"] == settings.CLAUDE_MAX_TOKENS
         assert "thinking" not in params  # Opus 5.5: so effort controla o raciocinio
 
+        # Padrao: um bloco so, sem catalogo nem ebooks, com cache de 5 minutos
         system = params["system"]
-        assert len(system) == 2
-        assert "cache_control" not in system[0]
-        assert system[1]["cache_control"] == {"type": "ephemeral", "ttl": "1h"}
+        assert len(system) == 1
+        assert system[0]["cache_control"] == {"type": "ephemeral", "ttl": "5m"}
         assert system[0]["text"].startswith("Você é o Doutor Gentileza")
-        assert "{CATALOGO_EBOOKS}" not in system[0]["text"] + system[1]["text"]
+        assert "{CATALOGO_EBOOKS}" not in system[0]["text"]
+        assert "ebook" not in system[0]["text"].lower()
 
         # Sem gramatica forcada: o schema vai no prefixo em cache (limite da API, fase 2)
         assert params["output_config"] == {"effort": "low"}
-        esperado = json.dumps(DIAGNOSTICO_V2_JSON_SCHEMA, ensure_ascii=False, separators=(",", ":"))
+        esperado = json.dumps(schema_v2(com_ebooks=False), ensure_ascii=False, separators=(",", ":"))
         assert system[0]["text"].endswith(esperado)
 
         conteudo = params["messages"][0]["content"]
@@ -149,7 +150,8 @@ class TestResposta:
         rel = await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
         assert rel.versao_relatorio == "v2"
 
-    async def test_ebook_do_modelo_volta_completo_do_catalogo(self):
+    async def test_modo_antigo_ebook_do_modelo_volta_completo_do_catalogo(self, monkeypatch):
+        monkeypatch.setattr(settings, "EBOOKS_PELO_BACKEND", False)
         rel = await ClaudeService(client=cliente_mock()).diagnosticar(_imagem(100, 100))
         [ebook] = rel.ebooks_recomendados
         assert ebook.id == "TG074" and ebook.motivo == "Ajuda na rega."
@@ -157,10 +159,18 @@ class TestResposta:
         assert ebook.capa.startswith("https://terragentil.com.br/guias/")
         assert ebook.pdf.endswith("/TG074.pdf")
 
-    async def test_catalogo_vai_no_bloco_em_cache(self):
+    async def test_modo_antigo_catalogo_vai_no_bloco_em_cache(self, monkeypatch):
+        monkeypatch.setattr(settings, "EBOOKS_PELO_BACKEND", False)
+        monkeypatch.setattr(settings, "CLAUDE_CACHE_TTL", "1h")
         cliente = cliente_mock()
         await ClaudeService(client=cliente).diagnosticar(_imagem(100, 100))
-        bloco = cliente.messages.create.call_args.kwargs["system"][1]
+        system = cliente.messages.create.call_args.kwargs["system"]
+        assert "cache_control" not in system[0]
+        assert "Ebooks" in system[0]["text"]
+        assert system[0]["text"].endswith(
+            json.dumps(DIAGNOSTICO_V2_JSON_SCHEMA, ensure_ascii=False, separators=(",", ":"))
+        )
+        bloco = system[1]
         assert bloco["cache_control"]["ttl"] == "1h"
         assert bloco["text"].startswith("TG004 | ")
         assert "\nTG074 | " in bloco["text"] and "\nebook-02 | " in bloco["text"]

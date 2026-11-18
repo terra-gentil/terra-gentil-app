@@ -46,6 +46,15 @@ class Settings(BaseSettings):
         pattern="^(low|medium|high|xhigh|max)$",
         description="Esforco de raciocinio do Claude (output_config.effort). Fixo para nao invalidar o cache",
     )
+    CLAUDE_CACHE_TTL: str = Field(
+        default="5m",
+        pattern="^(5m|1h)$",
+        description="Validade do cache do prompt fixo. 5m grava mais barato; 1h compensa com 2+ consultas por hora",
+    )
+    EBOOKS_PELO_BACKEND: bool = Field(
+        default=True,
+        description="True: catalogo fora do prompt e guias escolhidos pelo backend. False volta ao Claude escolher",
+    )
     CLAUDE_TIMEOUT_S: float = Field(
         default=40.0, gt=0,
         description="Limite de tempo da chamada ao Claude, sem nova tentativa",

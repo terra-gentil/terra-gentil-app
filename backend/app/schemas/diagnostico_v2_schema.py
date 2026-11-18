@@ -473,3 +473,13 @@ _SCHEMA_V2_JSON = r"""
 """
 
 DIAGNOSTICO_V2_JSON_SCHEMA: dict = json.loads(_SCHEMA_V2_JSON)
+
+
+def schema_v2(com_ebooks: bool = True) -> dict:
+    """Schema v2; sem ebooks_recomendados quando o backend escolhe os guias."""
+    if com_ebooks:
+        return DIAGNOSTICO_V2_JSON_SCHEMA
+    schema = json.loads(_SCHEMA_V2_JSON)
+    schema["properties"].pop("ebooks_recomendados")
+    schema["required"].remove("ebooks_recomendados")
+    return schema
