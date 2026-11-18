@@ -5,8 +5,8 @@
 ATENCAO OTA: a partir do commit 2909954 o app usa runtimeVersion "2.0.0" (version 1.1.0, versionCode 3) e tem modulos nativos novos (react-native-view-shot, expo-sensors). OTA feita do main agora NAO chega no build da Play (runtime exposdk:54.0.0). Correcao urgente para o build antigo: fazer `git worktree add` no commit b4c42c2 e rodar `npx -y eas-cli@latest update --branch production` de la.
 - Backend no ar (1a62322): area_foto, file2/file3, nota_estacao, foto_referencia (Wikipedia). Testado em producao com a abobrinha: ok (lupa veio com caixa quase da foto toda; app so desenha se < 60%).
 - App (2909954): compartilhar como imagem, antes e depois, lembrete de rega recorrente, Plantas em cuidado na Home, Me avise persistido, permissao de notificacao passo a passo, medidor de luz. 133 testes.
-- Em curso: agente integrando lupa, tela "mais fotos" (ate 3), foto de referencia e nota_estacao.
-- Depois: eas build Android do 1.1.0 (preview para o Andre testar no aparelho), so mandar para a Play quando o Andre aprovar os testes.
+- Lupa, tela Quer mandar mais fotos (ate 3), foto de referencia e nota_estacao integradas (932f4c3).
+- APK de teste 1.1.0 pronto (commit 932f4c3, 146 testes): https://expo.dev/accounts/terra-gentil-app/projects/terra-gentil-app/builds/06c83e9d-ecfe-4951-8ae9-8a27235fda29 (canal preview; ajustes vao por `eas update --branch preview`). Andre testando no aparelho. So mandar para a Play (eas build --profile production + submit) quando ele aprovar.
 - Fora: alerta regional, medir vaso com realidade aumentada.
 
 ## PROXIMA SESSAO: Andre testar a tela de resultado v2 no celular e pedir ajustes
