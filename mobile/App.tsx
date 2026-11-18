@@ -50,6 +50,8 @@ import { obterOuCriarNickname } from "./src/storage/nickname";
 import { AppError } from "./src/errors/AppError";
 import { toAppError, logError } from "./src/errors/errorHandler";
 import { COLORS } from "./src/constants/theme";
+import { iniciarVoz, locutor } from "./src/voz";
+import { falarErro } from "./src/voz/acoes";
 import EbooksScreen from "./src/components/redesign/EbooksScreen";
 import PromotionsScreen from "./src/components/redesign/PromotionsScreen";
 import MainTabBar from "./src/components/redesign/MainTabBar";
@@ -156,6 +158,17 @@ export default function App() {
   const [resultado, setResultado] = useState<DiagnosticoResponse | null>(null);
   const [consulta, setConsulta] = useState<ConsultaHistorico | null>(null);
   const [appError, setAppError] = useState<AppError | null>(null);
+  // Laudo recem-chegado tem voz; o reaberto pelo historico nao (regra 20 do roteiro de voz)
+  const [laudoNovo, setLaudoNovo] = useState(false);
+
+  useEffect(() => {
+    iniciarVoz().catch((err) => console.log("[voz] iniciar falhou", err));
+  }, []);
+
+  // Fala do erro depois que a espera saiu da tela (o cancelamento dela nao pega esta fala)
+  useEffect(() => {
+    if (appError) falarErro(appError.code).catch(() => undefined);
+  }, [appError]);
 
   useEffect(() => {
     (async () => {
@@ -205,6 +218,7 @@ export default function App() {
         await registrarLaudo(data, salva);
       }
       setConsulta(salva);
+      setLaudoNovo(true);
       setResultado(data);
     } catch (err) {
       const appErr = toAppError(err);
@@ -280,6 +294,7 @@ export default function App() {
   }, [fotosPendentes, enviarParaDiagnostico]);
 
   function handleNovaFoto() {
+    locutor.cancelar(false);
     setFotosPendentes(null);
     setImageUri(null);
     setResultado(null);
@@ -295,6 +310,7 @@ export default function App() {
       return;
     }
     setAppError(null);
+    setLaudoNovo(false);
     setConsulta(salvo.consulta);
     setImageUri(salvo.consulta.imageUri);
     setResultado(salvo.resultado);
@@ -404,6 +420,7 @@ export default function App() {
             onVoltar={handleNovaFoto}
             onNovaConsulta={handleNovaFoto}
             consulta={consulta}
+            vozAtiva={laudoNovo}
           />
         </View>
       );

@@ -38,7 +38,7 @@
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
     },
-    "runtimeVersion": "2.0.0",
+    "runtimeVersion": "2.1.0",
     "extra": {
       "eas": {
         "projectId": "f5d75a08-a9e1-421a-ab64-c77097cb19a0"
@@ -56,6 +56,13 @@
           "icon": "./assets/icon.png",
           "color": "#2D6A4F",
           "sounds": []
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ]
     ]

@@ -120,7 +120,7 @@ describe("LoadingScreen", () => {
     fireEvent.press(tela.getByTestId("lembrar-canal"));
     fireEvent.press(tela.getByTestId("lembrar-canal"));
     expect(marcarLembrarCanal).toHaveBeenCalledTimes(1);
-    expect(tela.getByText("Combinado! O link vai no seu relatório")).toBeTruthy();
+    expect(tela.getByText("Combinado! O link vai no seu laudo")).toBeTruthy();
   });
 
   it("mostra a mensagem de demora so depois de 60 segundos", async () => {

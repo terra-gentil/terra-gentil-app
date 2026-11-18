@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  GestureResponderEvent,
   LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   Share,
   StyleSheet,
@@ -14,6 +17,8 @@ import { ArrowLeft, Camera, Droplets, Leaf, Lightbulb, PawPrint, ShieldCheck, Su
 import { DiagnosticoResponse } from "../../api/diagnostico";
 import { COLORS, FONTS } from "../../constants/theme";
 import { consumirLembrarCanal } from "../../storage/preferencias";
+import { locutor } from "../../voz";
+import { falarLaudo } from "../../voz/acoes";
 import { getToken } from "../../storage/auth";
 import { Ebook } from "../../data/ebooks";
 import { ofertasParaMateriais } from "../../data/ofertas";
@@ -71,14 +76,20 @@ interface Props {
   onPerguntarComunidade?: (pergunta: PerguntaComunidade) => void;
   // Consulta salva no historico (nova ou reaberta): da a data do laudo e evita comparar com ela mesma
   consulta?: ConsultaHistorico | null;
+  // Laudo recem-chegado: o Doutor fala. Reaberto pelo historico fica mudo.
+  vozAtiva?: boolean;
 }
+
+// Toque curto e parado conta como toque (para a voz); arrastar e rolar nao (regra 18)
+const TOQUE_MAX_MS = 500;
+const TOQUE_MAX_PX = 12;
 
 const ALTURA_CABECALHO = 56;
 
 // Tela de resultado do diagnostico (redesign v2, Claude Design). Os blocos seguem a
 // ordem da secao D da pesquisa e cada um so aparece quando o JSON traz o campo,
 // entao o relatorio v1 do Gemini reserva tambem funciona.
-export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNovaConsulta, onPerguntarComunidade, consulta }: Props) {
+export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNovaConsulta, onPerguntarComunidade, consulta, vozAtiva = false }: Props) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const ancoras = useRef<Record<string, number>>({});
@@ -137,6 +148,35 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
       ativo = false;
     };
   }, [ehPlanta]);
+
+  // Voz do laudo: recebe, orienta e convida. Sai da tela, a voz para.
+  useEffect(() => {
+    if (!vozAtiva) return;
+    falarLaudo(r).catch((err) => console.log("[voz] laudo falhou", err));
+    return () => locutor.cancelar(true);
+  }, [vozAtiva, r]);
+
+  const toqueInicio = useRef<{ x: number; y: number; t: number } | null>(null);
+  const aoTocarInicio = useCallback((e: GestureResponderEvent) => {
+    const { pageX, pageY } = e.nativeEvent;
+    toqueInicio.current = { x: pageX, y: pageY, t: Date.now() };
+  }, []);
+  const aoTocarFim = useCallback((e: GestureResponderEvent) => {
+    const ini = toqueInicio.current;
+    toqueInicio.current = null;
+    if (!ini) return;
+    const { pageX, pageY } = e.nativeEvent;
+    const parado = Math.abs(pageX - ini.x) < TOQUE_MAX_PX && Math.abs(pageY - ini.y) < TOQUE_MAX_PX;
+    if (parado && Date.now() - ini.t < TOQUE_MAX_MS) locutor.cancelar(true);
+  }, []);
+
+  // Chegou ao cartao do canal antes do convite: o convite e dispensado (regra 19)
+  const aoRolar = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const yCanal = ancoras.current.canal;
+    if (yCanal === undefined) return;
+    const { contentOffset, layoutMeasurement } = e.nativeEvent;
+    if (contentOffset.y + layoutMeasurement.height > yCanal + 80) locutor.dispensar((item) => !!item.convite);
+  }, []);
 
   const marcar = useCallback(
     (chave: string) => (ev: LayoutChangeEvent) => {
@@ -255,7 +295,7 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
   ) : null;
 
   return (
-    <View testID="diagnosis-screen" style={styles.tela}>
+    <View testID="diagnosis-screen" style={styles.tela} onTouchStart={aoTocarInicio} onTouchEnd={aoTocarFim}>
       {/* 1. Cabecalho fixo */}
       <View style={[styles.cabecalho, { paddingTop: insets.top, height: ALTURA_CABECALHO + insets.top }]}>
         <TouchableOpacity onPress={onVoltar} style={styles.voltar} accessibilityRole="button" accessibilityLabel="Voltar">
@@ -274,6 +314,8 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
         style={{ flex: 1 }}
         contentContainerStyle={[styles.conteudo, { paddingBottom: (naoPlanta ? 32 : ALTURA_BARRA + 36) + insets.bottom }]}
         showsVerticalScrollIndicator={false}
+        onScroll={aoRolar}
+        scrollEventThrottle={200}
       >
         {/* 2. Foto com selo de reconhecimento (nunca porcentagem) */}
         <FotoLupa imageUri={imageUri} marcas={marcas} destaque={destaque} rotulos={rotulosLupa}>
@@ -535,7 +577,9 @@ export default function DiagnosisScreen({ imageUri, resultado: r, onVoltar, onNo
         )}
 
         {/* Canal: ultimo video e inscricao (titulo muda se pediu para lembrar na tela de espera) */}
-        <CartaoCanal lembrou={lembrarCanal} />
+        <View onLayout={marcar("canal")}>
+          <CartaoCanal lembrou={lembrarCanal} />
+        </View>
 
         {/* 18. Rodape */}
         <View style={styles.rodape}>

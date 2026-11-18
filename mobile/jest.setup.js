@@ -39,3 +39,15 @@ jest.mock("expo-notifications", () => ({
   AndroidImportance: { DEFAULT: 3, HIGH: 4 },
   SchedulableTriggerInputTypes: { DATE: "date", DAILY: "daily", WEEKLY: "weekly", TIME_INTERVAL: "timeInterval" },
 }));
+
+jest.mock("expo-audio", () => ({
+  setAudioModeAsync: jest.fn(async () => undefined),
+  createAudioPlayer: jest.fn(() => ({
+    replace: jest.fn(),
+    play: jest.fn(),
+    pause: jest.fn(),
+    seekTo: jest.fn(async () => undefined),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    volume: 1,
+  })),
+}));

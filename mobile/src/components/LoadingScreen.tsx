@@ -32,11 +32,19 @@ import {
   Search,
   Sparkles,
   Users,
+  Volume2,
+  VolumeX,
 } from "lucide-react-native";
 import { MASCOT_ANALYZING, MASCOT_GIFT, MASCOT_POSES } from "../assets/mascot";
 import { COLORS, FONTS, RADIUS, shadowChunky, shadowSoft } from "../constants/theme";
 import { marcarLembrarCanal } from "../storage/preferencias";
 import { useReduzirMovimento } from "../hooks/useReduzirMovimento";
+import { locutor } from "../voz";
+import { falarEspera } from "../voz/acoes";
+import { salvarVozLigada } from "../storage/voz";
+
+// Carrossel fica parado no cartao citado pela voz ate 4 s depois do fim da fala (regra 10)
+const PAUSA_APOS_FALA_MS = 4000;
 
 // Etapas sao ilusao de progresso: avancam por tempo, nao pelo backend.
 // Calibradas no Opus 5.5 (fase 2: 25 a 35 s, media 27 s). Roteiro em docs/ROTEIRO-ESPERA-V2.md.
@@ -218,10 +226,14 @@ export function LoadingScreen({ imageUri }: Props = {}) {
   const [demorando, setDemorando] = useState(false);
   const [larguraBarra, setLarguraBarra] = useState(0);
   const [larguraSegmentos, setLarguraSegmentos] = useState(0);
+  const [carrosselParado, setCarrosselParado] = useState(false);
+  const [chamandoCanal, setChamandoCanal] = useState(false);
+  const [somLigado, setSomLigado] = useState(() => locutor.estaLigado);
 
   const laser = useRef(new Animated.Value(0)).current;
   const respiro = useRef(new Animated.Value(0)).current;
   const pulso = useRef(new Animated.Value(0)).current;
+  const pulsoBotao = useRef(new Animated.Value(0)).current;
   const brilho = useRef(new Animated.Value(0)).current;
   const relogioBarra = useRef(new Animated.Value(0)).current;
   const entradas = useRef(ENTRADA_ATRASOS_MS.map(() => new Animated.Value(0))).current;
@@ -237,24 +249,83 @@ export function LoadingScreen({ imageUri }: Props = {}) {
       setTimeout(() => setEtapa(i + 1), ms),
     );
     const demora = setTimeout(() => setDemorando(true), DEMORA_MS);
-    const intervaloCartao = setInterval(() => {
-      setCartao((c) => (c + 1) % CARTOES.length);
-    }, CARTAO_INTERVALO_MS);
     const intervaloContagem = setInterval(() => {
       setDecorridoMs((ms) => ms + CONTAGEM_PASSO_MS);
     }, CONTAGEM_PASSO_MS);
     return () => {
       timeouts.forEach(clearTimeout);
       clearTimeout(demora);
-      clearInterval(intervaloCartao);
       clearInterval(intervaloContagem);
     };
   }, []);
+
+  // Carrossel anda sozinho, menos enquanto a voz fala de um cartao
+  useEffect(() => {
+    if (carrosselParado) return;
+    const intervaloCartao = setInterval(() => {
+      setCartao((c) => (c + 1) % CARTOES.length);
+    }, CARTAO_INTERVALO_MS);
+    return () => clearInterval(intervaloCartao);
+  }, [carrosselParado]);
+
+  // Voz da espera: agenda a trilha, amarra cartao e botao do canal a cada fala e cancela com fade ao sair
+  useEffect(() => {
+    let soltar: ReturnType<typeof setTimeout> | null = null;
+    const sair = locutor.ouvir(({ tipo, item }) => {
+      if (tipo === "inicio") {
+        if (item.chamada) setChamandoCanal(true);
+        if (item.cartao) {
+          const indice = CARTOES.findIndex((c) => c.id === item.cartao);
+          if (indice >= 0) {
+            if (soltar) clearTimeout(soltar);
+            setCarrosselParado(true);
+            setCartao(indice);
+          }
+        }
+      } else {
+        if (item.chamada) setChamandoCanal(false);
+        if (item.cartao) {
+          if (soltar) clearTimeout(soltar);
+          soltar = setTimeout(() => setCarrosselParado(false), PAUSA_APOS_FALA_MS);
+        }
+      }
+    });
+    falarEspera(Date.now()).catch((err) => console.log("[voz] espera falhou", err));
+    return () => {
+      sair();
+      if (soltar) clearTimeout(soltar);
+      locutor.cancelar(true);
+    };
+  }, []);
+
+  // Pulso leve do botao do canal durante a chamada (com reduzir movimento, fica parado)
+  useEffect(() => {
+    if (!chamandoCanal || reduzir) {
+      pulsoBotao.setValue(0);
+      return;
+    }
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulsoBotao, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pulsoBotao, { toValue: 0, duration: 700, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [chamandoCanal, reduzir, pulsoBotao]);
+
+  function alternarSom() {
+    const novo = !somLigado;
+    setSomLigado(novo);
+    locutor.setLigado(novo);
+    salvarVozLigada(novo);
+  }
 
   function aoLembrarCanal() {
     if (lembrarCanal) return;
     setLembrarCanal(true);
     marcarLembrarCanal();
+    locutor.tocarSeLivre("lembrar_ok");
   }
 
   // Barra de progresso: um unico timing linear no driver nativo, a curva vem do interpolate.
@@ -310,7 +381,7 @@ export function LoadingScreen({ imageUri }: Props = {}) {
 
   // Segmento do cartao atual enche em 8 s, tipo stories. Com reduzir fica cheio e parado.
   useEffect(() => {
-    if (reduzir) {
+    if (reduzir || carrosselParado) {
       segmento.setValue(1);
       return;
     }
@@ -323,7 +394,7 @@ export function LoadingScreen({ imageUri }: Props = {}) {
     });
     anim.start();
     return () => anim.stop();
-  }, [cartao, reduzir, segmento]);
+  }, [cartao, reduzir, segmento, carrosselParado]);
 
   // Animacoes decorativas em loop: laser, respiro do mascote, pulso da etapa atual, brilho da barra.
   useEffect(() => {
@@ -456,6 +527,21 @@ export function LoadingScreen({ imageUri }: Props = {}) {
                 Analisando a sua planta
               </Text>
             </View>
+            <Pressable
+              onPress={alternarSom}
+              style={[styles.botaoSom, !somLigado && styles.botaoSomDesligado]}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: somLigado }}
+              accessibilityLabel={somLigado ? "Voz do Doutor ligada. Toque para desligar" : "Voz do Doutor desligada. Toque para ligar"}
+              hitSlop={8}
+              testID="botao-som"
+            >
+              {somLigado ? (
+                <Volume2 size={26} color="#fff" strokeWidth={2.4} />
+              ) : (
+                <VolumeX size={26} color={COLORS.greenDeep} strokeWidth={2.4} />
+              )}
+            </Pressable>
           </Animated.View>
 
           <Animated.View style={[styles.avisoEntrada, blocos[1]]}>
@@ -643,6 +729,9 @@ export function LoadingScreen({ imageUri }: Props = {}) {
                     {textoCartao}
                   </Text>
                   {cartaoAtual.id === "canal" && (
+                    <Animated.View
+                      style={{ transform: [{ scale: pulsoBotao.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }) }] }}
+                    >
                     <Pressable
                       onPress={aoLembrarCanal}
                       style={[styles.botaoCanal, lembrarCanal && styles.botaoCanalFeito]}
@@ -656,9 +745,10 @@ export function LoadingScreen({ imageUri }: Props = {}) {
                         <BellRing size={16} color="#fff" strokeWidth={2.5} />
                       )}
                       <Text style={[styles.botaoCanalTexto, lembrarCanal && styles.botaoCanalTextoFeito]}>
-                        {lembrarCanal ? "Combinado! O link vai no seu relatório" : "Lembrar de ver o canal"}
+                        {lembrarCanal ? "Combinado! O link vai no seu laudo" : "Lembrar de ver o canal"}
                       </Text>
                     </Pressable>
+                    </Animated.View>
                   )}
                 </View>
               </View>
@@ -737,6 +827,19 @@ const styles = StyleSheet.create({
   cabecalhoTextos: {
     flex: 1,
     gap: 2,
+  },
+  botaoSom: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.green,
+  },
+  botaoSomDesligado: {
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: COLORS.greenDeep,
   },
   seloTexto: {
     fontFamily: FONTS.bodyExtraBold,
