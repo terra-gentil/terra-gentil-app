@@ -2,7 +2,7 @@
 
 Nove apps analisados pelas capturas oficiais da Google Play e da App Store (BR) e por avaliacoes: Plantix, PictureThis, PlantApp, PlantNet, Plantum, Blossom, Planta, Greg e PlantIn. Relatorios completos e capturas de referencia em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/concorrentes. Ressalva: as capturas sao de marketing e nenhuma mostra a tela de resultado inteira.
 
-Recomendacao abaixo feita por um agente Fable sobre os tres relatorios. AINDA PRECISA DA APROVACAO DO ANDRE.
+Recomendacao abaixo feita por um agente Fable sobre os tres relatorios. Aprovada pelo Andre em 17/11/2026.
 
 ## A. Veredito
 

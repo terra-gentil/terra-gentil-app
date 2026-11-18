@@ -1,6 +1,12 @@
 # PROGRESSO - Terra Gentil
 
-## PROXIMA SESSAO: levar a tela de resultado v2 ao Claude Design (tudo pronto para isso)
+## PROXIMA SESSAO: trazer o retorno do Claude Design da tela de resultado v2 e portar
+
+Atualizado 2026-11-17 22h30. Lista da pesquisa aprovada inteira pelo Andre. Pacote enviado:
+/Users/andrehz/Documents/Githubhz/terra-gentil-app/design-handoff-resultado.zip (58 arquivos: BRIEF-DESIGN.md, codigo-atual/ com DiagnosisScreen e componentes, exemplos/ com 12 JSON + fotos, concorrentes/ com 8 capturas, mascote, PESQUISA). Pasta e zip no .gitignore.
+Proximo: Andre cria projeto no claude.ai/design, arrasta o zip, cola o BRIEF. Quando aprovar, salvar o export em /Users/andrehz/Documents/Githubhz/terra-gentil-app/design-handoff-resultado/retorno/ e portar para React Native (tipo DiagnosticoResponse do app ainda e v1: estender com os campos v2), manter props e testID cartao-lembrete-canal, jest + tsc, commit, eas update --branch production (leva tambem os 133 livros).
+
+## (anterior) levar a tela de resultado v2 ao Claude Design
 Lista APROVADA pelo Andre em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/PESQUISA-CONCORRENTES.md (secoes B, D e G).
 1. Rodar /enviar-design com: mobile/src/components/redesign/DiagnosisScreen.tsx, os 12 JSON reais finais em docs/exemplos-relatorio-v2 (ja com ebooks, tipo do passo, rega_ml, vaso_estimado_cm, como_evitar), as 8 capturas em docs/concorrentes e no BRIEF a ordem dos 19 blocos da secao D. Restricoes: manter testIDs/exports, quimico sempre recolhido e sem link, ofertas em faixa separada.
 2. Andre aprova no Claude Design, agente porta para React Native (EbookViewerModal para o "Leia de graca", lembrete local com expo-notifications, que ja esta no build), jest + tsc, commit, eas update --branch production (leva tambem os 133 livros da aba Ebooks).
