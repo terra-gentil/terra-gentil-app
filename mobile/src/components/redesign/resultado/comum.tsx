@@ -41,12 +41,12 @@ export const cartao = StyleSheet.create({
   },
 });
 
-// Indicador de "toque para abrir": chevron num circulo colorido; com `texto`, vira pilula "Ver" / "Fechar"
+// Indicador de "toque para abrir": pilula "Ver" / "Fechar" com chevron (publico mais velho precisa da palavra)
 export function Chevron({
   aberto,
   cor = COLORS.greenDark,
   tamanho = 20,
-  texto = false,
+  texto = true,
 }: {
   aberto: boolean;
   cor?: string;
