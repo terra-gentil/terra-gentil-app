@@ -3,10 +3,10 @@
 ## 2026-11-19 manha: 1.1.0 no ar, ficha aprovada, OTA do app antigo publicada
 
 - Pagina publica da Play conferida: 1.1.0 no ar ("O que ha de novo" com as notas da 1.1.0, Seguranca dos dados nova). Play Console: nada em revisao, ultima publicacao 19/11 (envio 6 da ficha aprovado), Status da politica sem problemas.
-- OTA de atualizacao obrigatoria do app antigo PUBLICADA (canal production, runtime exposdk:54.0.0, update group 6444bd00-07ed-4769-8407-e6a1c8927928, commit 05f46f7). Nao atinge a 1.1.0 (runtime 2.1.0).
+- OTA de atualizacao obrigatoria do app antigo PUBLICADA (canal production, runtime exposdk:54.0.0, update group 6444bd00-07ed-4769-8407-e6a1c8927928, commit 05f46f7). Nao atinge a 1.1.0 (runtime 2.1.0). CONFERIDA no celular as 11h23: tela "Tem uma versao nova" aparece (so na 2a abertura a frio, o app baixa em segundo plano na 1a).
 - S23 nao estava no adb: Andre desinstala o APK de teste e instala o Terra Gentil pela Play (assinatura diferente).
 - PENDENTE: descricao completa da ficha ainda diz que o diagnostico usa so o Google Gemini; atualizar para Claude (Anthropic) + Gemini numa proxima edicao da ficha (gera nova revisao).
-- PROXIMO: (1) abrir o app 1.0.0 num celular com a 1.0.0 (fechar e abrir 2x) e ver a tela "Tem uma versao nova"; (2) S23 pela Play; (3) corrigir descricao da ficha.
+- PROXIMO: (1) conferir o botao "Atualizar agora" abrindo a Play; (2) S23 pela Play; (3) corrigir descricao da ficha.
 
 ## 2026-11-19 madrugada: 1.1.0 PUBLICADA na Play (vc5)
 
