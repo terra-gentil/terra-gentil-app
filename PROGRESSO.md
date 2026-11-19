@@ -1,5 +1,14 @@
 # PROGRESSO - Terra Gentil
 
+## 2026-11-19 madrugada: 1.1.0 PUBLICADA na Play (vc5)
+
+- Envio 5 (Producao 5 (1.1.0) 100% todos os paises + Seguranca dos dados) PUBLICADO em 18/11 ~22h, aprovado em minutos.
+- vc4 tambem foi descartado: a Play alertou "android.hardware.screen.portrait obrigatorio restringe dispositivos" (vem do orientation portrait). Correcao: plugin /Users/andrehz/Documents/Githubhz/terra-gentil-app/mobile/plugins/recursos-hardware-opcionais.js (tela retrato/paisagem required=false) + versionCode 5 (commit 7bbc17a). Build vc5: a9190473-7269-4337-8464-3c8a2cedadae. REGRA do Andre: alerta da Play se corrige com build novo, nunca "continuar mesmo assim".
+- Notas da versao 1.1.0 guardadas em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/play/notas-versao-1.1.0.txt (release 3 com vc4 ficou sem envio, foi substituida pela release 4/"5 (1.1.0)").
+- Envio 6 (ficha da loja: icone novo + video removido, declaracao de IA "nao rotular", logo feito a mao) EM ANALISE desde 19/11 00h19.
+- Aviso que sobra em todo build: sem arquivo de desofuscacao (nao bloqueia).
+- PROXIMO: (1) conferir que a 1.1.0 aparece na pagina da Play; (2) com OK do Andre, publicar a OTA de atualizacao obrigatoria do app antigo (comando no item de 18/11 abaixo); (3) conferir aprovacao do envio 6; (4) desinstalar o APK de teste do S23 e instalar pela Play.
+
 ## 2026-11-18 noite: 1.1.0 indo para a Play (logo novo, politica, Seguranca dos dados, atualizacao obrigatoria)
 
 - Logo da Terra Gentil (igual ao avatar do canal, flor amarela + TERRA GENTIL no preto) no icone, icone adaptativo, splash (fundo preto), favicon e icone de notificacao (flor branca). Commit 65b044b. Icone 512 da loja em /Users/andrehz/Documents/Githubhz/terra-gentil-app/docs/play/icone-loja-512.png.
