@@ -1,5 +1,15 @@
 # PROGRESSO - Terra Gentil
 
+## 2026-11-19 manha: 1.1.0 no ar e ficha aprovada; falta so a OTA do app antigo
+
+- Pagina publica da Play conferida: 1.1.0 no ar ("O que ha de novo" com as notas da 1.1.0, Seguranca dos dados nova). Play Console: nada em revisao, ultima publicacao 19/11 (envio 6 da ficha aprovado), Status da politica sem problemas.
+- OTA de atualizacao obrigatoria do app antigo NAO publicada: o modo automatico do Claude Code bloqueou o comando. Andre roda no terminal:
+  ! cd /Users/andrehz/Documents/Githubhz/terra-gentil-app-antigo/mobile && npx -y eas-cli@latest update --branch production --message "Atualizacao obrigatoria para 1.1.0" --non-interactive
+  (runtime do app antigo = sdkVersion, exposdk:54.0.0; o vc5 usa 2.1.0, entao a OTA nao atinge a 1.1.0.)
+- S23 nao estava no adb: Andre desinstala o APK de teste e instala o Terra Gentil pela Play (assinatura diferente).
+- PENDENTE: descricao completa da ficha ainda diz que o diagnostico usa so o Google Gemini; atualizar para Claude (Anthropic) + Gemini numa proxima edicao da ficha (gera nova revisao).
+- PROXIMO: (1) Andre roda a OTA acima; (2) abrir o app 1.0.0 num celular antigo e ver a tela "Tem uma versao nova"; (3) S23 pela Play; (4) corrigir descricao da ficha.
+
 ## 2026-11-19 madrugada: 1.1.0 PUBLICADA na Play (vc5)
 
 - Envio 5 (Producao 5 (1.1.0) 100% todos os paises + Seguranca dos dados) PUBLICADO em 18/11 ~22h, aprovado em minutos.
